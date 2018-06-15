@@ -1,0 +1,230 @@
+<style lang="less">
+  page{
+    background-color: #ffffff;
+  }
+  .topBox{
+    display: flex;
+    flex-direction: column;
+  }
+  .goods-img{
+    display: flex;
+    justify-content: center;
+    padding: 70rpx 0 30rpx 0;
+    height: 140rpx;
+    overflow: hidden;
+    image{
+      width: 140rpx;
+      height: 140rpx;
+    }
+  }
+  .goods-name{
+    font-size: 33rpx;
+    padding-bottom: 20rpx;
+    color: #333333;
+    text-align: center;
+  }
+  .startBox{
+    position: relative;
+    margin: 0 166rpx 0 166rpx;
+    height: 50rpx; 
+    padding-bottom: 30rpx;
+  }
+  .prompt{
+    border-bottom: 1px solid #efeff4;
+    padding-bottom: 10rpx;
+    margin: 0 40rpx;
+    text-align: center;
+    color: rgb(211,211,211);
+    font-size: 23rpx;
+  }
+  .section{
+     margin: 0 40rpx;
+     padding-top: 40rpx; 
+  }
+  textarea{
+    width: 100%;
+    color: #333333;
+    height: 304rpx;
+  }
+  .maxInput{
+    margin: 0 40rpx;
+    text-align: right;
+    font-size: 28rpx;
+    color: #969696;
+  }
+  .uploadImg{
+    display: flex;
+    flex-direction: column;
+    margin: 30rpx 40rpx;
+  }
+  .camera{
+    display: flex;
+    flex-direction: column;
+    border: 2rpx dashed #b1b1b1;
+    width: 160rpx;
+    height: 160rpx;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 130rpx;
+    image{
+      width: 65rpx;
+      height: 50rpx;
+      margin-bottom: 15rpx;
+    }
+    text{
+      color: #969696;
+      font-size: 24rpx;
+      letter-spacing: 3rpx;
+    }
+  }
+  .userUpload-box{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    image{
+      width: 160rpx;
+      height: 160rpx;
+      margin-right: 10rpx;
+      margin-bottom: 30rpx;
+    }
+  }
+</style>
+<template>
+  <view class = 'container'>
+    <view class = 'topBox'>
+      <view class = 'goods-img'><image src="{{goods.cover}}"/></view>
+      <view class = 'goods-name'>{{goods.title}}</view>
+      <commentStar/>
+      <view class='prompt'>-- 打个评分吧 --</view>
+    </view>
+    <view class="section">
+      <textarea placeholder="{{placeholder}}" placeholder-style="color:#969696;font-size:32rpx;letter-spacing:5rpx;" maxlength='500' @input = 'sectionValue' />
+    </view>
+    <view class='maxInput'>{{leng}}/500</view>
+    <view class='uploadImg'>
+      <view class = 'userUpload-box'>
+        <block wx:for="{{tempFilePaths}}" wx:key='idx'>
+          <image src="{{item}}" mode='widthFix'/>
+        </block>
+      </view>
+      <view class='camera' @tap='chooseImage'><image src='http://applet.qumatou.com.cn/static/shop/相机.png'/><text>添加照片</text></view>
+    </view>
+    <button class="preservation-btn {{btnUse?'btnUse':''}}" disabled="{{disabled}}" @tap='uploadComment'>
+      发布评论
+    </button>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+  import commentStar from '../components/commentStar'
+
+  export default class New extends wepy.page {
+    config = {
+      navigationBarTitleText: '评论',
+    }
+  	data = {
+      goods:{},
+      placeholder:'快告诉小伙伴宝贝有多好吧，大家都等着你的心得呢～（请至少写入5个字）',
+      btnUse:false,
+      disabled:true,
+      tempFilePaths:[],
+      commentContent:'',
+      star:'',
+      leng:0,
+      userId:'',
+    }
+    components = {
+      commentStar:commentStar
+    }
+    onLoad(options){
+      this.goods = options
+      this.$apply()
+    }
+    methods = {
+      sectionValue(e){
+        let leng = e.detail.value.length
+        this.leng = leng
+        if(leng >= 5){
+          this.disabled = false
+          this.btnUse = true
+          // console.log(e.detail.value)
+          this.commentContent = e.detail.value
+        }else{
+          this.disabled = true
+          this.btnUse = false
+        }
+      },
+      chooseImage(){
+        let that = this;
+        wx.chooseImage({
+          count: 3, // 默认9
+          sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+          sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+          success: function (res) {
+            // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
+            var tempFilePaths = res.tempFilePaths;
+            that.tempFilePaths.push(tempFilePaths)
+            that.$apply()
+          }
+        })
+      },
+      uploadComment(){
+        let star = wepy.$instance.globalData.score;
+        this.star = star
+        if(!this.star){
+          wx.showToast({
+            title: '您还未评分哟',
+            icon: 'none',
+            image: '../images/星星.png',
+            duration: 2000
+          })
+        }else{
+          wx.getStorage({
+            key:'userId',
+            success:(res)=>{
+              this.userId = res.data
+              this.$apply()
+              this.userComment()
+            }
+          })
+        }
+      }
+    }
+     //发布评论
+    async userComment(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderComments';
+      const data = {
+        orderId: that.goods.orderId,
+        goodId:that.goods.id,
+        merchantId:wepy.$instance.globalData.payMessage.merchantId,
+        userId:that.userId,
+        content:that.commentContent,
+        images:that.tempFilePaths.length == 0?'':that.tempFilePaths,
+        score:that.star
+      }
+      // console.log(data)
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        console.log(res)
+        wx.showToast({
+            title: '感谢您的评价',
+            icon: 'none',
+            image: '../images/感谢.png',
+            duration: 1000,
+            success:()=>{
+              // setTimeout(()=>{
+              //   wx.switchTab({
+              //     url: 'index'
+              //   })
+              // },1000)
+            }
+          })
+      })
+    }
+  }
+</script>

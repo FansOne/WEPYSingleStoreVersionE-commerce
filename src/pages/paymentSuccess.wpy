@@ -1,0 +1,157 @@
+<style lang="less">
+  page{
+    background-color: #ffffff;
+  }
+  .paymentTop{
+    height: 276rpx;
+    background-color: #f3825d;
+    display: flex;
+    flex-direction: column;
+    color: #ffffff;
+    font-size: 32rpx;
+    font-weight: bold;
+    letter-spacing: 3rpx;
+    image{
+      width: 90rpx;
+      height: 90rpx;
+    }
+    view{
+      margin-top: 60rpx;
+      display: flex;
+      justify-content: center;
+    }
+    text{
+      display: block;
+      text-align: center;
+      margin-top: 20rpx;
+    }
+  }
+  .paymentmiddle{
+    margin: 0 60rpx;
+    border-bottom: 1px solid #efeff4;
+    view:nth-child(1){
+      text-align: center;
+      margin-top: 70rpx;
+      font-size: 28rpx;
+      letter-spacing: 4rpx;
+      color: #969696;
+    }
+    view:nth-child(2){
+      text-align: center;
+      margin-top: 30rpx;
+      font-size: 46rpx;
+      font-weight: bold;
+      color: #fd2323;
+      margin-bottom: 50rpx;
+    }
+  }
+  .paymentBottom{
+     margin: 0 60rpx;
+     border-bottom: 1px solid #efeff4;
+     padding-top: 50rpx;
+  }
+  .userInfo{
+    color: #333333;
+    font-size: 32rpx;
+    margin-bottom: 50rpx;
+  }
+  .paymentBottom-btn{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 40rpx;
+    view{
+      width: 250rpx;
+      height: 84rpx;
+      text-align: center;
+      line-height: 84rpx;
+    }
+    view:nth-child(1){
+      background-color: #efeff4;
+      color: #333333;
+      font-size: 28rpx;
+      letter-spacing: 2rpx;
+    }
+    view:nth-child(2){
+      background-color: #f3825d;
+      color: #ffffff;
+      font-size: 28rpx;
+      letter-spacing: 2rpx;
+    }
+  }
+  .readPrompt{
+     margin: 0 60rpx;
+     font-size: 22rpx;
+     color: #969696;
+     letter-spacing: 3rpx;
+     margin-top: 60rpx;
+  }
+</style>
+<template>
+  <view calss='container'>
+    <view class='paymentTop'>
+      <view><image src='../images/paymentSuccess.png'/></view>
+      <text>支付成功</text>
+    </view>
+    <view class='paymentmiddle'>
+      <view>您已成功支付</view>
+      <view>¥ {{payment}}</view>
+    </view>
+    <view class = 'paymentBottom'>
+      <view class='userInfo'>{{userInfo.userName}}</view>
+      <view class='userInfo'>{{userInfo.telNumber}}</view>
+      <view class='userInfo'>{{userInfo.provinceName+userInfo.cityName+userInfo.countyName+userInfo.detailInfo}}</view>
+      <view class = 'paymentBottom-btn'>
+        <view @tap = 'seeOrder'>查看订单</view>
+        <view @tap = 'goIndex'>继续购物</view>
+      </view>
+    </view>
+    <view class = 'readPrompt'>{{readPrompt}}</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class New extends wepy.page {
+    config = {
+      navigationBarTitleText: '支付成功',
+    }
+  	data = {
+  		payment: 0,
+      userInfo:{},
+      readPrompt:'安全提醒：我们不会以系统维护，订单异常等理由，要求您进行任何方式的退款操作，或以各种理由索取您的隐私信息（如个人信息,会员账号信息,银行卡账户,密码以及手机验证码等）。',
+  	}
+    components = {}
+    methods = {
+      seeOrder(){
+        wx.redirectTo({
+          url: 'orderDetails'
+        })
+      },
+      goIndex(){
+        wx.switchTab({
+          url: 'index'
+        })
+      }
+    }
+    onLoad(){
+      let that = this;
+      wx.getStorage({
+        key: 'totalPrice',
+        success: function(res) {
+            // console.log(res.data)
+            that.payment = res.data
+            that.$apply()
+        } 
+      })
+      wx.getStorage({
+        key: 'address',
+        success: function(res) {
+            // console.log(res.data)
+            that.userInfo = res.data
+            that.$apply()
+        } 
+      })
+    }
+  }
+</script>

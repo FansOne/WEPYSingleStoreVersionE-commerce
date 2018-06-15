@@ -1,0 +1,172 @@
+<style lang="less">
+	page{
+		background-color: #fff;
+	}
+	.company-OrderNubmer-box{
+		background-color: rgb(236,235,243);
+		height: 250rpx;
+		padding: 0 40rpx;
+		display: flex;
+		flex-direction: column;
+		.company-box{
+			letter-spacing: 3rpx;
+			margin-top: 60rpx;
+			margin-bottom: 30rpx;
+			view{
+				letter-spacing: 3rpx;
+				color: #333;
+				font-size: 31rpx;
+			}
+		}
+		.orderNubmer-box{
+			height: 46rpx;
+			line-height: 46rpx;
+			letter-spacing: 3rpx;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			view:nth-child(1){
+				color: #333;
+				font-size: 31rpx;
+				.logistic_number{
+					letter-spacing: 4rpx;
+					color: rgb(43,122,237);
+				}
+			}
+			.copyNumber{
+				width: 75rpx;
+				height: 46rpx;
+				text-align: center;
+				color: #fff;
+				font-size: 26rpx;
+				background-color: #b1b1b1;
+			}
+		}
+	}
+	.middle-text{
+		color: #333;
+		font-size: 33rpx;
+		padding: 45rpx 40rpx;
+		border-bottom: 1rpx solid #efeff4;
+	}
+	.logisticContent-box{
+		margin-top: 55rpx;
+		margin-bottom: 45rpx;
+		padding: 0 40rpx 0 100rpx;
+	}
+	.logisticsStyle{
+		position: relative;
+		width: 100%;
+		border-left:2rpx solid #b1b1b1;
+		padding-left: 25rpx;
+		margin-bottom: 30rpx;
+		.circular{
+			width: 20rpx;
+			height: 20rpx;
+			border-radius: 50%;
+			background-color: #b1b1b1;
+			position: absolute;
+			left: -11rpx;
+			top: -23rpx;
+		}
+		.trackStatus-trackDate-box{
+			/*border:1px solid red;*/
+			transform: translateY(-30rpx);
+			.trackStatus{
+				color: #333;
+				font-size: 27rpx;
+				margin-bottom: 20rpx;
+			}
+			.trackDate{
+				color: #969696;
+				font-size: 22rpx;
+			}
+		}
+	}
+	.circularBg{
+		background-color: #f3825d !important;
+	}
+</style>
+<template>
+  <view class = 'container'>
+	<view class = 'company-OrderNubmer-box'>
+		<view class ='company-box'>
+			<view>物流公司：{{logisticsData.logistic_title}}</view>
+		</view>
+		<view class='orderNubmer-box'>
+			<view>物流单号：<text class='logistic_number'>{{logisticsData.logistic_number}}</text></view>
+			<view @tap="copyNumber" class='copyNumber'>复制</view>
+		</view>
+	</view>
+	<view class='middle-text'>订单跟踪</view>
+	<view class ='logisticContent-box'>
+		<block wx:for="{{trackList}}" wx:key="index">
+			<view class='logisticsStyle'>
+				<view class="circular {{item.status?'circularBg':''}}" data-index = "{{index}}"></view>
+				<view class = 'trackStatus-trackDate-box'>
+					<view class = 'trackStatus'>{{item.TrackStatus}}</view>
+					<view class = 'trackDate'>{{item.TrackDate}}</view>
+				</view>
+			</view>
+		</block>
+	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	config = {
+  		navigationBarTitleText: '物流追踪',
+  	}
+  	data = {
+  		logisticsData:{},
+  		//实时物流状态
+  		trackList:[],
+  	}
+    onLoad(){
+    	this.getLogistics()
+    }
+    methods = {
+    	copyNumber(){
+	        var self=this;
+	        wx.setClipboardData({ 
+	          data: self.logisticsData.logistic_number,
+	          success: function(res) {
+	            wx.showToast({
+	              title: '复制成功',
+	              icon: 'none',
+	              image: '../images/复制.png',
+	              duration: 1000
+	            })
+	          }
+	        })
+    	}
+    }
+    //物流信息
+    getLogistics(){
+      const that = this;
+      const url = api.apiMall + '/shop/logistic';
+      const data = {
+        orderId: 122,
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data)
+        that.logisticsData = res.data
+        that.trackList = res.data.logistic.TrackList.reverse()
+        that.$apply()
+        // console.log(that.trackList.length)
+        that.trackList.forEach((item,index)=>{
+        	item.status = false
+        })
+        that.trackList[0].status = true
+        that.$apply()
+      })
+    }
+  }
+</script>

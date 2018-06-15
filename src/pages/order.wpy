@@ -1,0 +1,296 @@
+<style lang="less">
+  page{
+    background-color: #ffffff;
+  }
+  .notice {
+      width:28rpx;
+      height:28rpx;
+      color:#fff;
+      text-align:center;
+      background-color:#ec9e14;
+      border-radius:50%;
+      position:absolute;
+      float:left;
+      top:5rpx;
+      font-size: 30rpx;
+      right:30rpx;
+      line-height:30rpx; 
+  }
+
+  /*顶部导航样式*/
+  .navbar{ 
+    flex: none; 
+    display: flex; 
+    background: #ffffff; 
+    z-index: 50; 
+  } 
+  .navbar .item{ 
+    position: relative; 
+    flex: auto; 
+    text-align: center;
+    line-height: 60rpx; 
+    font-size: 30rpx;
+    color: #666666;
+    font-family: Microsoft YaHei;
+    border-bottom: 1px solid #efeff4;
+    padding-bottom: 40rpx;
+  } 
+  .navbar .item.active{ 
+    color: #ec9e14; 
+    font-size: 30rpx;
+    font-family: Microsoft YaHei;
+  } 
+  .navbar .item.active:after{ 
+      content: ""; 
+      position: absolute;
+      bottom: 32rpx; 
+      left: 0; 
+      right: 0;
+      margin: auto; 
+      height: 0;
+      width: 0;
+      border: 10rpx solid  transparent;
+      border-bottom: 15rpx solid #ec9e14;
+    }
+  .goIndex{
+    background-color: rgb(227,108,70);
+    height: 70rpx;
+    width: 200rpx;
+    margin-right: 0;
+    margin-left: 0;
+    margin: auto;
+    text-align: center;
+    line-height: 70rpx;
+    color: #ffffff;
+    font-size: 28rpx; 
+    margin-top: 80rpx;
+    /*box-shadow: 5px 0px 5px #efeff4;*/
+  }
+</style>
+<template>
+  <view class='container'>
+    <!--导航菜单-->
+    <view class="navbar" style=" z-index:50">
+      <!--循环-->
+      <view wx:for="{{navbar}}" data-idx="{{index}}" wx:key="unique" class="item {{currentTab==index ? 'active' : ''}}" @tap="navbarTap">
+        <view class="notice" wx:if="{{count[index]>0}}">{{count[index]}}</view>
+        {{item}}
+      </view>
+    </view>
+
+    <!--全部-->
+    <view hidden="{{currentTab !== 0}}" id="one">
+      <!-- 未购买商品时显示的页面 -->
+      <view wx:if="{{noBuy}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+            <text>您还没有订单呢！</text>
+          </view>
+          <view class='goIndex' @tap ='goIndex'>去逛逛</view>
+        </view>
+      </view>
+      <view wx:else class='allOrder'>
+        <pendingDelivery/>
+        <waitPuy/>
+        <waitCollectGoods/>
+        <orderEvaluate/>
+        <transactionClose/>
+      </view>
+    </view>
+
+    <!--待付款-->
+    <view hidden="{{currentTab !== 1}}" id="one">
+      <view wx:if="{{waitPuy}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+            <text>您还没有待付款订单呢！</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else>
+        <waitPuy/>
+      </view>
+    </view>
+
+    <!--待发货-->
+    <view hidden="{{currentTab !== 2}}" id="one">
+      <view wx:if="{{pendingGoods}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+            <text>您还没有待发货订单呢！</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else>
+        <pendingDelivery/>
+      </view>
+    </view>
+
+    <!--待收货-->
+    <view hidden="{{currentTab !== 3}}" id="one">
+      <view wx:if="{{waitCollectGoods}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+            <text>您还没有待收货订单呢！</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else>
+        <waitCollectGoods/>
+      </view>
+    </view>
+
+    <!--评价-->
+    <view hidden="{{currentTab !== 4}}" id="one">
+      <view wx:if="{{orderEvaluat}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+            <text>您还没有待评价订单呢！</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else>
+        <orderEvaluate/>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import pendingDelivery from '../components/pendingDelivery'
+  import transactionClose from '../components/transactionClose'
+  import waitPuy from '../components/waitPuy'
+  import waitCollectGoods from '../components/waitCollectGoods'
+  import orderEvaluate from '../components/orderEvaluate'
+
+  export default class New extends wepy.page {
+  	config = {
+      navigationBarTitleText: '我的订单'
+    }
+    data = {
+    	navbar: ['全部', '待付款', '待发货',"待收货",'评价'],
+      //count:[0,2,3],                 //记录不同状态记录的数量
+      currentTab: 0,
+      noBuy:false,
+      pendingGoods: false,
+      waitPuy:false,
+      waitCollectGoods: false,
+      orderEvaluat: false,
+      //列表是否为空
+      waitPuy_staus:0,
+      pendingGoods_staus:0,
+      waitCollectGoods_staus:0,
+      orderEvaluat_staus:0,
+    }
+    components = {
+      pendingDelivery: pendingDelivery,
+      transactionClose: transactionClose,
+      waitPuy: waitPuy,
+      waitCollectGoods: waitCollectGoods,
+      orderEvaluate: orderEvaluate
+    }
+    onShow(){
+      wx.getStorage({
+        key:'waitPuy',
+        success:(e)=>{
+          this.waitPuy_staus = e.data
+          this.$apply()
+        }
+      })
+      wx.getStorage({
+        key:'pendingGoods',
+        success:(e)=>{
+          this.pendingGoods_staus = e.data
+          this.$apply()
+        }
+      })
+      wx.getStorage({
+        key:'waitCollectGoods',
+        success:(e)=>{
+          this.waitCollectGoods_staus = e.data
+          this.$apply()
+        }
+      })
+      wx.getStorage({
+        key:'orderEvaluat',
+        success:(e)=>{
+          this.orderEvaluat_staus = e.data
+          this.$apply()
+        }
+      })
+    }
+    watch = {
+      currentTab (newValue, oldValue) {
+          // console.log(newValue)
+          if(newValue == 1){
+            wx.getStorage({
+              key:'waitPuy',
+              success:(e)=>{
+                if(e.data==0){
+                  this.waitPuy = true
+                  this.$apply()
+                }
+              }
+            })
+          }else if(newValue == 2){
+            wx.getStorage({
+              key:'pendingGoods',
+              success:(e)=>{
+                if(e.data==0){
+                  this.pendingGoods = true
+                  this.$apply()
+                }
+              }
+            })  
+          }else if(newValue == 3){
+            wx.getStorage({
+              key:'waitCollectGoods',
+              success:(e)=>{
+                if(e.data==0){
+                  this.waitCollectGoods = true
+                  this.$apply()
+                }
+              }
+            })  
+          }else if(newValue == 4){
+            wx.getStorage({
+              key:'orderEvaluat',
+              success:(e)=>{
+                if(e.data==0){
+                  this.orderEvaluat = true
+                  this.$apply()
+                }
+              }
+            })  
+          }
+      }
+    }
+    computed = {
+      allStaus(){
+        if(this.waitPuy_staus == 0 && this.pendingGoods_staus == 0 && this.waitCollectGoods_staus == 0 && this.orderEvaluat_staus == 0){
+          this.noBuy = true
+        }else if (this.waitPuy_staus || this.pendingGoods_staus || this.waitCollectGoods_staus || this.orderEvaluat_staus){
+          this.noBuy = false
+        }
+      }
+    }
+    methods = {
+    	navbarTap(e){
+    		var that = this;
+        that.currentTab = e.currentTarget.dataset.idx,
+        that.TypeItem = that.navbar[that.currentTab]
+        // console.log(that.currentTab)
+    	},
+      goIndex(){
+        wx.switchTab({
+          url: 'index'
+        })
+      }
+    }
+  } 
+</script>

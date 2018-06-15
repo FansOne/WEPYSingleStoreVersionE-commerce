@@ -1,0 +1,377 @@
+<style lang="less">
+  page{
+  	background-color: #ffffff;
+    margin-bottom: 120rpx;
+  }
+  .deliverGoods-box{
+  	display: flex;
+  	flex-direction: row;
+  	height: 262rpx;
+  	width: 100%;
+    box-sizing: border-box;
+  	padding: 52rpx 40rpx;
+  	background-color: #efeff4;
+    .goodsStatus{
+      width: 100%;
+      view{
+        margin-top: 20rpx;
+        line-height: 60rpx;
+      };
+    }
+    .jiantou{
+      display: flex;
+      align-items: center;
+      width: 20%;
+      height: 264rpx;
+      justify-content: center;
+      transform: translateY(-52rpx);
+      image{
+        width: 45rpx;
+        height: 45rpx;
+      }
+    }
+  }
+  .deliverGoods-box .goodsStatus-paddingTop{
+    padding-top: 23rpx;
+  }
+  .bottom-btnBox{
+  	position: fixed;
+  	bottom: 0;
+  	height: 120rpx;
+  	width: 100%;
+  	display: flex;
+  	flex-direction: row;
+  	line-height: 120rpx;
+  	text-align: center;
+  	button:nth-child(1){
+  		flex:0.5;
+  		background-color: rgb(52,52,52);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 33rpx;
+  		color: #ffffff;
+  		letter-spacing: 3rpx;
+      border-radius: 0;
+  	}
+  	button:nth-child(2){
+  		flex:0.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 33rpx;
+  		background-color: rgb(239,110,75);
+  		color: #ffffff;
+  		letter-spacing: 3rpx;
+      border-radius: 0;
+  	}
+  }
+  .bottom-btnBox button.disabledButton{
+    background-color: rgb(177,178,177);
+  }
+  .bottom-btnBox button.applySale{
+    background-color: rgb(239,110,75);
+  }
+  .numberAndTime{
+    margin: 0 40rpx;
+    display: flex;
+    border-bottom:1px solid #efeff4; 
+    flex-direction: column;
+    .copyNumber{
+      margin-top: 25rpx;
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row;
+      view:nth-child(1){
+        width: 30%;
+        text-align: left;
+      };
+      .copyContentBox{
+        display: flex;
+        flex-direction: row;
+        color: #969696;
+      }
+    }
+  }
+  .tblin_items_btn{
+    border: 1px solid #969696;
+    font-size: 23rpx;
+    display: flex;
+    color: #969696;
+    align-items: center;
+    justify-content: center;
+    width: 95rpx;
+    margin-right: 5rpx;
+    margin-left: 20rpx;
+  }
+  .orderTime_box{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 25rpx 0;
+    .order_time{
+      color: #969696;
+      font-size: 33rpx;
+      letter-spacing: 2rpx;
+    }
+  }
+  .depressedIcon{
+    /*width: 500rpx;*/
+    transform: translateY(10rpx);
+    position: absolute;
+    left: 50%;
+    padding-top: 20rpx;
+    image{
+      width: 88rpx;
+      height: 88rpx;
+    }
+  }
+</style>
+<template>
+  <view class='container'>
+  	<view wx:if="{{trackStatus}}" class ='deliverGoods-box' @tap = 'goLogistics'>
+  		<view class='goodsStatus'>
+  			<view>{{trackList.TrackStatus}}</view>
+  		</view>
+  		<view class='jiantou'><image src='http://applet.qumatou.com.cn/static/shop/箭头.png'/></view>
+  	</view>
+    <view wx:else class ='deliverGoods-box'>
+      <view class='goodsStatus goodsStatus-paddingTop'>
+        <view>{{noTrackStatus}}</view>
+      </view>
+      <view class='depressedIcon'><image src='../images/等待.png'/></view>
+    </view>
+    <view class='confirmOrder-top'>
+    <view class='messages'>
+      <view class='nameTel'>
+        <view>{{userAddress.truename}}</view>
+        <view>{{userAddress.mobile}}</view>
+      </view>
+      <view class='userAddress' style='color:#969696;letter-spacing: 3rpx;'>{{userAddress.province+userAddress.address}}</view>
+    </view>
+    <!-- <view style='padding-right:20rpx;'>
+      <image src = '../images/箭头.png'/>
+      <view></view>
+    </view> -->
+  </view>
+  <view class='orderContent'>
+    <!-- 下单商品 -->
+    <view wx:for='{{selectGoods}}' wx:key='idx' class='packageBox'>
+      <view class="packageIdx">包裹 {{index+1}}</view>
+      <view class ='packageSpec'>
+        <view class='storeSpec'>
+          <view class='packageBanner'><image src='{{item.cover}}'/></view>
+          <view class= 'speces'>
+            <view>{{item.title}}</view>
+            <view>{{item.spec}}</view>
+            <view class='package-price'>
+              <view>¥{{item.price/100}}</view>
+              <view>×{{item.nums}}</view>
+            </view>
+          </view>
+        </view>
+        <!-- <view class='discountTransport'>
+          <view class='discount-box'>
+            <view>优惠</view>
+            <view>- ¥ {{item.discount}}</view>
+          </view>
+          <view>
+            <view>运费</view>
+            <view>¥ {{item.transport}}</view>
+          </view>
+        </view> -->
+      </view>
+      <view class='smallPrice'>
+        <view @tap='sss'>共{{item.nums}}件</view>
+        <view>实付 <text>¥{{item.nums*(item.price/100)}}</text></view>
+      </view>
+    </view>
+  </view>
+  <view class = 'numberAndTime'>
+    <view class = 'copyNumber'>
+      <view>订单号</view>
+      <view class = 'copyContentBox'>
+        <text selectable="true">{{userAddress.serial}}</text>
+        <view class="tblin_items_btn" @tap="copyTBL">一键复制</view>
+      </view>
+    </view>
+    <view class = 'orderTime_box'>
+      <view>下单时间</view>
+      <view class = 'order_time'>{{userAddress.dateline}}</view>
+    </view>
+  </view>
+  	<view class='bottom-btnBox'>
+  		<button class="{{remind?'applySale':''}}" @tap='merchantTel'>申请售后</button>
+  		<button wx:if="{{collectOrRemind}}" @tap='confirmCollect'>确认收货</button>
+      <button wx:else disabled="{{remind}}" class="{{remind?'disabledButton':''}}" @tap='remind' >{{remindSeller}}</button>
+  	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	config = {
+  		navigationBarTitleText: '订单详情',
+  	}
+  	data = {
+      //订单信息
+      userAddress:{},
+      //订单商品信息
+      selectGoods:[],
+      //订单编号
+      orderId:'',
+      //物流当前状态
+      trackList:{},
+      noTrackStatus:'物流信息尚未更新...',
+      //有无物流
+      trackStatus:true,
+      //无物流显示提醒发货
+      collectOrRemind:true,
+      //提醒发货禁用
+      remind:false,
+      //提醒按钮显示
+      remindSeller:'提醒发货',
+      //商户电话
+      merchantTel:'',
+  	}
+    components = {}
+    methods = {
+      remind(){
+        wx.showToast({
+        title: '已提醒卖家发货',
+        icon: 'success',
+        duration: 2000,
+        success:()=>{
+          this.remind = true
+          this.remindSeller = '已提醒卖家发货'
+          
+          this.$apply()
+        }
+      })
+      },
+      copyTBL(){
+        var self=this;
+        wx.setClipboardData({ 
+          data: self.userAddress.serial,
+          success: function(res) {
+            wx.showToast({
+              title: '复制成功',
+              icon: 'none',
+              image: '../images/复制.png',
+              duration: 1000
+            })
+          }
+        })
+      },
+      goLogistics(){
+        wx.navigateTo({
+          url: 'logisticsMessage'
+        })
+      },
+      confirmCollect(){
+        wx.showModal({
+          title: '是否确认收货',
+          success: (res)=> {
+            if (res.confirm) {
+              this.confirm_Collect()
+            } else if (res.cancel) {
+              return
+            }
+          }
+        })
+      },
+      merchantTel(){
+        let that = this;
+        wx.getStorage({
+          key:'shopkeeperTel',
+          success:function(res){
+            that.merchantTel = res.data
+            that.$apply()
+          }
+        })
+        wx.makePhoneCall({
+              phoneNumber: that.merchantTel 
+          })
+      },
+    }
+    onLoad(options){
+      // console.log(options)
+      if(options.orderId){
+          this.orderId = options.orderId
+          this.$apply()
+          this.getOrderShow()
+          this.getLogistics()
+      }else{
+        wx.getStorage({
+          key: 'orderId',
+          success: (res)=> {
+            this.orderId = res.data
+            this.$apply()
+            this.getOrderShow()
+            this.getLogistics()
+          } 
+        })
+      }
+    }
+    //订单详情
+    getOrderShow(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderShow';
+      const data = {
+        orderId: that.orderId,
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.data)
+        that.userAddress = res.data.data
+        that.selectGoods = res.data.data.goods
+        that.$apply()
+      })
+    }
+    //物流信息
+    getLogistics(){
+      let that = this;
+      let url = api.apiMall + '/shop/logistic';
+      let data = {
+        orderId: that.orderId,
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.logistic)
+        if (res.data.logistic) {
+          that.trackList = res.data.logistic.TrackList.reverse()[0]
+          that.$apply()
+        }else{
+          that.trackStatus = false
+          that.collectOrRemind = false
+          that.$apply()
+        }
+      })
+    }
+    //确认收货
+    confirm_Collect(){
+      const that = this;
+      const url = api.apiMall + '/shop/confirmOrder';
+      const data = {
+        orderId: that.orderId,
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        wx.redirectTo({
+          url: 'order'
+        })
+      })
+    }
+  }
+</script>

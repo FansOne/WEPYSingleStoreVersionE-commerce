@@ -1,0 +1,142 @@
+<style lang="less">
+  page{
+    background-color: #ffffff;
+  }
+  .top-box{
+    height: 276rpx;
+    /*border: 1px solid red;*/
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .haoPing{
+      display: flex;
+      justify-content: center;
+      padding-left: 25  rpx;
+      width: 100%;
+      margin-top: 60rpx;
+      height: 60rpx;
+      line-height: 80rpx;
+      color: #333333;
+      font-weight: bold;
+      font-size: 30rpx;
+      letter-spacing: 5rpx;
+      text{
+        line-height: 60rpx;
+        font-size: 60rpx;
+        color: #333333;
+        letter-spacing: 5rpx;
+      }
+    }
+    .start-box{
+      display: flex;
+      justify-content: center;
+      padding-bottom: 50rpx;
+      padding-top: 50rpx;
+      view.img_box{
+        width: 100%;
+        height: 70rpx;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 160rpx;
+      }
+    }
+    .start{
+      display: inline-block;
+      margin-left: 30rpx;
+      height: 40rpx;
+      width: 40rpx;
+      image{
+        width: 40rpx;
+        height: 40rpx;
+      }
+    }
+  }
+  .grayLine{
+    height: 20rpx;
+    width: 100%;
+    background-color: rgb(242,242,242);
+  }
+  .star-images{
+    width: 60rpx;
+    height: 60rpx;
+  }
+  .top-box.top-boxs{
+    margin-top: 150rpx;
+  }
+  .star-images.dialogBox{
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 230rpx;
+    height: 200rpx;
+
+  }
+  .haoPing.noComments{
+    position: absolute;
+    bottom: -55rpx;
+    color: gray;
+    font-size: 26rpx;
+  }
+  .bgWhite{
+    background-color: #fff;
+  }
+</style>
+<template>
+  <view class='container'>
+    <view class='top-box' wx:if='{{noComment}}'>
+      <view class = 'haoPing'><text>{{options.totalScore*20}}</text>% 好评</view>
+      <view class='start-box'>
+        <view class='img_box'>
+        <block wx:for="{{stars}}" wx:key='idx'>
+              <image class="star-images" style="left: {{item*100}}rpx;" src="{{options.totalScore > item ?(options.totalScore-item == 0.5?halfSrc:selectedSrc) : normalSrc}}"/>
+        </block>
+        </view>
+      </view>
+    </view>
+    <view class='top-box top-boxs' wx:else>
+      <view class='start-box'>
+        <view class='img_box no_Comment'>
+          <image class="star-images dialogBox" src='../images/dialogBox.png'/>
+        </view>
+      </view>
+      <view class = 'haoPing noComments'><text></text>该商品暂无评价</view>
+    </view>
+    <view class="grayLine {{noComment?'':'bgWhite'}}"></view>
+    <commentContent/>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import commentContent from '../components/commentContent'
+
+  export default class New extends wepy.page {
+  	config = {
+      navigationBarTitleText: '评价'
+    }
+    data = {
+      options: {},
+      stars: [0, 1, 2, 3, 4],
+      normalSrc: 'http://applet.qumatou.com.cn/static/shop/noComment.png',
+      selectedSrc: 'http://applet.qumatou.com.cn/static/shop/评价_03.jpg',
+      noComment:true,
+    }
+    components = {
+      commentContent:commentContent
+    }
+    onLoad(options){
+      this.options = options
+      this.$apply()
+      this.$invoke('commentContent','getUserComments',this.options)
+    }
+    watch = {
+      options (newValue, oldValue) {
+          if(newValue.totalScore == 0){
+            this.noComment = false
+          }
+      }
+    }
+
+    methods = {}
+  }
+</script>

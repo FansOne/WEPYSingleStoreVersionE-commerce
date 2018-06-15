@@ -1,0 +1,273 @@
+<style lang="less">
+	.contant-box{
+		padding: 50rpx 40rpx 40rpx 40rpx;
+		display: flex;
+		flex-direction: column;
+		border-bottom: 1px solid #efeff4;
+	}
+
+	.fahuo-top{
+		display: flex;
+		justify-content: space-between;
+		letter-spacing: 3rpx;
+		font-size: 28rpx;
+		color: #969696;
+		text:nth-child(2){
+			color: #333333;
+		}
+	}
+
+	.fahuo-middle{
+		padding-top: 40rpx;
+		border-bottom: 1px solid #efeff4;
+		display: flex;
+		flex-direction: row;
+		padding-bottom: 30rpx;
+		image{
+			height: 150rpx;
+			width: 150rpx;
+		}
+	}
+	.middle-right{
+		height: 150rpx;
+		position: relative;
+		padding-left: 30rpx;
+		flex:1;
+		/*border: 1px solid red;*/
+		display: flex;
+		flex-direction: column;
+		view:nth-child(1){
+			color: #333333;
+			font-size: 28rpx;
+			letter-spacing: 5rpx;
+		}
+		view:nth-child(2){
+			margin-top: 15rpx;
+			color: #969696;
+			font-size: 24rpx;
+			letter-spacing: 3rpx;
+		}
+	}
+	.prices{
+		position: absolute;
+		bottom: 5rpx;
+		width: 100%;
+		color: #fd2323;
+		font-size: 28rpx;
+		letter-spacing: 3rpx;
+		margin-bottom: 0rpx;
+		text:nth-child(2){
+			display: inline-block;
+			font-size: 33rpx;
+			color: #969696;
+			margin-right: 30rpx;
+		}
+	}
+
+	.fahuo-bottom{
+		display: flex;
+		flex-direction: column;
+		padding-top: 40rpx;
+		view:nth-child(1){
+			display: flex;
+			justify-content: space-between;
+			text:nth-child(1){
+				font-size: 30rpx;
+				color: #969696;
+				letter-spacing: 3rpx;
+				padding-bottom: 40rpx;
+			}
+			text:nth-child(2){
+				font-size: 30rpx;
+				color: #333333;
+				letter-spacing: 3rpx;
+				text{
+					color: red;
+					display: inline-block;
+					margin-left: 10rpx;
+				}
+			}
+		}
+	}
+	.fahuo-btn-box{
+		position: relative;
+		width: 100%;
+		height: 80rpx;
+	}
+	.fahuo-btn{	
+		position: absolute;
+		right: 0;
+		display: block;
+		width: 210rpx;
+		height: 80rpx;
+		text-align: center;
+		background-color: rgb(239,110,75);
+		color: #ffffff;
+		font-size: 28rpx;
+		line-height: 80rpx;
+		letter-spacing: 4rpx;
+
+	}
+	.close-btn{
+		position: absolute;
+		right: 230rpx;
+		display: block;
+		width: 210rpx;
+		height: 80rpx;
+		box-sizing: border-box;
+		border: 1px solid #b1b1b1;
+		text-align: center;
+		background-color: #ffffff;
+		color: #969696;
+		font-size: 28rpx;
+		line-height: 80rpx;
+		letter-spacing: 4rpx;
+	}
+	button::after{ 
+    	border:none;  
+	}
+</style>
+<template>
+  <view class='container'>
+  	<view wx:if="{{noBuy}}">
+        <view class='noBuy-box'>
+          <view class='shiluo'>
+            <image src = 'http://applet.qumatou.com.cn/static/shop/失落.png'/>
+            <text>你还没有待付款订单呢！</text>
+          </view>
+        </view>
+    </view>
+    <view wx:else>
+	<view class='warit-fahuo' wx:for="{{itemInformation}}" wx:key='index'>
+		<view class='contant-box'>
+			<view class = 'fahuo-top'>
+				<text>订单编号：{{item.serial}}</text>
+				<text>待付款</text>
+			</view>
+			<view class = 'fahuo-middle' @tap='remind' data-id = "{{index}}">
+				<image src='{{item.goods.cover}}'/>
+				<view class='middle-right'>
+					<view class='middle-right-title'>{{item.goods.title}}</view>
+					<!-- <view>{{item.spec}}</view> -->
+					<vew class ='prices'>
+						<text>{{item.dateline}}</text>
+						<text>× {{item.goodNums}}</text>
+					</vew>
+				</view>
+			</view>
+			<view class = 'fahuo-bottom'>
+				<view>
+					<text>共{{item.goodNums}}件</text>
+					<text>合计 <text>¥ {{item.goods.price/100}}</text></text>
+				</view>
+				<view class='fahuo-btn-box'>
+					<button class='fahuo-btn' @tap='remind' data-id = "{{index}}">付款</button>
+					<button class='close-btn' @tap='deleteOrder' data-index = "{{index}}">删除订单</button>
+				</view>
+			</view>
+		</view>
+	</view>
+	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	data = {
+  		itemInformation:[],
+  		noBuy: false,
+  		orderId:'',
+  		userId:'',
+  		currentTab:1,
+  	}
+    components = {}
+    onLoad () {
+    	this.getDatas()
+    }
+    methods = {
+    	remind(e){
+    		let idx = e.currentTarget.dataset.id;
+		  	let cartItems = [];
+		  	let that = this;
+		  	let totalPrice = (that.itemInformation[idx].goods.price*that.itemInformation[idx].goods.nums)/100;
+		  	cartItems.push({
+	          id: that.itemInformation[idx].goods.id,
+	          quantity: that.itemInformation[idx].goods.nums,
+	          price: that.itemInformation[idx].goods.price/100,
+	          title: that.itemInformation[idx].goods.title,
+	          cover: that.itemInformation[idx].goods.cover,
+	          selected:true
+	        })
+	        wx.setStorage({
+	        	key: 'selectBuy',
+			    data: cartItems,
+	        })
+	        wx.setStorage({
+				key:'totalPrice',
+				data: totalPrice
+			})
+	        wx.navigateTo({
+				url:"confirmOrder"
+			})
+    	},
+    	deleteOrder(e){
+    		let index = e.currentTarget.dataset.index,
+    		    orderId = this.itemInformation[index].id;
+    		this.orderId = orderId
+    		this.$apply()
+    		wx.showModal({
+			  title: '确认删除该订单吗?',
+			  success: (res)=> {
+			    if (res.confirm) {
+			      this.deleteOrder()
+			    } else if (res.cancel) {
+			      return
+			    }
+			  }
+			})
+    	},
+    }
+    //获取待支付数据
+     async getDatas(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderLists';
+      const data = {
+        merchantId:wepy.$instance.globalData.payMessage.merchantId,
+        userId:wepy.$instance.globalData.userId,
+        status:0
+      }
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.data)
+        that.itemInformation = res.data.data
+        that.$apply()
+        wx.setStorage({
+        	key:'waitPuy',
+        	data:that.itemInformation.length
+        })
+      })
+    }
+    //删除订单
+     async deleteOrder(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderDel';
+      const data = {
+        orderId: that.orderId
+      }
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        wx.redirectTo({
+          url: 'order'
+        })
+      })
+    }
+  }
+</script>

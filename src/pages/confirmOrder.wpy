@@ -1,0 +1,513 @@
+<style lang="less">
+	page{
+		background-color: #ffffff;
+	}
+	.container{
+		padding-bottom: 200rpx;
+	}
+	.confirmOrder-bottom{
+		background-color: #ffffff;
+		z-index: 99;
+		position: fixed;
+		display: flex;
+		flex-direction: row;
+		bottom: 0;
+		border-top: 1px solid #efeff4;
+		height: 120rpx;
+		width: 100%;
+	}
+	.confirmComputed{
+		display: flex;
+		flex-direction: row;
+		flex:1;
+		padding-left: 40rpx;
+		view:nth-child(1){
+			font-size: 28rpx;
+			line-height: 120rpx;
+			color: #333333;
+		}
+		view:nth-child(2){
+			font-size: 32rpx;
+			line-height: 120rpx;
+			color: #fd2323;
+			margin-left: 44rpx;
+		}
+	}
+	.confirmBuy{
+		height: 100%;
+		background-color: rgb(238,108,75);
+		color: #ffffff;
+		text-align: center;
+		line-height:120rpx;
+		font-size: 34rpx;
+		width: 250rpx;
+	}
+	
+	.discount-box{
+		margin-bottom: 20rpx;
+	}
+	.ticketOpening-box{
+		margin: 20rpx 40rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.ticketOpening-left{
+		display: flex;
+		align-items: center;
+		image{
+			margin: 0 10rpx 0 25rpx;
+			width: 50rpx;
+			height: 50rpx;
+		}
+		text{
+			font-size: 26rpx;
+		}
+	}
+	.ticketOpening-left .colBg{
+		height: 64rpx;
+		width: 10rpx;
+		background-color: #ee7942;
+	}
+	.startTicketOpening{
+		margin: 20rpx 40rpx;
+		border-top:1px dotted #DCDCDC;
+		border-bottom:1px dotted #DCDCDC;
+		align-items: center;
+		padding: 15rpx 0; 
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		image{
+			width: 40rpx;
+			height: 40rpx;
+		}
+		view{
+			color: rgb(139,139,139);
+			font-size: 26rpx;
+		}
+	}
+	.merchantTel{
+		position: fixed;
+		width: 43px;
+		height: 43px;
+		border-radius:50%;
+		box-shadow: 8px 6px 8px #DCDCDC;
+		z-index: 100;
+	}
+	.show-faPiao{
+		margin: 0 40rpx;
+		view{
+			font-family: "Microsoft YaHei";
+			font-size: 27rpx;
+			border: 1rpx  dashed #DCDCDC;
+			background-color: rgb(246,246,246);
+			padding: 15rpx 15rpx;
+		}
+	}
+	.confirmOrder-top.noAddress{
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		view.addressIcon{
+			flex:0.5;
+			display: flex;
+			flex-direction: row;
+			view{
+				display: flex;
+				justify-content: flex-start;
+				padding-left: 25rpx;
+				flex: 1;
+				font-size: 28rpx;
+				color: #333;
+			}
+			image{
+				height: 100rpx;
+				width: 80rpx;
+				margin-left: 40rpx;
+			}
+		}
+		view:nth-child(2){
+			padding-right: 10rpx;
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			flex:0.5;
+			image{
+				width: 40rpx;
+				height: 40rpx;
+			}
+		}
+	}
+</style>
+<template>
+  <view class='container'>
+	<view wx:if = "{{haveAddress}}" class='confirmOrder-top' @tap='goAddress'>
+		<view class='messages'>
+			<view class='nameTel'>
+				<view>{{userAddress.userName}}</view>
+				<view>{{userAddress.telNumber}}</view>
+			</view>
+			<view class='userAddress'>{{userAddress.provinceName+userAddress.cityName+userAddress.countyName+userAddress.detailInfo}}</view>
+		</view>
+		<view class='jiantou'>
+			<image src = '../images/箭头.png'/>
+		</view>
+	</view>
+	<view wx:else class='confirmOrder-top noAddress' @tap='goAddress'>
+		<view class='addressIcon'>
+			<image src='http://applet.qumatou.com.cn/static/shop/位置.png'/>
+			<view>请选择收货地址</view>
+		</view>
+		<view>
+			<image src = '../images/箭头.png'/>
+		</view>
+	</view>
+	<view class='orderContent'>
+		<!-- 下单商品 -->
+		<view wx:for='{{selectGoods}}' wx:key='idx' class='packageBox'>
+  		<view class="packageIdx">包裹 {{index+1}}</view>
+  		<view class ='packageSpec'>
+  			<view class='storeSpec'>
+  				<view class='packageBanner'><image src='{{item.cover}}'/></view>
+	  			<view class= 'speces'>
+	  				<view>{{item.title}}</view>
+	  				<view>{{item.spec}}</view>
+	  				<view class='package-price'>
+	  					<view>¥{{item.price}}</view>
+	  					<view>×{{item.quantity}}</view>
+	  				</view>
+	  			</view>
+  			</view>
+  			<!-- <view class='discountTransport'>
+  				<view class='discount-box'>
+  					<view>优惠</view>
+  					<view>- ¥ {{item.discount}}</view>
+  				</view>
+  				<view>
+  					<view>运费</view>
+  					<view>¥ {{item.transport}}</view>
+  				</view>
+  			</view> -->
+  		</view>
+  		<view class='smallPrice'>
+  			<view @tap='sss'>共{{item.quantity}}件</view>
+  			<view>小计 <text>¥{{item.quantity*item.price}}</text></view>
+  		</view>
+  	</view>
+	</view>
+	<!-- 开票 -->
+	<view class='ticketOpening-box'>
+		<view class='ticketOpening-left'><view class='colBg'></view><image src='../images/提供发票.png'/><text>开具发票</text></view>
+		<switch @change="switchChange"/>
+	</view>
+	<view class="startTicketOpening" hidden="{{TicketOpening}}" @tap = "selectTicketOpening">
+		<view><text hidden="{{piao}}">请选择发票抬头</text><text wx:if="{{piao}}">已选择</text></view>
+		<image src='../images/箭头.png'/>
+	</view>
+	<view wx:if="{{piao}}" class='show-faPiao'>
+		<view wx:if="{{ticketMessage.type ==1}}">
+			<view>类型：个人</view>
+			<view>名称：{{ticketMessage.title}}</view>
+		</view>
+		<view wx:else>
+			<view>类型：公司</view>
+			<view>名称：{{ticketMessage.title}}</view>
+			<view>税号：{{ticketMessage.taxNumber}}</view>
+		</view>
+	</view>
+	<!-- 联系卖家 -->
+	<image class ='merchantTel' src='http://applet.qumatou.com.cn/static/shop/群蜂电话.png' @tap='merchantTel' style="bottom:{{ballBottom}}px;right:{{ballRight}}px;" @touchmove="ballMoveEvent"/>
+
+	<view class='confirmOrder-bottom'>
+		<view class='confirmComputed'>
+			<view>合计</view>
+			<view>¥{{orderPrice}}</view>
+		</view>
+		<view class='confirmBuy' @tap ='confirmPayment'>确认支付</view>
+	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	config = {
+  		navigationBarTitleText: '确认订单',
+  	}
+  	data = {
+  		ballBottom: 120,
+	    ballRight: 30,
+	    screenHeight: 0,
+	    screenWidth: 0,
+  		orderPrice:'',
+  		selectGoods:[],
+  		userCode:'',
+  		userInfo:{},
+  		//订单信息
+  		orderResult:{},
+  		//微信支付所需参数
+  		jssdk:{},
+  		//用户地址
+  		userAddress:{},
+  		cartItems:[],
+  		//开票
+  		TicketOpening:true,
+  		ticketMessage:{},
+  		//商户电话
+  		merchantTel:'',
+  		//是否有发票
+  		isvoice:'',
+  		//发票展示
+  		piao:false,
+  		userid:'',
+  		//有无地址
+  		haveAddress:true
+  	}
+  	onLoad(){
+  		//获取屏幕宽高
+  		var _this = this;
+	    wx.getSystemInfo({
+	      success: function (res) {
+	        _this.screenHeight = res.windowHeight
+	        _this.screenWidth = res.windowWidth
+	        _this.$apply()
+	      }
+	    });
+  	}
+    components = {}
+    methods = {
+    	ballMoveEvent(e){
+    		var touchs = e.touches[0];
+		    var pageX = touchs.pageX;
+		    var pageY = touchs.pageY;
+		    // console.log('pageX: ' + pageX)
+		    // console.log('pageY: ' + pageY)
+		    //防止坐标越界,view宽高的一半
+		    if (pageX < 21) return;
+		    if (pageX > this.screenWidth - 21) return;
+		    if (this.screenHeight - pageY <= 21) return;
+		    if (pageY <= 21) return;
+		    //用right和bottom.所以需要将pageX pageY转换
+		    var x = this.screenWidth - pageX - 21;
+		    var y = this.screenHeight - pageY - 21;
+		    // console.log('x: ' + x)
+		    // console.log('y: ' + y)
+		    this.ballBottom = y,
+		    this.ballRight = x
+		    this.$apply()
+    	},
+    	goAddress(){
+    		let that = this;
+		  	wx.chooseAddress({
+			  success: function (res) {
+			  	that.userAddress = res
+			  	that.$apply()
+			    wx.setStorage({
+					key:'address',
+					data: res
+				})
+				wx.redirectTo({
+				  url: 'confirmOrder'
+				})
+			  }
+			})
+    	},
+    	confirmPayment(){
+			wx.getStorage({
+				key: 'address',
+				success: (res)=>{
+					this.getPaymentData()
+					wx.setStorage({
+						key: 'cartItems',
+						data: this.cartItems
+					})
+				},
+				fail: (res)=> {
+					wx.showToast({
+						title: '请填写收货地址',
+						image:'../images/警告.png',
+						duration: 2000
+					})
+				}
+			})
+    	},
+    	switchChange(e){
+    		// console.log(e.detail.value)
+    		if(e.detail.value){
+    			this.TicketOpening = false
+    			this.$apply()
+    		}else{
+    			this.TicketOpening = true
+    			this.ticketMessage ={}
+    			this.piao = false
+    			this.$apply()
+    		}
+    	},
+    	selectTicketOpening(){
+    		let that = this;
+    		wx.chooseInvoiceTitle({
+  				success(res) {
+  					// console.log(res)
+  					that.piao = true
+  					that.ticketMessage = res
+  					that.$apply()
+  				}
+			})
+    	},
+    	merchantTel(){
+    		let that = this;
+    		wx.getStorage({
+    			key:'shopkeeperTel',
+    			success:function(res){
+    				that.merchantTel = res.data
+    				that.$apply()
+    			}
+    		})
+    		wx.makePhoneCall({
+          		phoneNumber: that.merchantTel 
+        	})
+    	},
+    }
+    onShow(){
+    	let that = this;
+    	wx.getStorage({
+        	key: 'address',
+        	success: function(res) {
+            	// console.log(res.data)
+            	that.userAddress = res.data
+            	that.$apply()
+        	} 
+        })
+        wx.getStorage({
+		  key: 'selectBuy',
+		  success: function(res) {
+		  	// console.log(res.data)
+		  	that.selectGoods = res.data
+		  	that.$apply()
+		  	// console.log(that.selectGoods)
+		  }
+		})
+		wx.getStorage({
+			key:'totalPrice',
+			 success: function(res) {
+			 	// console.log(res.data)
+			 	that.orderPrice = (res.data/1000).toFixed(2)
+			 	that.$apply()
+			 }
+		})
+		wx.getStorage({
+			key:'userCode',
+		 	success: function(res) {
+			 	that.userCode = res.data
+			 	that.$apply()
+			}
+		})
+		wx.getStorage({
+			key:'address',
+		 	success: function(res) {
+			 	that.userAddress= res.data
+			 	that.$apply()
+			},
+			fail:function(){
+				that.haveAddress = false
+				that.$apply()
+			}
+		})
+		wx.getStorage({
+		key:'openid',
+		success:function(res){
+			that.openid = res.data
+			that.$apply()
+		}
+	  })
+    }
+    //订单提交
+    async getPaymentData(){
+      const objKeys = Object.keys(this.ticketMessage)
+      const that = this;
+      const url = api.apiMall + '/shop/orderCommit';
+      if (objKeys.length) {
+			that.isvoice = 2
+			that.$apply()
+
+	  }else{
+		that.isvoice = 1
+		that.$apply()
+	  }
+      const data = {
+        merchantId: wepy.$instance.globalData.payMessage.merchantId,
+        userId: wepy.$instance.globalData.userId,
+        goodData: that.selectGoods,
+        total: that.orderPrice*100,
+        mobile: that.userAddress.telNumber,
+        truename: that.userAddress.userName,
+        province: that.userAddress.provinceName+that.userAddress.cityName+that.userAddress.countyName,
+        address: that.userAddress.detailInfo,
+        postcode: that.userAddress.postalCode,
+        isvoice: that.isvoice,
+        intype: that.ticketMessage.type?Number(that.ticketMessage.type)+1:Number(that.ticketMessage.type)+1,
+        invoiceTitle: that.ticketMessage.title?that.ticketMessage.title:'',
+        invoicenumber: that.ticketMessage.taxNumber?that.ticketMessage.taxNumber:'',
+        invoiceAddress: that.ticketMessage.companyAddress?that.ticketMessage.companyAddress:'',
+        invoicetel: that.ticketMessage.telephone?that.ticketMessage.telephone:'',
+        invoicebank: that.ticketMessage.bankName?that.ticketMessage.bankName:'',
+        invoicebanknumber: that.ticketMessage.bankAccount?that.ticketMessage.bankAccount:''
+      }
+      // console.log(data)
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res)
+        that.orderResult = res.data.orderResult
+        that.$apply()
+      })
+      that.shopPay()
+    }
+    //发起微信支付
+    async shopPay(){
+      const that = this;
+      const url = api.apiMall + '/wxpay/shopPay';
+      const data = {
+        orderId: that.orderResult.id,
+        openId: that.openid,
+        total: that.orderResult.total,
+		merchantNumber: wepy.$instance.globalData.payMessage.merchantAppId,
+		thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
+      }
+	//   console.log(data)
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        let orderId = res.data.orderId
+        that.jssdk = res.data.jssdk
+        that.$apply()
+        wx.setStorage({
+        	key: 'orderId',
+        	data: orderId
+        })
+        //发起微信支付
+        wx.requestPayment({
+        	'appId':that.jssdk.appId,
+            'timeStamp': that.jssdk.timestamp,
+            'nonceStr':that.jssdk.nonceStr,
+            'package': that.jssdk.package,
+            'signType': that.jssdk.signType,
+            'paySign': that.jssdk.paySign,
+         	success:function(res){
+              	// console.log(res)
+               	wx.redirectTo({
+				  url: 'paymentSuccess'
+				})
+            },
+        })
+      })
+    }
+
+  }
+</script>

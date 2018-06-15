@@ -1,0 +1,196 @@
+<style lang="less">
+  page{
+    background-color: #ffffff;
+    padding-top: 40rpx;
+  }
+  .guanbi-img{
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    height: 55rpx;
+    width: 55rpx;
+  }
+  .shiluo.noCollection image{
+    width: 350rpx;
+  }
+</style>
+<template>
+  <view class='container'>
+    <view wx:if="{{noCollection}}">
+      <view class='noBuy-box noCollection'>
+        <view class='shiluo noCollection'>
+          <image src = 'http://applet.qumatou.com.cn/static/shop/未收藏.png'/>
+          <text>您还没有收藏任何宝贝呢</text>
+          <button @tap='goIndex'>去逛逛</button>
+        </view>
+      </view>
+    </view>
+    <view wx:else>
+    	<navigator  url = './details?id={{item.good.id}}' wx:for="{{ collectionGoods }}" wx:key="index" wx:for-index="idx">
+        <view class="item-ans">
+          <view class="avatar">
+                <image class="img" src="{{item.good.cover}}"/>
+          </view>
+          <view class="expertInfo">
+              <view class="name">{{ item.good.title }}</view>
+              <view class="tag">{{ item.good.subtitle }}<image src = 'http://applet.qumatou.com.cn/static/shop/关闭.png' class = 'guanbi-img' data-id = "{{idx}}" @tap.stop='deleteOrder'/></view>
+              	<view class="price">
+                  	<view class='quan'>券后</view>
+                  	<view class='moneys'>
+                    		<text>¥ {{ item.good.price/100 }} /</text>
+                			<text class='number'>{{ item.good.type }}</text>
+                    		<text class='originalPrice'>¥ {{ item.good.sell/100 }}</text>
+                  	</view>
+              	</view>
+            </view>
+        	</view>
+    	</navigator>
+      <!-- 猜你喜欢 -->
+      <view class='guessLike'>
+      <!-- 推荐标题 -->
+      <text class = 'guessLike-title'>- 猜你喜欢 -</text>
+      <!-- 推荐商品 -->
+      <view>
+        <navigator url = './details?id={{item.id}}' wx:for="{{ commodityMessage }}" wx:key="index" wx:for-index="idx">
+          <view class="item-ans">
+            <view class="avatar">
+                  <image class="img" src="{{item.cover}}"/>
+            </view>
+            <view class="expertInfo">
+                <view class="name">{{ item.title }}</view>
+                <view class="tag">{{ item.subtitle }}</view>
+                  <view class="price">
+                      <view class='quan'>券后</view>
+                      <view class='moneys'>
+                          <text>¥ {{ item.price/100}} /</text>
+                        <!-- <text class='number'>{{ item.num }}</text> -->
+                          <text class='originalPrice'>¥ {{ item.sell/100 }}</text>
+                      </view>
+                  </view>
+              </view>
+            </view>
+        </navigator>
+      </view>
+      <!-- 滑动底部 -->
+      <text class = 'guessLike-title guessLike-bottomTitle'>- 人家是有底线的 -</text>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+    config = {
+      navigationBarTitleText: '收藏',
+    }
+  	data = {
+      collectionGoods:[],
+      userId:'',
+      //推荐商品
+      commodityMessage:[],
+      listId:'',
+      noCollection:true,
+  	}
+    onLoad(){
+      wx.getStorage({
+        key:'userInfo',
+        success:(res)=>{
+          this.userId = res.data.id
+          this.$apply()
+          this.getCollection()
+          this.getRandomGoods()
+        }
+      })
+    }
+    onShow(){}
+    components = {}
+    methods = {
+      deleteOrder(e){
+        let index = e.currentTarget.dataset.id,
+            listId = this.collectionGoods[index].id;
+        this.listId = listId
+        this.$apply()
+        wx.showModal({
+        title: '确定删除该商品吗?',
+          success: (res)=> {
+            if (res.confirm) {
+              this.deleteOrder()
+            } else if (res.cancel) {
+              return
+            }
+          }
+        })
+      },
+      goIndex(){
+        wx.switchTab({
+          url: 'index'
+        })
+      }
+    }
+    //获取收藏商品
+    async getCollection(){
+      wx.showNavigationBarLoading()
+      const merchantId = wepy.$instance.globalData.payMessage.merchantId;
+      const that = this;
+      const url = api.apiMall + '/shop/MyColletion';
+      const data = {
+        merchantId:merchantId,
+        userId:that.userId
+      }
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.data)
+        if(res.data.data){
+          that.collectionGoods = res.data.data
+          that.noCollection = false
+          that.$apply()
+        }
+      })
+    }
+    //获取推荐商品
+    getRandomGoods(){
+      const that = this;
+      const merchantId = wepy.$instance.globalData.payMessage.merchantId;
+      const url = api.apiMall + '/shop/randomGoods';
+      const data = {
+        merchantId:merchantId,
+      }
+      // console.log(data)
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        wx.hideNavigationBarLoading()
+        that.commodityMessage = res.data.data
+        that.$apply()
+      })
+    }
+    //删除订单
+     async deleteOrder(){
+      const that = this;
+      const url = api.apiMall + '/shop/colletionDel';
+      const data = {
+        listId: that.listId
+      }
+      // console.log(data)
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res)
+        wx.redirectTo({
+          url: 'collectionGoods'
+        })
+      })
+    }
+  }
+</script>

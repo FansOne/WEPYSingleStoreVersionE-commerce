@@ -1,0 +1,91 @@
+<style lang="less">
+.input {
+    height: 60rpx;
+    border: none;
+    flex: 1;
+    padding-left: 15rpx;
+    font-size: 28rpx;
+    input{
+        height: 100%;
+        line-height: 60rpx;
+    }
+}
+.placeholderStyle{
+    font-size: 25rpx;
+    line-height:60rpx !important;
+}
+</style>
+
+<template>
+  <view class="input">
+    <input type="digit" @input="changeInput" focus='true' placeholder="询问店员后输入" placeholder-class="placeholderStyle" maxlength="8"/>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class Digit extends wepy.component {
+  props = {
+    inputValue: {
+      type: String,
+      default: '',
+      twoWay: true
+    }
+  }
+  components = {
+
+  }
+  mixins = []
+  data = {
+  }
+  computed = {
+
+  }
+  methods = {
+    changeInput (e) {
+      let value = e.detail.value
+      if (value[0] === '.' || (value[0] === '0' && value[1] !== '.' && this.inputValue.length !== 2)) {
+        this.inputValue = '0.'
+        return {
+          value: '0.',
+        }
+      } else if (this._have2Digit(value)) {
+        this.inputValue = value.slice(0, -1)
+        return {
+          value: value.slice(0, -1)
+        }
+      } else if (this._haveDigit(value)) {
+        let index = value.indexOf('.')
+        this.inputValue = value.slice(0, index + 3)
+        return {
+          value: value.slice(0, index + 3)
+        }
+      }
+      this.inputValue = value
+    }
+  }
+  _have2Digit (str) {
+    let sum = 0;
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === '.') {
+        sum += 1
+      }
+    }
+    return sum > 1
+  }
+  _haveDigit (str) {
+    let index = str.indexOf('.')
+    if (index === -1) {
+      return false
+    } else {
+      return true
+    }
+  }
+  events = {
+
+  }
+  onLoad () {
+
+  }
+}
+</script>

@@ -1,0 +1,153 @@
+<style lang="less">
+  @import "./styles/base";
+  @import "./styles/tabStyle";
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+import api from './app/app'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/homePage',
+      'pages/index',
+      'pages/shoppingCard',
+      'pages/about',
+      'pages/details',
+      'pages/userComment',
+      'pages/order',
+      'pages/myAddress',
+      'pages/editAddress',
+      'pages/confirmOrder',
+      'pages/collectionGoods',
+      'pages/startComment',
+      'pages/paymentSuccess',
+      'pages/orderDetails',
+      'pages/logisticsMessage',
+      'pages/orderEvaluateDetail',
+      'pages/payMent',
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: '商城',
+      navigationBarTextStyle: 'black',
+    },
+    tabBar: {
+      color: "#999999",
+      selectedColor: "#ff6a3c",
+      backgroundColor: "#ffffff",
+      borderStyle: "black",
+      list: [{
+        pagePath: "pages/homePage",
+        text: "首页",
+        iconPath: "images/首页_03.jpg",
+        selectedIconPath: "images/j_03.jpg"
+      },{
+        pagePath: "pages/index",
+        text: "商城",
+        iconPath: "images/商城.jpg",
+        selectedIconPath: "images/商城s.jpg"
+      },{
+        pagePath: "pages/shoppingCard",
+        text: "购物车",
+        iconPath: "images/购物车_03.jpg",
+        selectedIconPath: "images/j_05.jpg"
+      },{
+        pagePath: "pages/about",
+        text: "我",
+        iconPath: "images/我的.jpg",
+        selectedIconPath: "images/j_07.jpg" 
+      }]
+    },
+    networkTimeout: {  
+      "request": 10000
+    },  
+  }
+
+  globalData = {
+    userInfo: null,
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+  }
+
+  onLaunch() {
+    let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {}
+        // console.log(extConfig)
+        wepy.$instance.globalData.payMessage = extConfig
+    wx.checkSession({
+        // session_key 有效(未过期)
+        success: function() {
+            // 业务逻辑处理
+            // console.log('有效')
+        },
+        // session_key 过期
+        fail: function() {
+            // session_key过期，重新登录
+             wx.login({
+              success: function(res) {
+                  const url = api.apiMall + '/third/getSessionKey';
+                  const url_openLogin = api.apiMall + '/index/openLogin';
+                  const data = {
+                    code: res.code,
+                    thirdAppId: extConfig.thirdAppId
+                  };
+                   wx.request({
+                    url: url,
+                    data: data,
+                    method: 'POST',
+                    success: res => {
+                      // console.log(res)
+                      wx.setStorageSync('skey',res.data.session_key)
+                      wx.setStorage({
+                        key: 'openid',
+                        data: res.data.results.openid
+                      });
+                      wx.request({
+                        url: url_openLogin,
+                        data: {
+                          openId: res.data.results.openid,
+                          merchantId:  wepy.$instance.globalData.payMessage.merchantId
+                        },
+                        method: 'POST',
+                        success: res => {
+                          // console.log(res)
+                          wepy.$instance.globalData.userId = res.data.userInfo.id
+                          wepy.$instance.globalData.avatar = res.data.userInfo.avatar
+                          wepy.$instance.globalData.nickname = res.data.userInfo.nickname
+                        }
+                      });
+                    }
+                  });
+              }
+            })
+        }
+    })
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success (res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+}
+</script>

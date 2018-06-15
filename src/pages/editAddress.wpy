@@ -1,0 +1,271 @@
+<style lang="less">
+	page{
+		background-color: #ffffff;
+		border-top: 1px solid #efeff4;
+	}
+	.input-box{
+		/*border: 1px solid red;*/
+		padding: 0 40rpx;
+	}
+	input{
+		border-bottom: 1px solid #efeff4;
+		padding: 30rpx 0;
+		padding-left: 40rpx;
+		color: #333333;
+	}
+	.lineBlack{
+		transition: 1.2s all;
+		border-bottom: 1px solid #333333;
+	}
+	picker{
+		border-bottom: 1px solid #efeff4;
+		padding: 30rpx 0;
+		padding-left: 40rpx;
+	}
+	.picker-address{
+		color: #333333;
+	}
+	.picker{
+		color:#969696;
+		font-size:28rpx;
+	}
+	.where{
+		display: flex;
+		flex-direction: row;
+		padding-left: 40rpx !important;
+		border-bottom: 1px solid #efeff4;
+		justify-content: space-between;
+		padding: 30rpx 0;
+		.address-label{
+			color: #969696;
+		}
+		.localHome{
+			display: flex;
+			flex-direction: row;
+			view{
+				text-align: center;
+				line-height: 50rpx;
+				background-color: #efeff4;
+				color: #969696;
+				margin-left: 35rpx;
+				height: 50rpx;
+				width: 100rpx;
+			}
+		}
+	}
+	.addressBg{
+		background-color: rgb(239,110,75) !important;
+		color: #ffffff !important;
+	}
+	.sss{
+		position: relative;
+		height: 110rpx;
+	}
+	.duicuo-box{
+		position: absolute;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		margin: auto;
+		height: 60rpx;
+		width: 60rpx;
+		image{
+			position: absolute;
+			height: 60rpx;
+			width: 60rpx;
+		}
+	}
+	.pickerBox{
+		position: relative;
+		.jianTou{
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+			right: 10rpx;
+			width: 40rpx;
+			height: 40rpx;
+		}
+	}
+</style>
+<template>
+  <view calss = 'container'>
+  	<view class="input-box">
+  		<view class='sss'>
+  			<view class='duicuo-box'>
+  				<image src='../images/错误.png' hidden="{{duiCuoUserName[0]}}"/>
+  				<image src='../images/正确.png' hidden="{{duiCuoUserName[1]}}"/>
+  			</view>
+  			<input type="text" name="userName" placeholder='收货人姓名' confirm-type = 'next' placeholder-style='color:#969696;font-size:28rpx;' @focus='inputFocus' class="{{line[0]?'lineBlack':''}}" data-index ='0' @blur='nameBlur'/>
+  		</view>
+  		<view class='sss'>
+  			<view class='duicuo-box'>
+  				<image src='../images/错误.png' hidden="{{duiCuoPhone[0]}}"/>
+  				<image src='../images/正确.png' hidden="{{duiCuoPhone[1]}}"/>
+  			</view>
+  			<input type="number" name="userName" placeholder='手机号码' confirm-type = 'next' placeholder-style="color:#969696;font-size:28rpx;" maxlength="11" @focus='inputFocus' @blur='phoneBlur' class="{{line[1]?'lineBlack':''}}" data-index ='1'/>
+  		</view>
+  		<view class='pickerBox'>
+  			<image src='../images/箭头.png' class='jianTou'/>
+  			<picker mode="region" @change="bindRegionChange" value="{{region}}" custom-item="{{customItem}}" data-index ='2'>
+    			<view class="picker" hidden='{{shengShi[0]}}'>
+      				{{regions[0]}}/{{regions[1]}}/{{regions[2]}}
+    			</view>
+    			<view class="picker-address" hidden='{{shengShi[1]}}'>
+      				{{region[0]}} {{region[1]}} {{region[2]}}
+    			</view>
+  			</picker>
+  		</view>
+  		<view class='sss'>
+  			<view class='duicuo-box'>
+  				<image src='../images/错误.png' hidden="{{duiCuoAddress[0]}}"/>
+  				<image src='../images/正确.png' hidden="{{duiCuoAddress[1]}}"/>
+  			</view>
+  			<input type="text" name="userName" placeholder='详细地址' confirm-type = 'next' placeholder-style='color:#969696;font-size:28rpx;' @focus='inputFocus' @blur='addressBlur' class="{{line[3]?'lineBlack':''}}" data-index ='3'/>
+  		</view>
+  		<view class='where'>
+  			<view class='address-label'>地址标签</view>
+  			<view class='localHome'>
+          <block wx:for="{{parameter}}" wx:key="parameter">
+  				<view class="{{item.checked?'addressBg':''}}" data-id='{{item.id}}' @tap='chooseWhre'>{{item.name}}</view>
+          </block>
+  			</view>
+  		</view>
+  	</view>
+  	<button class="preservation-btn {{btnUse?'btnUse':''}}" disabled="{{disabled}}" @tap='preservationAddress'>
+  		保存
+  	</button>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class New extends wepy.page {
+  	config = {
+      navigationBarTitleText: '编辑收货地址'
+    }
+    onLoad(options){
+    	// console.log(options)
+      this.parameter[0].checked = true;
+    }
+  	data = {
+  		region: ['陕西省', '西安市', '雁塔区'],
+  		regions: ['省','市','县'],
+  		customItem: '全部',
+  		shengShi:[false,true],
+  		parameter:[{id:1,name:'公司'},{id:2,name:'家庭'}],
+  		line:[false,false,false,false],
+  		addressBg:[false,false],
+  		message:[],
+  		duiCuoUserName:[true,true],
+  		duiCuoPhone:[true,true],
+  		duiCuoAddress:[true,true],
+  		userInput:[],
+  		disabled:true,
+  		btnUse:false
+  	}
+    components = {}
+    methods = {
+    	bindRegionChange(e){
+    		// console.log(e.detail.value)
+    		this.userInput.push(e.detail.value)
+    		this.region = e.detail.value;
+    		this.shengShi[0] = true;
+    		this.shengShi[1] = false;
+    		this.$apply()
+    	},
+    	inputFocus(e){
+    		let idx = e.currentTarget.dataset.index;
+    		this.line[idx] = true;
+    		this.$apply()
+    	},
+    	nameBlur(e){
+    		let idx = e.currentTarget.dataset.index;
+    		this.line[idx] = false;
+    		this.$apply();
+    		// console.log(e.detail.value)
+    		var uPattern = /^[\u4e00-\u9fa5_a-zA-Z0-9]{2,30}$/;
+    		// console.log(uPattern.test(e.detail.value))
+    		if(uPattern.test(e.detail.value)){
+    			this.duiCuoUserName[1] = false;
+    			this.duiCuoUserName[0] = true;
+    			if(e.detail.value != this.userInput[this.userInput.length-1]){
+    				this.userInput.push(e.detail.value);
+    			}
+    			this.$apply()
+    		}else{
+    			this.duiCuoUserName[0] = false;
+    			this.duiCuoUserName[1] = true;
+    			this.$apply()
+    		}
+    	},
+    	phoneBlur(e){
+    		let idx = e.currentTarget.dataset.index;
+    		this.line[idx] = false;
+    		this.$apply()
+    		var phone = /^1([358][0-9]|4[579]|66|7[0135678]|9[89])[0-9]{8}$/;
+    		if(phone.test(e.detail.value)){
+    			this.duiCuoPhone[1] = false;
+    			this.duiCuoPhone[0] = true;
+    			if(e.detail.value != this.userInput[this.userInput.length-1]){
+    				this.userInput.push(e.detail.value);
+    			}
+    			this.$apply()
+    		}else{
+    			this.duiCuoPhone[0] = false;
+    			this.duiCuoPhone[1] = true;
+    			this.$apply()
+    		}
+    	},
+    	addressBlur(e){
+    		let idx = e.currentTarget.dataset.index;
+    		this.line[idx] = false;
+    		this.$apply()
+    		var addre = /^[\u4e00-\u9fa5a-zA-Z0-9]{5,30}$/;
+    		if(addre.test(e.detail.value)){
+    			this.duiCuoAddress[1] = false;
+    			this.duiCuoAddress[0] = true;
+    			if(e.detail.value != this.userInput[this.userInput.length-1]){
+    				this.userInput.push(e.detail.value);
+    			}
+    			this.$apply()
+    		}else{
+    			this.duiCuoAddress[0] = false;
+    			this.duiCuoAddress[1] = true;
+    			this.$apply()
+    		}
+    	},
+    	chooseWhre(e){
+        let that = this;
+    		let this_checked = e.currentTarget.dataset.id;
+        let parameterList = this.parameter;
+        for (var i = 0; i < parameterList.length;i++){
+          if (parameterList[i].id == this_checked){
+            parameterList[i].checked = true;//当前点击的位置为true即选中
+          }
+          else{
+            parameterList[i].checked = false;//其他的位置为false
+          }
+        }
+        that.parameter = parameterList
+    	},
+    	preservationAddress(){
+    		// console.log(this.userInput)
+    		wx.navigateTo({
+    			url:'myAddress'
+    		})
+    	}
+    }
+     watch = {
+      userInput (newValue, oldValue) {
+          // console.log(newValue)
+          let leng = newValue.length;
+          if(leng >= 4){
+          	this.disabled = false;
+          	this.btnUse = true;
+          	this.$apply()
+          }
+      }
+  	}
+  }
+</script>

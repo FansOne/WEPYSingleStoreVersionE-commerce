@@ -1,0 +1,175 @@
+<style lang="less">
+	page{
+		padding-bottom: 120rpx;
+	}
+	.packageBox{
+		border-bottom: 1px solid #efeff4;
+		display: flex;
+		flex-direction: column;
+	}
+	.packageIdx{
+		padding-top: 40rpx;
+		padding-left: 40rpx;
+	}
+	.packageSpec{
+		padding-left: 40rpx;
+		padding-top: 40rpx;
+		padding-right: 0rpx;
+		/*border: 1px solid red;*/
+	}
+	.packageBanner{
+		width: 150rpx;
+		height: 150rpx;
+		image{
+			width: 150rpx;
+			height: 150rpx;
+		} 
+	}
+	.storeSpec{
+		display: flex;
+		flex-direction: row;
+	}
+	.speces{
+		flex:1;
+		padding: 10rpx 40rpx;
+		view:nth-child(1){
+			font-size: 28rpx;
+			color: #333333;
+			letter-spacing: 5rpx;
+		}
+		view:nth-child(2){
+			padding-top: 10rpx;
+			font-size: 24rpx;
+			color: #333333;
+		}
+	}
+	.package-price{
+		display: flex;
+		justify-content: space-between;
+		padding-top: 10rpx;
+		height: 38rpx;
+		line-height: 38rpx;
+		view:nth-child(1){
+			font-size: 28rpx;
+			color: #fd2323;
+		}
+		view:nth-child(2){
+			line-height: 17rpx;	
+			font-size: 30rpx;
+			color: #333333;
+		}
+	}
+	.package-price{
+		display: flex;
+		flex-direction: row;
+	}
+	.discountTransport{
+		padding: 40rpx 40rpx 30rpx 0;
+		display: flex;
+		flex-direction: column;
+		view:nth-child(1){
+			font-size: 30rpx;
+			color: #333333;
+			display: flex;
+			justify-content: space-between;
+			flex-direction: row;
+		}
+		view:nth-child(2){
+			font-size: 30rpx;
+			color: #333333;
+			justify-content: space-between;
+			display: flex;
+			flex-direction: row;
+		}
+	}
+	.discount-box{
+		margin-bottom: 20rpx;
+	}
+	.smallPrice{
+		border-top: 1px solid #efeff4;
+		margin: 0 40rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 50rpx 0;
+		view:nth-child(1){
+			font-size: 28rpx;
+			color: #333333;
+		}
+		view:nth-child(2){
+			font-size: 28rpx;
+			color: #333333;
+			text{
+				color: #fd2323;
+			}
+		}
+	}
+</style>
+<template>
+  <view class="container">
+  	<view wx:for='{{package}}' wx:key='idx' class='packageBox'>
+  		<view class="packageIdx">{{item.index}}</view>
+  		<view class ='packageSpec'>
+  			<view class='storeSpec'>
+  				<view class='packageBanner'><image src='{{item.img}}'/></view>
+	  			<view class= 'speces'>
+	  				<view>{{item.title}}</view>
+	  				<view>{{item.spec}}</view>
+	  				<view class='package-price'>
+	  					<view>¥{{item.price}}</view>
+	  					<view>×{{item.num}}</view>
+	  				</view>
+	  			</view>
+  			</view>
+  			<view class='discountTransport'>
+  				<view class='discount-box'>
+  					<view>优惠</view>
+  					<view>- ¥ {{item.discount}}</view>
+  				</view>
+  				<view>
+  					<view>运费</view>
+  					<view>¥ {{item.transport}}</view>
+  				</view>
+  			</view>
+  		</view>
+  		<view class='smallPrice'>
+  			<view>共{{item.num}}件</view>
+  			<view>小计 <text>¥{{item.discountPrice}}</text></view>
+  		</view>
+  	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class New extends wepy.page {
+  	data = {
+  		package:[
+  			{
+  				index:'包裹1',
+  				img:'../images/three.jpg',
+  				title:'固形物含量99%的冰糖燕窝',
+  				spec:'7瓶（30g/瓶）',
+  				price:249,
+  				num:1,
+  				discount:50,
+  				transport:0,
+  				discountPrice:199
+  			},
+  			{
+  				index:'包裹2',
+  				img:'../images/five.jpg',
+  				title:'香脆甘甜的巴西松子',
+  				spec:'2罐',
+  				price:152,
+  				num:1,
+  				discount:50,
+  				transport:0,
+  				discountPrice:102
+  			}
+  		],
+  	}
+    components = {}
+    methods = {}
+  }
+</script>

@@ -1,0 +1,266 @@
+<style lang="less">
+  page{
+  	background-color: #fff;
+  	padding-bottom: 55rpx;
+  }
+  .numberAndTime{
+    padding: 0 40rpx;
+    display: flex;
+    border-bottom:1px solid #efeff4; 
+    flex-direction: column;
+    .copyNumber{
+      margin-top: 25rpx;
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row;
+      .copyContentBox{
+        display: flex;
+        flex-direction: row;
+        color: #969696;
+      }
+    }
+  }
+  .tblin_items_btn{
+    border: 1px solid #969696;
+    font-size: 23rpx;
+    display: flex;
+    color: #969696;
+    align-items: center;
+    justify-content: center;
+    width: 95rpx;
+    margin-right: 0rpx;
+    margin-left: 20rpx;
+  }
+  .orderTime_box{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 25rpx 0;
+    .order_time{
+      color: #969696;
+      font-size: 33rpx;
+      letter-spacing: 2rpx;
+    }
+  }
+  .fahuo-btn{	
+		display: block;
+		width: 160rpx;
+		height: 70rpx;
+		text-align: center;
+		background-color: rgb(239,110,75);
+		color: #ffffff;
+		font-size: 28rpx;
+		line-height: 70rpx;
+		letter-spacing: 4rpx;
+
+	}
+	.smallPrice{
+		display: flex;
+		align-items: center;
+		padding: 30rpx 0; 
+	}
+  /*订单总评*/
+  .orderGeneralCommentBox{
+    height: 140rpx;
+    background-color: #FDF5E6;
+    padding-top: 15rpx;
+    padding-bottom: 10rpx;
+  }
+  .orderGeneralCommentTitle{
+    /*border: 1px solid red;*/
+    height: 50rpx;
+    line-height: 50rpx;
+    letter-spacing: 3rpx;
+    color: #333;
+    text-indent: 45rpx;
+  }
+  .orderGeneralComment{
+    position: relative;
+    height: 60rpx;
+    margin:5rpx 40rpx;
+    margin-top: 10rpx;
+    button{
+      background-color: #ef6e4b;
+      position: absolute;
+      right: 0;
+      top: 5rpx;
+      width: 150rpx;
+      height: 60rpx;
+      border-radius: 0;
+      line-height: 60rpx;
+      font-size: 30rpx;
+      color: #fff;
+      letter-spacing: 5rpx;
+    }
+  }
+</style>
+<template>
+  <view class='container'>
+  	<view class='confirmOrder-top'>
+    <view class='messages'>
+      <view class='nameTel'>
+        <view>{{userAddress.truename}}</view>
+        <view>{{userAddress.mobile}}</view>
+      </view>
+      <view class='userAddress' style='color:#969696;letter-spacing: 3rpx;'>{{userAddress.province+userAddress.address}}</view>
+    </view>
+    <view style='padding-right:20rpx;'>
+      <!-- <image src = '../images/箭头.png'/> -->
+      <view></view>
+    </view>
+  </view>
+  <!-- 订单总评 -->
+  <view class='orderGeneralCommentBox'>
+    <view class='orderGeneralCommentTitle'>订单评价</view>
+    <view class='orderGeneralComment'>
+      <commentStar/>
+      <button @tap='orderGeneralComment'>发布</button>
+    </view>
+  </view>
+  <view class='orderContent'>
+    <!-- 下单商品 -->
+    <view wx:for='{{selectGoods}}' wx:key='idx' class='packageBox'>
+      <view class="packageIdx">包裹 {{index+1}}</view>
+      <view class ='packageSpec'>
+        <view class='storeSpec'>
+          <view class='packageBanner'><image src='{{item.cover}}'/></view>
+          <view class= 'speces'>
+            <view>{{item.title}}</view>
+            <view>{{item.spec}}</view>
+            <view class='package-price'>
+              <view>¥{{item.price/100}}</view>
+              <view>×{{item.nums}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class='smallPrice'>
+        <view>共{{item.nums}}件</view>
+        <view class='fahuo-btn-box'><button class='fahuo-btn' @tap='remind' data-index="{{index}}">评价</button></view>
+      </view>
+    </view>
+  </view>
+  <!-- 订单信息 -->
+  <view class = 'numberAndTime'>
+    <view class = 'copyNumber'>
+      <view>订单号</view>
+      <view class = 'copyContentBox'>
+        <text selectable="true">{{userAddress.serial}}</text>
+        <view class="tblin_items_btn" @tap="copyTBL">一键复制</view>
+      </view>
+    </view>
+    <view class = 'orderTime_box'>
+      <view>下单时间</view>
+      <view class = 'order_time'>{{userAddress.dateline}}</view>
+    </view>
+  </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+  import commentStar from '../components/commentStar'
+
+  export default class New extends wepy.page {
+  	config = {
+  		navigationBarTitleText: '订单评价',
+  	}
+  	data = {
+  		//订单信息
+      userAddress:{},
+      //订单商品信息
+      selectGoods:[],
+  		orderId:'',
+      userId:'',
+      score:'',
+  	}
+  	onLoad(options){
+  		this.orderId = options.orderId;
+  		this.$apply()
+  		this.getOrderShow()
+  	}
+    components = {
+      commentStar:commentStar
+    }
+    methods = {
+    	remind(e){
+    		let idx = e.currentTarget.dataset.index,
+    		    data = this.selectGoods[idx];
+    		wx.navigateTo({
+			  url:'startComment?id='+data.id+'&title='+data.title+'&cover='+data.cover+'&price='+data.price+'&nums='+data.nums+'&orderId='+this.orderId
+			})
+    	},
+      orderGeneralComment(){
+        let score = wepy.$instance.globalData.score;
+        if (score) {
+          this.score = score
+          wx.getStorage({
+            key:'userId',
+            success:(res)=>{
+              this.userId = res.data
+              this.$apply()
+              this.GeneralComment()
+            }
+          })
+        }else{
+          wx.showModal({
+          title: '评分',
+          content: '请先为该订单服务打分',
+          duration: 1000,
+          showCancel:false,
+        })
+        }
+      }
+    }
+    //订单详情
+    getOrderShow(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderShow';
+      const data = {
+        orderId: that.orderId,
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.data)
+        that.userAddress = res.data.data
+        that.selectGoods = res.data.data.goods
+        that.$apply()
+      })
+    }
+    //订单总评论
+    GeneralComment(){
+      const that = this;
+      const url = api.apiMall + '/shop/comments';
+      const data = {
+        orderId: that.orderId,
+        userId:that.userId,
+        merchantId:wepy.$instance.globalData.payMessage.merchantId,
+        score: that.score
+      }
+      // console.log(data)
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        // console.log(res.data.message)
+        wx.showToast({
+            title: '感谢您的评价',
+            icon: 'none',
+            image: '../images/感谢.png',
+            duration: 1000,
+            success:()=>{
+              setTimeout(()=>{
+                wx.redirectTo({
+                  url: 'order'
+                })
+              },1000)
+            }
+          })
+      })
+    }
+  }
+</script>

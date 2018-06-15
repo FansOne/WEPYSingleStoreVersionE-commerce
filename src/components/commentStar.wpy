@@ -1,0 +1,61 @@
+<style lang="less">
+  .star-image{
+    position: absolute;
+    top: 0rpx;
+    width: 60rpx;
+    height: 60rpx;
+    src: "../images/star.png";
+  }
+  .item{
+    position: absolute;
+    top: 0rpx;
+    width: 60rpx;
+    height: 60rpx;
+  }
+</style>
+<template>
+  <view class = 'startBox'>
+  	 <block wx:for="{{stars}}" wx:key='idx'>
+      <image class="star-image" style="left: {{item*88}}rpx;" src="{{key > item ?(key-item == 0.5?halfSrc:selectedSrc) : normalSrc}}">
+        <view class="item" style="left:0rpx" data-key="{{item+1}}" @tap="selectLeft"></view> <!--data-key="{{item+0.5}}点击左边加半颗-->
+        <view class="item" style="left:25rpx" data-key="{{item+1}}" @tap="selectRight"></view>
+      </image>
+    </block>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  var count = 0;
+  export default class New extends wepy.page {
+  	data = {
+  		stars: [0, 1, 2, 3, 4],
+  		normalSrc: '../images/star.png',
+    	selectedSrc: '../images/starWhole.png',
+    	halfSrc:'../images/starHalf.png',
+    	key: 0, //评分
+  	}
+    components = {}
+    methods = {
+    	 //点击左边,半颗星
+  		selectLeft (e) {
+		    var key = e.currentTarget.dataset.key
+		    if (this.data.key == 0.5 && e.currentTarget.dataset.key == 0.5) {
+			    	//只有一颗星的时候,再次点击,变为0颗
+			    key = 0;
+		    }
+		    count = key
+		    this.key = key
+		    this.$apply()
+        wepy.$instance.globalData.score = Math.round(this.key)
+		},
+		//点击右边,整颗星
+		selectRight (e) {
+		    var key = e.currentTarget.dataset.key
+		    count = key
+		    this.key = key
+		    this.$apply()
+        wepy.$instance.globalData.score = this.key
+		},
+    }
+  }
+</script>

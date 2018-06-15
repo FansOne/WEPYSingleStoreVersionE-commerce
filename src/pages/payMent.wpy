@@ -1,0 +1,327 @@
+<style lang="less" scoped>
+.checkBanner{
+  image{
+    width: 100%;
+  }
+}
+.content-box{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 0 20rpx;
+  border-radius: 10rpx;
+  background-color: #fff; 
+  padding-bottom: 20rpx;
+}
+.btn {
+    margin-top: 0rpx;
+    width: 70%;
+    height: 75rpx;
+    background-color:rgb(58, 203, 69);
+    color: white;
+    text-align: center;
+    line-height: 75rpx;
+}
+.disabled {
+    color: white;
+    border-radius: 8rpx;
+    background-color:#b1b1b1;
+}
+.payTitle{
+  padding-left: 40rpx;
+  margin: 20rpx 0;
+  color: #333;
+  font-size: 30rpx;
+  font-weight: bold;
+  letter-spacing: 3rpx;
+}
+.userIput{
+  border-bottom: 1px dashed #b1b1b1;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 15rpx;
+  padding-top: 15rpx;
+  view{
+    color: #333;
+    padding-left: 20rpx;
+    font-size: 28rpx;
+    letter-spacing: 2rpx;
+  }
+}
+.largeMoney{
+  width: 100%;
+  text-align: center;
+  padding: 35rpx 0;
+  font-size: 80rpx;
+  font-weight: bold;
+  color: #333;
+  text{
+    display: inline-block;
+    transform: translateY(-7rpx);
+    font-size: 55rpx;
+  }
+}
+button::after{
+  border: none;
+}
+.numBeyond{
+  padding: 8rpx 0;
+  position: fixed;
+  top: -56rpx;
+  width: 100%;
+  text-align: center;
+  height: 40rpx;
+  background-color: #f40;
+  color: white;
+  font-size: 30rpx;
+  line-height: 40rpx;
+}
+.numBeyondShow{
+  transform: translateY(56rpx) !important;
+  transition: transform .5s;
+}
+</style>
+
+<template>
+  <view class="container">
+    <view class="numBeyond {{topPrompt?'':'numBeyondShow'}}">总支付金额不能超过 ¥ 50000元</view>
+    <view class='checkBanner' @tap='goIndex'>
+      <image src="../images/ss_02.jpg" mode="widthFix"/>
+    </view>
+    <view class='payTitle'>付款给：{{merchantName}}</view>
+    <view class="content-box">
+      <view class='userIput'>
+        <view>消费总额 ¥</view>
+        <digit :inputValue.sync="inputValue"></digit>
+      </view>
+      <view wx:if="{{inputValue}}" class='largeMoney'><text>¥</text> {{inputValue}}</view>
+      <view wx:else="{{inputValue}}" class='largeMoney' style='color:#b1b1b1;'><text>¥</text> 0.00</view>
+      <button open-type='getUserInfo' @getuserinfo='getuserinfo' class="btn flex-center {{inputValid ? '' : 'disabled'}}" @tap='confirmPayMent'>确认支付</button>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import digit from "../components/digit"
+import api from '../app/app'
+export default class Test extends wepy.page {
+  config = {
+    navigationBarTitleText: '快速买单'
+  }
+  components = {
+    digit
+  }
+  mixins = []
+  data = {
+    inputValue: '',
+    //顶部金额提醒
+    topPrompt:true,
+    userinfo:{},
+    userMessage:'',
+    jssdk:'',
+    merchantName:''
+  }
+  onShow(){
+    let loginFlag = wx.getStorageSync('skey');
+    if (!loginFlag.length) {
+      wx.login({
+        success: (res)=> {
+            const url = api.apiMall + '/third/getSessionKey';
+            const url_openLogin = api.apiMall + '/index/openLogin';
+            const data = {
+              code: res.code,
+              thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
+            };
+              wx.request({
+              url: url,
+              data: data,
+              method: 'POST',
+              success: res => {
+                // console.log(res)
+                wx.setStorageSync('skey',res.data.session_key)
+                wx.setStorage({
+                  key: 'openid',
+                  data: res.data.results.openid
+                });
+                wx.request({
+                  url: url_openLogin,
+                  data: {
+                    openId: res.data.results.openid,
+                    merchantId:  wepy.$instance.globalData.payMessage.merchantId
+                  },
+                  method: 'POST',
+                  success: res => {
+
+                    wepy.$instance.globalData.userId = res.data.userInfo.id
+                    wepy.$instance.globalData.avatar = res.data.userInfo.avatar
+                    wepy.$instance.globalData.nickname = res.data.userInfo.nickname
+                    // wx.setStorageSync('skey',res.data.session_key)
+                    this.userId = res.data.userInfo.id
+                    this.$apply()
+                  }
+                });
+              }
+            });
+        }
+      })
+    }
+  }
+  computed = {
+    inputValid () {
+      if (this.inputValue === '0' || this.inputValue === '0.' || !this.inputValue || this.inputValue === '0.0' || this.inputValue === '0.00' ||
+       this.inputValue[this.inputValue.length - 1] === '.') {
+        return false
+      } else if(this.inputValue > 50000){
+        this.topPrompt = false
+        return false
+      }else {
+        this.topPrompt = true
+        return true
+      }
+    }
+  }
+  onLoad(){
+    this.merchantName = wepy.$instance.globalData.merchantName
+  }
+  methods = {
+    confirmPayMent(){
+      if(this.inputValid){
+        // console.log(this.inputValue)
+      }else{
+        return false
+      }
+    },
+    goIndex(){
+      wx.switchTab({
+			  url: 'index'
+			})
+    }
+  }
+  events = {
+  }
+  getuserinfo(e) {
+    if (e.detail.errMsg == 'getUserInfo:fail auth deny') {
+      wx.showModal({
+        title: '官方提示',
+        content:
+          '若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
+        duration: 1000,
+        showCancel: false,
+        confirmText: '授权',
+        success: res => {
+          wx.openSetting({
+            success: () => {}
+          });
+        }
+      });
+    }else{
+      wx.showNavigationBarLoading();
+      let url = api.apiMall + '/index/updateLogin';
+      let data = {
+        avatar : e.detail.userInfo.avatarUrl,
+        nickname : e.detail.userInfo.nickName,
+        userId : wepy.$instance.globalData.userId
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data
+      }).then(res => {
+        wx.hideNavigationBarLoading();
+         let userInfo = res.data.userInfo;
+         wx.setStorage({
+           key: 'userInfo',
+           data: userInfo,
+           success: (res)=>{
+             this.goodsCollection()
+           }
+         })
+      }) 
+    }
+  }
+  //用户登陆授权返回信息
+  userLogin() {
+    let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {};
+    const that = this;
+    const url = api.apiMall + '/index/userLogin';
+    const data = {
+      openId: that.openid,
+      merchantId: extConfig.merchantId,
+      mobile: 18220559986,
+      nickname: that.userinfo.nickName,
+      avatar: that.userinfo.avatarUrl
+    };
+    // console.log(data)
+    wepy.request({
+        url: url,
+        method: 'POST',
+        data: data
+      }).then(res => {
+        wx.hideNavigationBarLoading();
+        // console.log(res.data)
+        wx.setStorage({
+          key: 'userId',
+          data: res.data.userInfo.id
+        });
+        wx.getStorage({
+          key: 'userinfo',
+          success: res => {
+            let arr = Object.keys(res.data);
+            if (arr.length) {
+              this.login = true;
+              this.maskFlag = true;
+              this.userInfo = res.data;
+              this.$apply();
+            }
+            this.goodsCollection()
+          }
+        });
+      });
+  }
+   //快速支付
+  goodsCollection(){
+    const that = this;
+    const url = api.apiMall + '/wxpay/fastPay';
+    wx.getStorage({
+      key: 'openid',
+      success: function(res){
+        const data = {
+          openId: res.data,
+          total: that.inputValue*100,
+          merchantNumber: wepy.$instance.globalData.payMessage.merchantAppId,
+          thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
+        }
+        // console.log(data)
+        wepy.request({
+          url: url,
+          method: 'POST',
+          data: data,
+        }).then((res)=>{
+          // console.log(res)
+          that.jssdk = res.data.jssdk
+          that.$apply()
+          //发起微信支付
+            wx.requestPayment({
+                'appId':that.jssdk.appId,
+                'timeStamp': that.jssdk.timestamp,
+                'nonceStr':that.jssdk.nonceStr,
+                'package': that.jssdk.package,
+                'signType': that.jssdk.signType,
+                'paySign': that.jssdk.paySign,
+              success:function(res){
+                  // console.log(res)
+                    wx.switchTab({
+                      url: 'index'
+                    })
+                },
+            })
+        })
+      }
+    })
+  }
+}
+</script>

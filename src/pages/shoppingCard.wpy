@@ -1,0 +1,558 @@
+<style lang="less">
+	page{
+		background-color: #ffffff;
+	}
+	.container{
+		border-top: 1px solid #efeff4;
+	}
+	.userAdd-commodity{
+		display: flex;
+		flex-direction: column;
+	}
+	.userAdd-commodity-item{
+		display: flex;
+		flex: 1;
+		flex-direction: row;
+		padding: 20rpx 40rpx 20rpx 30rpx;
+		align-items: center;
+	}
+	.commodity-title{
+		font-size: 29rpx;
+		color: #333333;
+	}
+	.commodity-img{
+		height: 158rpx;
+		width: 158rpx;
+		margin: 0 30rpx;
+	}
+	.userAdd-commodity-item-right{
+		/*border: 1px solid red;*/
+		width: 100%;
+		padding-top: 10rpx;
+		display: flex;
+		flex-direction: column;
+	}
+	.titleSpec{
+		display: flex;
+		flex-direction: column;
+		text:nth-child(2){
+			font-size: 24rpx;
+			color: #969696;
+			margin-top: 7rpx;
+		}
+	}
+	.commodity-item-computed{
+		width: 100%;
+		position: relative;
+		display: flex;
+		flex-direction: row;
+		font-size: 24rpx;
+		color: #969696;
+		align-items: center;
+	}
+	.addMinus-box{
+		margin-left: 80rpx;
+	}
+	.minusBtn,.addBtn{
+		display: inline-block;
+		background-color: rgb(244,148,0);
+		color: #ffffff;
+		text-align: center;
+		line-height: 46rpx;
+		border-radius: 50rpx;
+		height: 50rpx;
+		width: 50rpx;
+	}
+	.minusBtn{
+		background-color: rgb(162,162,162);
+	}
+	.deleteBox{
+		position: absolute;
+		right: 15rpx;
+	}
+	.bottom-select{
+		border-top:1px solid #efeff4;
+		position: fixed;
+		bottom:0;
+		height: 105rpx;
+		box-sizing: border-box;
+		padding-left: 30rpx;
+		background-color: #ffffff;
+		display: flex;
+		align-items: center;
+		flex-direction: row;
+		width: 100%;
+	}
+	.selectAll-icon{
+		margin-right: 30rpx;
+	}
+	.select-box{
+		display: flex;
+		flex: 0.5;
+		align-items: center;
+	}
+	.totalPrice-box{
+		display: flex;
+		flex-direction: row;
+		flex: 0.5;
+		height: 100%;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.computedPrice{
+		display: flex;
+		height: 100%;
+		width: 138rpx;
+		align-items: center;
+		flex-direction: column;
+		text:nth-child(1){
+			display: inline-block;
+			margin-top: 13rpx;
+			text-align: center;
+			font-size: 30rpx;
+			color: #fd2323;
+		}
+		text:nth-child(2){
+			display: inline-block;
+			text-align: center;
+			font-size: 22rpx;
+			color: #333333;
+		}
+	}
+	.Settlement-btn{
+		background-color: #f3825d;
+		display: flex;
+		/*flex: 0.5;*/
+		width: 200rpx;
+		height: 100%;
+		border: none;
+		align-items: center;
+		justify-content: center;
+		color: #ffffff;
+		font-size: 32rpx;
+	}
+	.itemNum{
+		display: inline-block;
+		/*border: 1px solid red;*/
+		width: 25rpx;
+		text-align: center;
+		margin: 0 35rpx;
+	}
+	button.kaoRight{
+		border-radius: 0;
+		margin-right: 0;
+	}
+</style>
+<template>
+	<view class='container'>
+		<view wx:if="{{noBuy}}">
+	        <view class='noBuy-box'>
+	          <view class='shiluo'>
+	            <image src = 'http://applet.qumatou.com.cn/static/shop/空购物车.jpg'/>
+	            <text>空空的购物车也会孤单呢</text>
+	            <text>快去给她添加宝贝吧</text>
+	            <button @tap='goIndex'>去逛逛</button>
+	          </view>
+	        </view>
+      	</view>
+		<view wx:else>
+			<view class="userAdd-commodity">
+			<!-- wx:for 渲染购物车列表 -->
+			<view wx:for="{{cartItems}}" wx:key ='idx'>
+				<view class='userAdd-commodity-item'>
+				    <!-- wx:if 是否选择显示不同图标 -->
+				    <icon wx:if="{{item.selected}}" type="success" size ='25' color="orange" @tap="selectList" data-index="{{index}}" />
+				    <icon wx:else type="circle" @tap="selectList" data-index="{{index}}" size ='25' color="orange"/>
+
+				    <!-- 点击商品图片可跳转到商品详情 -->
+				    <navigator url="./details?id={{item.goodsId}}">
+				        <image class="commodity-img" src="{{item.cover}}"/>
+				    </navigator>
+
+				    <view class='userAdd-commodity-item-right'>
+				    	<view class='titleSpec'>
+				    		<text class='commodity-title'>{{item.title}}</text>
+				    		<!-- <text>{{item.spec}}</text> -->
+				    	</view>
+					    <view class='commodity-item-computed'>
+					    	<text>￥{{item.price}}</text>
+						    <!-- 增加减少数量按钮 -->
+						    <view class='addMinus-box'>
+						        <text class='minusBtn' @tap="minusCount" data-index="{{index}}">-</text>
+						        <text class ='itemNum'>{{item.quantity}}</text>
+						        <text class='addBtn' @tap="addCount" data-index="{{index}}">+</text>
+						    </view>
+
+						    <!-- 删除按钮 -->
+						    <view class='deleteBox'>
+						    	<text @tap="deleteList" data-index="{{index}}"> × </text>
+						    </view>
+					    </view>
+				    </view>
+				</view>
+			</view>
+		</view>
+		<!-- 猜你喜欢 -->
+		<view class='guessLike'>
+			<!-- 推荐标题 -->
+			<text class = 'guessLike-title'>- 猜你喜欢 -</text>
+			<!-- 推荐商品 -->
+			<view>
+				<navigator url = './details?id={{item.id}}' wx:for="{{ commodityMessage }}" wx:key="index" wx:for-index="idx">
+                  <view class="item-ans">
+                    <view class="avatar">
+                          <image class="img" src="{{item.cover}}"/>
+                    </view>
+                    <view class="expertInfo">
+                        <view class="name">{{ item.title }}</view>
+                        <view class="tag">{{ item.subtitle }}</view>
+                        	<view class="price">
+                            	<view class='quan'>券后</view>
+                            	<view class='moneys'>
+                              		<text>¥ {{ item.price/100}} /</text>
+                          			<!-- <text class='number'>{{ item.num }}</text> -->
+                              		<text class='originalPrice'>¥ {{ item.sell/100 }}</text>
+                            	</view>
+                        	</view>
+                      </view>
+                  	</view>
+              	</navigator>
+			</view>
+			<!-- 滑动底部 -->
+			<text class = 'guessLike-title guessLike-bottomTitle'>- 人家是有底线的 -</text>
+		</view>
+
+		<!-- 底部操作栏 -->
+		<view class = 'bottom-select'>
+		    <view class = 'select-box'>
+		    	<!-- wx:if 是否全选显示不同图标 -->
+			    <icon wx:if="{{selectAllStatus}}" type="success" color="orange" size='25' @tap="selectAll" class='selectAll-icon'/>
+			    <icon wx:else type="circle" color="orange" size='25' @tap="selectAll" class='selectAll-icon'/>
+			    <text>全选</text>
+		    </view>
+		    <view class="totalPrice-box">
+		    	<!-- 总价 -->
+			    <view class='computedPrice'><text>￥{{totalPrice}}</text><text>不含运费</text></view>
+			    <view wx:if='{{judgeLogin}}' class='Settlement-btn' @tap='jiesuan'>结算</view>
+			    <button wx:else open-type='getUserInfo' @getuserinfo='getuserinfo' class='Settlement-btn kaoRight' @tap='jiesuan'>结算</button>
+		    </view>
+		</view>
+		</view>
+	</view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	components = {
+  	}
+    data = {
+    	carts:[],               // 购物车列表
+        hasList:false,          // 列表是否有数据
+        totalPrice: 0,    // 总价，初始为0
+        selectAllStatus:false,   // 全选状态
+        //推荐商品
+        commodityMessage:[],
+      	//购物车添加商品列表
+      	cartItems:[],
+      	//购物车是否为空
+      	noBuy:true,
+      	//选择支付的商品
+      	selectBuy:[],
+      	userId:'',
+      	goodsId:'',
+      	judgeLogin:false,
+    }
+    config = {
+      navigationBarTitleText: '购物车'
+    }
+    onLoad(){
+    	if(this.noBuy == false){
+    		wx.showNavigationBarLoading()
+    	}
+    }
+    onShow() {
+    	let that = this;
+        this.hasList = true,
+    	wx.getStorage({
+		  key: 'cartItems',
+		  success: function(res) {
+		    // console.log(res.data)
+		    that.cartItems =res.data
+		    that.$apply()
+		    if (that.cartItems.length == 0) {
+		    	that.noBuy =true
+		    	that.$apply()
+		    }else{
+		    	that.noBuy =false
+		    	that.$apply()
+		    	wx.getStorage({
+		    		key:'userId',
+		    		success:(res)=>{
+		    			that.userId = res.data
+		    			that.$apply()
+		    			that.getRandomGoods()
+		    		},
+		    		fail:()=>{
+		    			that.getRandomGoods()
+		    		}
+		    	})
+		    }
+		  } 
+		})
+		//清空所选择支付商品数组
+		this.selectBuy.splice(0,this.selectBuy.length)
+
+		wx.getStorage({
+    		key:'userId',
+    		success:()=>{
+    			this.judgeLogin = true
+    			this.$apply()
+    		},
+    		fail:()=>{
+    			this.judgeLogin = false
+    			this.$apply()
+    		}
+    	})
+		
+		let loginFlag = wx.getStorageSync('skey');
+    if (!loginFlag.length) {
+      wx.login({
+        success: (res)=> {
+            const url = api.apiMall + '/third/getSessionKey';
+            const url_openLogin = api.apiMall + '/index/openLogin';
+            const data = {
+              code: res.code,
+              thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
+            };
+              wx.request({
+              url: url,
+              data: data,
+              method: 'POST',
+              success: res => {
+                // console.log(res)
+                wx.setStorageSync('skey',res.data.session_key)
+                wx.setStorage({
+                  key: 'openid',
+                  data: res.data.results.openid
+                });
+                wx.request({
+                  url: url_openLogin,
+                  data: {
+                    openId: res.data.results.openid,
+                    merchantId:  wepy.$instance.globalData.payMessage.merchantId
+                  },
+                  method: 'POST',
+                  success: res => {
+
+                    wepy.$instance.globalData.userId = res.data.userInfo.id
+                    wepy.$instance.globalData.avatar = res.data.userInfo.avatar
+                    wepy.$instance.globalData.nickname = res.data.userInfo.nickname
+                    // wx.setStorageSync('skey',res.data.session_key)
+                    this.userId = res.data.userInfo.id
+                    this.$apply()
+                  }
+                });
+              }
+            });
+        }
+      })
+    }
+  }
+    onHide(){
+    	this.selectAllStatus = false,
+    	this.totalPrice = 0
+    	this.$apply()
+    }
+    //监听购物车是否添加商品
+    watch = {
+      	cartItems (newValue, oldValue) {
+          	if(!newValue.length){
+          		this.noBuy = true
+          		this.$apply()
+          	}
+      	}
+  	}
+    //获取推荐商品
+    getRandomGoods(){
+      const that = this;
+      const url = api.apiMall + '/shop/randomGoods';
+      const data = {
+        merchantId: wepy.$instance.globalData.payMessage.merchantId,
+      }
+      // console.log(data)
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+      	// console.log(res.data.data)
+      	wx.hideNavigationBarLoading()
+        // console.log(res.data.data)
+        that.commodityMessage = res.data.data
+        that.$apply()
+      })
+    }
+    //计算总价
+    getTotalPrice() {
+	    let cartItems = this.cartItems;                  // 获取购物车列表
+	    let total = 0;
+	    for(let i = 0; i<cartItems.length; i++) {         // 循环列表得到每个数据
+	        if(cartItems[i].selected) {                   // 判断选中才会计算价格
+	            total += cartItems[i].quantity * cartItems[i].price;     // 所有价格加起来
+	        }
+	    }
+	    this.cartItems =  cartItems,                     // 最后赋值到data中渲染到页面
+	    this.totalPrice = total.toFixed(2)
+	}
+    components = {}
+    methods = {
+    	selectList(e) {
+		    const index = e.currentTarget.dataset.index;    // 获取data- 传进来的index
+		    let cartItems = this.cartItems;                    // 获取购物车列表
+		    const selected = cartItems[index].selected;         // 获取当前商品的选中状态
+		    cartItems[index].selected = !selected;              // 改变状态
+		    this.cartItems = cartItems
+		    this.getTotalPrice();                           // 重新获取总价
+		},
+		selectAll(e) {
+		    let selectAllStatus = this.selectAllStatus;    // 是否全选状态
+		    selectAllStatus = !selectAllStatus;
+		    let cartItems = this.cartItems;
+
+		    for (let i = 0; i < cartItems.length; i++) {
+		        cartItems[i].selected = selectAllStatus;            // 改变所有商品状态
+		    }
+		    this.selectAllStatus = selectAllStatus,
+	        this.cartItems = cartItems,
+		    this.getTotalPrice()                              // 重新获取总价
+		},
+		// 增加数量
+		addCount(e) {
+		    const index = e.currentTarget.dataset.index;
+		    let cartItems = this.cartItems;
+		    let quantity = cartItems[index].quantity;
+		    quantity = quantity + 1;
+		    cartItems[index].quantity = quantity;
+		    this.cartItems = cartItems
+		    this.getTotalPrice()
+		},
+		// 减少数量
+		minusCount(e) {
+		    const index = e.currentTarget.dataset.index;
+		    let cartItems = this.cartItems;
+		    let quantity = cartItems[index].quantity;
+		    if(quantity <= 1){
+		      return false;
+		    }
+		    quantity = quantity - 1;
+		    cartItems[index].quantity = quantity;
+		    this.cartItems = cartItems;
+		    this.getTotalPrice();
+		},
+		deleteList(e) {
+		    const index = e.currentTarget.dataset.index;
+		    let cartItems = this.cartItems;
+		    cartItems.splice(index,1);              // 删除购物车列表里这个商品
+		    this.cartItems = cartItems
+		    wx.setStorage({
+	        	key: 'cartItems',
+	        	data: this.cartItems,
+			})
+		    if(!cartItems.length){                  // 如果购物车为空
+		        this.hasList = false              // 修改标识为false，显示购物车为空页面
+		    }else{                              // 如果不为空
+		        this.getTotalPrice();           // 重新计算总价格
+		    }   
+		},
+		jiesuan(){
+			wx.getStorage({
+	    		key:'userId',
+	    		success:(res)=>{
+	    			this.judgeUserLogin()
+	    		},
+	    		fail:()=>{
+	    			
+	    		}
+	    	})
+		},
+		goIndex(){
+			wx.switchTab({
+			  url: 'index'
+			})
+		}
+    }
+    getuserinfo(e){
+			if (e.detail.errMsg == 'getUserInfo:fail auth deny') {
+				wx.showModal({
+					title: '官方提示',
+					content:
+						'若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
+					duration: 1000,
+					showCancel: false,
+					confirmText: '授权',
+					success: res => {
+						wx.openSetting({
+							success: () => {}
+						});
+					}
+				});
+			}else{
+				wx.showNavigationBarLoading();
+				let url = api.apiMall + '/index/updateLogin';
+				let data = {
+					avatar : e.detail.userInfo.avatarUrl,
+					nickname : e.detail.userInfo.nickName,
+					userId : wepy.$instance.globalData.userId
+				}
+				wepy.request({
+					url: url,
+					method: 'POST',
+					data: data
+				}).then(res => {
+					wx.hideNavigationBarLoading();
+					let userInfo = res.data.userInfo;
+					wx.setStorage({
+						key: 'userInfo',
+						data: userInfo,
+						success: (res)=>{
+							this.judgeUserLogin()
+						}
+					})
+				})
+			} 
+    }
+    //用户登录成功执行
+    judgeUserLogin(){
+    	let that = this;
+			let nowPrice = that.totalPrice;
+			let cartItems = that.cartItems;
+			for(var attr in cartItems){
+				if(cartItems[attr].selected){
+					that.selectBuy.push(cartItems[attr])
+					that.$apply()
+				}
+			}
+			if(nowPrice == 0){
+				wx.showToast({
+  				title: '请选择商品',
+  				icon: 'none',
+  				duration: 2000
+				})
+			}else{
+				wx.navigateTo({
+					url:"confirmOrder"
+				})
+			}
+			wx.setStorage({
+				key:'selectBuy',
+				data: that.selectBuy
+			})
+			wx.setStorage({
+				key:'totalPrice',
+				data: that.totalPrice
+			})
+    }
+  }
+</script>

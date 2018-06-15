@@ -1,0 +1,245 @@
+<style lang="less">
+	page{
+		border-top:1px solid #efeff4;
+		background-color: #ffffff;
+	}
+	.address-box{
+		/*border: 1px solid red;*/
+		margin: 0 40rpx;
+		border-bottom:1px solid #efeff4;
+		.namePhone{
+			padding-top: 40rpx;
+			display: flex;
+			flex-direction: row;
+			font-size: 30rpx;
+			font-weight: bold;
+			view:nth-child(2){
+				margin-left: 70rpx;
+			}
+		}
+		.whereAddre{
+			display: flex;
+			flex-direction: row;
+			padding-left: 130rpx;
+			padding-top: 30rpx;
+			/*view:nth-child(1){
+				width: 70rpx;
+				height: 40rpx;
+				background-color:rgb(244,148,0);
+				font-size: 24rpx;
+				color: #ffffff;
+				text-align: center;
+				line-height: 40rpx; 
+			}*/
+			view:nth-child(1){
+				margin-left: 0rpx;
+			}
+		}
+	}
+	.bianij{
+		padding-left: 130rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 40rpx;
+		margin-top: 40rpx;
+		image{
+			width: 40rpx;
+			height: 40rpx;
+		}
+		view:nth-child(2){
+			margin-left: 30rpx;
+		}
+		view:nth-child(3){
+			height: 40rpx;
+			flex:1;
+			align-items: center;
+			image{
+				margin-left: 40rpx;
+				float: right;	
+			}
+		}
+	}
+	/*底部导航*/
+	.bottom-nav{
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		position: fixed;
+		bottom: 0;
+		height: 120rpx;
+		width: 100%;
+		background-color: rgb(59,59,59);
+		/*view:nth-child(1){
+			color: #ffffff;
+			width:50%;
+			text-align: center;
+			line-height: 120rpx;
+			height: 100%; 
+		}*/
+		view{
+			color: #ffffff;
+			width:100%;
+			text-align: center;
+			line-height: 120rpx;
+			height: 100%; 
+			background-color: rgb(244,148,0);
+			letter-spacing: 5rpx;
+		}
+	}
+	.content-box{
+		margin-bottom: 165rpx;
+	}
+</style>
+<template>
+  <view class='container'>
+  		<view wx:if="{{noBuy}}">
+	        <view class='noBuy-box'>
+	          <view class='shiluo'>
+	            <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+	            <text>您还没添加收货地址哦！</text>
+	          </view>
+	        </view>
+      	</view>
+      	<view wx:else class = 'content-box'>
+	  		<view class='address-box' wx:for="{{userAddress}}" wx:key="index">
+	  			<view class='namePhone'>
+	  				<view>{{item.userName}}</view>
+	  				<view>{{item.telNumber}}</view>
+	  			</view>
+	  			<view class='whereAddre'>
+	  				<!-- <view>{{item.where}}</view> -->
+	  				<view>{{item.provinceName+item.cityName+item.countyName+item.detailInfo}}</view>
+	  			</view>
+	  			<view class='bianij'>
+	  				<icon wx:if="{{item.selected}}" type="success" size ='25' color="orange" @tap="selectList" data-index="{{index}}" />
+					<icon wx:else type="success" @tap="selectList" data-index="{{index}}" size ='25' color="rgb(163,163,163)"/>
+					<view>设为默认</view>
+					<view>
+						<!-- <image src='../images/编辑.jpg' data-index="{{index}}" @tap = 'editAddress'/> -->
+						<image src='http://applet.qumatou.com.cn/static/shop/删除.jpg' @tap='deleteAddre' data-index="{{index}}"/>
+					</view>
+	  			</view>
+	  		</view>
+  		</view>
+  		<view class='bottom-nav'>
+  			<!-- <view @tap = 'editAddress'>手动添加</view> -->
+  			<view @tap = 'wxAdd'>添加收货地址</view>
+  		</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class New extends wepy.page {
+  	config = {
+  		navigationBarTitleText: '收货地址管理',
+  	}
+  	data = {
+  		maskFlag:true,
+  		noBuy:false,
+  		userAddress:[],
+  	}
+  	onLoad(){
+  		let that = this;
+  		wx.getStorage({
+  			key:'userAddress',
+  			success:function(res){
+  				// that.userAddress.push(res.data)
+  				// that.$apply()
+  				for(let attr in res.data){
+  					that.userAddress.push(res.data[attr])
+  				}
+  				if(!res.data.length){
+  					that.noBuy = true
+  				}
+  			},
+  			fail:function(){
+  				that.noBuy = true
+  			}
+  		})
+  	}
+    components = {}
+    methods = {
+    	selectList(e){
+    		let index = e.currentTarget.dataset.index;
+    		// console.log(this.userAddress[0])
+    		 for (var i = 0; i < this.userAddress.length;i++){
+    		 	this.userAddress.forEach(val=>{
+		        	val.idx = i
+		        	// console.log(val)
+		        })
+          		if (this.userAddress[i].idx == index){
+            		this.userAddress[i].selected = true;//当前点击的位置为true即选中
+          		}
+          		else{
+            		this.userAddress[i].selected =false;//其他的位置为false
+          		}
+        	}
+        	// console.log(this.userAddress)
+        	wx.setStorage({
+        		key:'userAddress',
+        		data:this.userAddress
+        	})
+        	wx.setStorage({
+        		key:'address',
+        		data:this.userAddress[index]
+        	})
+    	},
+    	deleteAddre(e){
+    		let that = this;
+    		wx.showModal({
+			  title: '确认删除收货地址吗？',
+			  // content: '这是一个模态弹窗',
+			  success: function(res) {
+			    if (res.confirm) {
+			    	let index = e.currentTarget.dataset.index,
+		    			userAddress = that.userAddress;
+		    		userAddress.splice(index,1);
+		    		that.userAddress = userAddress;
+		    		wx.setStorage({
+		    			key:'userAddress',
+		    			data: that.userAddress
+		    		})
+		    		if(that.userAddress.length == 0){
+		    			that.noBuy = true
+		    		}
+		    		that.$apply()
+			    } else if (res.cancel) {
+			      	return
+			    }
+			  }
+			})
+    	},
+    	//增加收货地址
+    	wxAdd(){
+    		let that = this;
+    		wx.chooseAddress({
+			  success: function (res) {
+			  	// console.log(res)
+			  	that.userAddress.push(res)
+			  	that.$apply()
+			  	that.userAddress.forEach(val=>{
+		        	val.selected = false
+		        	// console.log(val)
+		        })
+		        // console.log(that.userAddress)
+		        wx.setStorage({
+		        	key:'userAddress',
+		        	data:that.userAddress
+		        })
+		        wx.redirectTo({
+				  url: 'myAddress'
+				})
+			  }
+			})
+    	},
+    	editAddress(){
+    		wx.navigateTo({
+			  // url: 'editAddress?name='+this.list[0].name+'&tel='+this.list[0].tel+'&addre='+this.list[0].addre+'&where='+this.list[0].where
+			  url: 'editAddress'
+			})
+    	},	
+    }
+  }
+</script>

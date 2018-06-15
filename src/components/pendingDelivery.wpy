@@ -1,0 +1,224 @@
+<style lang="less">
+	.contant-box{
+		padding: 50rpx 40rpx 40rpx 40rpx;
+		display: flex;
+		flex-direction: column;
+		border-bottom: 1px solid #efeff4;
+	}
+
+	.fahuo-top{
+		display: flex;
+		justify-content: space-between;
+		letter-spacing: 3rpx;
+		font-size: 28rpx;
+		color: #969696;
+		text:nth-child(2){
+			color: #333333;
+		}
+	}
+
+	.fahuo-middle{
+		padding-top: 40rpx;
+		border-bottom: 1px solid #efeff4;
+		display: flex;
+		flex-direction: row;
+		padding-bottom: 30rpx;
+		image{
+			height: 150rpx;
+			width: 150rpx;
+		}
+	}
+	.middle-right{
+		height: 150rpx;
+		position: relative;
+		padding-left: 30rpx;
+		flex:1;
+		/*border: 1px solid red;*/
+		display: flex;
+		flex-direction: column;
+		.middle-right-title{
+			color: #333333;
+			font-size: 32rpx;
+			letter-spacing: 5rpx;
+			margin-top: 15rpx;
+			/*border: 1px solid red;*/
+		}
+		/*view:nth-child(2){
+			margin-top: 15rpx;
+			color: #969696;
+			font-size: 24rpx;
+			letter-spacing: 3rpx;
+		}*/
+	}
+	.prices{
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		position: absolute;
+		bottom: 5rpx;
+		width: 100%;
+		color: #969696;
+		font-size: 25rpx;
+		letter-spacing: 3rpx;
+		margin-bottom: 0rpx;
+		text:nth-child(2){
+			display: inline-block;
+			font-size: 33rpx;
+			color: #969696;
+			margin-right: 30rpx;
+		}
+	}
+
+	.fahuo-bottom{
+		display: flex;
+		flex-direction: column;
+		padding-top: 40rpx;
+		view:nth-child(1){
+			display: flex;
+			justify-content: space-between;
+			text:nth-child(1){
+				font-size: 30rpx;
+				color: #969696;
+				letter-spacing: 3rpx;
+				padding-bottom: 40rpx;
+			}
+			text:nth-child(2){
+				font-size: 30rpx;
+				color: #333333;
+				letter-spacing: 3rpx;
+				text{
+					color: red;
+					display: inline-block;
+					margin-left: 10rpx;
+				}
+			}
+		}
+	}
+	.fahuo-btn-box{
+		position: relative;
+		width: 100%;
+		height: 80rpx;
+	}
+	.fahuo-btn{	
+		position: absolute;
+		right: 0;
+		display: block;
+		width: 210rpx;
+		height: 80rpx;
+		text-align: center;
+		background-color: rgb(239,110,75);
+		color: #ffffff;
+		font-size: 28rpx;
+		line-height: 80rpx;
+		letter-spacing: 4rpx;
+
+	}
+	button::after{ 
+    	border:none;  
+	}
+</style>
+<template>
+  <view class='container'>
+	<view class='warit-fahuo' wx:for="{{itemInformation}}" wx:key='index'>
+		<view class='contant-box'>
+			<view class = 'fahuo-top'>
+				<text>订单编号：{{item.serial}}</text>
+				<text>待发货</text>
+			</view>
+			<view class = 'fahuo-middle' @tap = 'goOrderDetail' data-index = "{{index}}">
+				<image src='{{item.goods.cover}}'/>
+				<view class='middle-right'>
+					<view class='middle-right-title'>{{item.goods.title}}</view>
+					<!-- <view>{{item.spec}}</view> -->
+					<vew class ='prices'>
+						<text>{{item.dateline}}</text>
+						<text>× {{item.goodNums}}</text>
+					</vew>
+				</view>
+			</view>
+			<view class = 'fahuo-bottom'>
+				<view>
+					<text>共{{item.goodNums}}件</text>
+					<text>合计 <text>¥ {{item.goods.price/100}}</text></text>
+				</view>
+				<view class='fahuo-btn-box'>
+					<button class='fahuo-btn' @tap='remind' disabled="{{item.btn_disabled}}" data-index="{{index}}">提醒发货</button>
+				</view>
+			</view>
+		</view>
+	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class New extends wepy.page {
+  	data = {
+  		itemInformation:[
+	  		// {
+	  		// 	time:'2018-04-12',
+	  		// 	img:'../images/three.jpg',
+	  		// 	title:'固形物含量99%的冰糖燕窝',
+	  		// 	price: 249,
+	  		// 	spec: '7瓶（30g/瓶）',
+	  		// 	num:1
+	  		// }
+  		],
+  		orderId:'',
+  	}
+    components = {}
+    onLoad(){
+    	this.getDatas()
+    }
+    methods = {
+    	remind(e){
+    		let idx = e.currentTarget.dataset.index;
+    		let that = this;
+    		wx.showToast({
+			  title: '已提醒卖家发货',
+			  icon: 'success',
+			  duration: 2000,
+			  success:()=>{
+			  	that.itemInformation[idx].btn_disabled = true
+			  	that.$apply()
+			  }
+			})
+    	},
+    	goOrderDetail(e){
+    		let idx = e.currentTarget.dataset.index,
+    		    orderId = this.itemInformation[idx].id;
+        	wx.navigateTo({
+		  		url: 'orderDetails?orderId='+orderId
+			})
+    	},
+    }
+    //获取待发货数据
+     async getDatas(){
+      const that = this;
+      const url = api.apiMall + '/shop/orderLists';
+      const data = {
+        merchantId:wepy.$instance.globalData.payMessage.merchantId,
+        userId:wepy.$instance.globalData.userId,
+        status:1
+      }
+      await wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+        wx.setStorage({
+        	key:'pendingGoods',
+        	data:res.data.data.length
+        })
+        // console.log(res.data.data)
+        res.data.data.forEach(val=>{
+        	val.btn_disabled = false
+        	// console.log(val)
+        })
+        that.itemInformation = res.data.data
+        that.$apply()
+      })
+    }
+  }
+</script>

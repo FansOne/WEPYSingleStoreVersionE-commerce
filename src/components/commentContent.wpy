@@ -1,0 +1,174 @@
+<style lang="less">
+	.commentBox{
+		padding: 0rpx 40rpx;
+	}
+	.comment{
+		border-bottom: 1px solid #efeff4;
+	}
+	.comment-top{
+		padding-top: 30rpx;
+		display: flex;
+		flex-direction: column;
+		view:nth-child(1){
+			display: flex;
+			flex-direction: row;
+			image{
+				width: 60rpx;
+				height: 60rpx;
+				border-radius: 50%;
+				overflow: hidden;
+			}
+			view{
+				flex:1;
+				padding: 10rpx 0 0 20rpx;
+				text:nth-child(1){
+					color: #333333;
+					font-size: 28rpx;
+					letter-spacing: 3rpx;
+				}
+				text:nth-child(2){
+					display: inline-block;
+					color: #969696;
+					font-size: 22rpx;
+					margin-top: 4rpx;
+				}
+			}
+		}
+	}
+	.commentSpec{
+		padding-left: 80rpx;
+		font-size: 22rpx;
+		color: #969696;
+		line-height: 22rpx;
+	}
+	.comment-middle{
+		padding-top: 30rpx;
+		font-size: 26rpx;
+		color: #333333;
+		letter-spacing: 1rpx;
+		padding-left: 80rpx;
+	}
+	.comment-bottom{
+		padding-bottom: 40rpx;
+		padding-top: 45rpx;
+		height: 60rpx;
+		position: relative;
+		.dianZan-btn{
+			position: absolute;
+			right: 0;
+			border: 2px solid #b1b1b1;
+			width: 160rpx;
+			height: 60rpx;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			image{
+				width: 35rpx;
+				height: 35rpx;
+				margin-right: 30rpx;
+			}
+			view{
+				font-size: 22rpx;
+				color: #333333;
+				height: 100%;
+				line-height: 65rpx;
+			}
+		}
+	}
+	.star-image{
+		height: 30rpx;
+		width: 30rpx;
+	}
+</style>
+<template>
+  <view calss ='container'>
+  	<view class='commentBox' wx:for="{{comments}}" wx:key="index" wx:for-item="itemName">
+  		<view class='comment'>
+  			<view class ='comment-top'>
+  				<view>
+  					<image src="{{itemName.cover}}"/>
+  					<view><text>{{itemName.nickname}}</text><text>{{itemName.dateline}}</text></view>
+  				</view>
+  				<view class='commentSpec'>
+  					<block wx:for="{{stars}}" wx:key='idx'>
+				      <image class="star-image" style="left: {{item*35}}rpx;" src="{{itemName.score > item ?(itemName.score-item == 0.5?halfSrc:selectedSrc) : normalSrc}}"/>
+				    </block>
+  				</view>
+  			</view>
+  			<view class='comment-middle'>
+  				{{itemName.content}}
+  			</view>
+  			<view class='comment-bottom'>
+  				<!-- <view class='dianZan-btn' @tap='dianZan' data-id="{{index}}">
+  					<image src='{{item.dianZan}}'></image>
+  					<view>{{item.num}}</view>
+  				</view> -->
+  			</view>
+  		</view>
+  	</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '../app/app'
+
+  export default class commentContent extends wepy.component {
+  	data = {
+  		comments:[],
+  		stars: [0, 1, 2, 3, 4],
+  		normalSrc: '../images/star.png',
+    	selectedSrc: '../images/starWhole.png',
+    	halfSrc:'../images/starHalf.png',
+    	// key: 3, //评分
+  	}
+    methods = {
+    	dianZan(e){
+    		let that = this,
+    			index = e.currentTarget.dataset.id;
+    		if(that.content[index].num == 2){
+    			that.content[index].dianZan = '../images/评价_10.jpg',
+    			that.content[index].num = (that.content[index].num+1),
+    			wx.setStorage({
+			      key: 'key',
+			      data: {img:that.content[index].dianZan,num:that.content[index].num},
+			      success: function(res) {
+			      	wx.getStorage({
+					  key: 'key',
+					  success: function(ress) {
+					      // console.log(ress.data.img)
+					      that.content[index].dianZan = ress.data.img
+					      that.$apply()
+					  } 
+					})
+			      }
+			    })
+    		}else{
+    			that.content[index].dianZan = '../images/评价_07.jpg',
+    			that.content[index].num = (that.content[index].num-1)
+    		}
+    	},
+    }
+    // 获取用户评论
+    getUserComments(options){
+      wx.showNavigationBarLoading()
+      const that = this;
+      const goodsId = that.goodsId;
+      const url = api.apiMall + '/shop/goodDetail';
+      const data = {
+        goodId: options.goodsId,
+        userId: options.userId
+      }
+      wepy.request({
+        url: url,
+        method: 'POST',
+        data: data,
+      }).then((res)=>{
+      	wx.hideNavigationBarLoading()
+        that.comments = res.data.data.comments,
+        that.$apply() 
+        // console.log(that.comments)  
+      })
+    }
+  }
+</script>
