@@ -11,7 +11,9 @@
 
 更多项目请关注 [https://github.com/FansOne](https://github.com/FansOne)。
 
-开发问题欢迎一起交流,扫码添加VX：<img src="https://wx-shopping-1257093177.cos.ap-beijing.myqcloud.com/WX.jpeg" width="222px" height="222px" style='inline'>
+开发问题欢迎一起交流,扫码添加VX：
+
+<img src="https://wx-shopping-1257093177.cos.ap-beijing.myqcloud.com/WX.jpeg" width="222px" height="222px" style='inline'>
 
 ## 项目截图
 
