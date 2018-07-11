@@ -17,8 +17,8 @@ setStore(store)
 export default class extends wepy.app {
   config = {
     pages: [
+      'pages/index/index',
       'pages/homePage',
-      'pages/index',
       'pages/shoppingCard',
       'pages/about',
       'pages/details',
@@ -47,12 +47,12 @@ export default class extends wepy.app {
       backgroundColor: "#ffffff",
       borderStyle: "black",
       list: [{
-        pagePath: "pages/homePage",
+        pagePath: "pages/index/index",
         text: "首页",
         iconPath: "images/首页_03.jpg",
         selectedIconPath: "images/j_03.jpg"
       },{
-        pagePath: "pages/index",
+        pagePath: "pages/homePage",
         text: "商城",
         iconPath: "images/商城.jpg",
         selectedIconPath: "images/商城s.jpg"
@@ -123,10 +123,13 @@ export default class extends wepy.app {
                         },
                         method: 'POST',
                         success: res => {
-                          // console.log(res)
                           wepy.$instance.globalData.userId = res.data.userInfo.id
                           wepy.$instance.globalData.avatar = res.data.userInfo.avatar
                           wepy.$instance.globalData.nickname = res.data.userInfo.nickname
+                          wx.setStorage({
+                            key:'userId',
+                            data: res.data.userInfo.id
+                          })
                         }
                       });
                     }

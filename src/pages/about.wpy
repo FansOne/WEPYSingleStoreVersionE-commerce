@@ -15,18 +15,20 @@ page {
   /*align-items: center;*/
   .updata {
     position: absolute;
-    bottom: 0rpx;
-    top: 0;
+    bottom: 0;
+    top:0;
     margin: auto;
-    right: 235rpx;
-    background-color: rgb(113,154,220);
+    right: 222rpx;
+    background-color: #3b3633;
     color: #fff;
-    width: 130rpx;
+    // width: 130rpx;
     height: 50rpx;
-    font-size: 29rpx;
+    font-size: 27rpx;
     line-height: 50rpx;
-    letter-spacing: 7rpx;
-    box-shadow: 0 0 8rpx rgb(113,154,220);
+    letter-spacing: 3rpx;
+    box-shadow: 0 0 8rpx #3b3633;
+    border-radius: 0;
+    padding: 0 10rpx;
   }
 }
 .userinfo-nickname {
@@ -181,7 +183,7 @@ page {
   <view class="userinfo" style="background-image: url('http://applet.qumatou.com.cn/static/shop/aboutBg.png'); background-repeat:no-repeat;background-size:cover">
     <image class="userinfo-avatar" src="{{login?userInfo.avatar:'http://applet.qumatou.com.cn/static/food/WechatIMG151.png'}}" mode='widthFix'/>
     <text class="{{login?'userinfo-nickname':'userinfo-nicknames'}}">{{login?userInfo.nickname:'匿名用户'}}</text>
-    <button class='updata' open-type='getUserInfo' @getuserinfo='getuserinfo'>更新</button>
+    <button hidden='{{login_btnHidden}}' class='updata' open-type='getUserInfo' @getuserinfo='getuserinfo'>一键登录</button>
   </view>
   <!-- <view wx:else class="loginBox">
     <image class="userinfo-login" src="http://applet.qumatou.com.cn/static/shop/未登录.png" mode='widthFix'/>
@@ -231,6 +233,8 @@ export default class New extends wepy.page {
     navigationBarTitleText: '个人中心'
   };
   data = {
+    login_btnHidden:false,
+    userId:'',
     userInfo: {},
     motto: 'Hello World',
     // orderItems
@@ -295,26 +299,16 @@ export default class New extends wepy.page {
       });
     }
   };
-  onLoad(){
-  }
+
   //获取用户信息
-  onShow() {
-    wx.getStorage({
-      key: 'userInfo',
-      success: (res)=>{
-        // console.log(res.data)
-        this.userInfo = res.data
-        this.login = true
-        this.maskFlag = true
-        this.$apply()
-      },
-      fail: function() {
-        // fail
-      }
-    })
+  onLoad() {
+    this.userInfo = wx.getStorageSync('userInfo')
+    this.userId = wx.getStorageSync('userId')
     this.payMessage = wepy.$instance.globalData.payMessage
     let loginFlag = wx.getStorageSync('skey');
-    if (!loginFlag.length) {
+    // console.log(wx.getStorageSync('skey'))
+    if (!this.userId || !loginFlag.length) {
+      let that = this;
       wx.login({
         success: (res)=> {
             const url = api.apiMall + '/third/getSessionKey';
@@ -345,9 +339,8 @@ export default class New extends wepy.page {
                   },
                   method: 'POST',
                   success: res => {
-
-                    wepy.$instance.globalData.userId = res.data.userInfo.id
                     wepy.$instance.globalData.avatar = res.data.userInfo.avatar
+                    wepy.$instance.globalData.userId = res.data.userInfo.id
                     wepy.$instance.globalData.nickname = res.data.userInfo.nickname
                     wx.setStorage({
                       key:'userId',
@@ -382,7 +375,7 @@ export default class New extends wepy.page {
       let data = {
         avatar : e.detail.userInfo.avatarUrl,
         nickname : e.detail.userInfo.nickName,
-        userId : wepy.$instance.globalData.userId
+        userId : wx.getStorageSync('userId')
       }
       // console.log(data)
       wepy.request({
@@ -395,6 +388,7 @@ export default class New extends wepy.page {
         this.userInfo = res.data.userInfo
         this.login = true;
         this.maskFlag = true;
+        this.login_btnHidden = true;
         this.$apply()
         wx.setStorage({
            key: 'userInfo',

@@ -291,13 +291,13 @@
 	  display: flex;
 	  flex-direction: column;
 	  color: #ffffff;
-	  text:nth-child(1){
+	  text{
 	  	letter-spacing: 4rpx;
-	  	font-size: 35rpx;
+	  	font-size: 30rpx;
 	  	height: 30rpx;
 	  	width: 100%;
 	  	display: block;
-	  	line-height: 49rpx;
+	  	line-height: 75rpx;
 	  }
 	  .smallTitle{
 	  	letter-spacing: 4rpx;
@@ -551,12 +551,16 @@
 	border-radius: 0;
   }
   rich-text{
-  	display: flex;
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0 10rpx;
+	overflow: hidden;
+	display: flex;
   	justify-content: center;
   	align-items: center;
   	padding-bottom: 20rpx;
   	text-align: center;
-  	font-size: 28rpx;
+	font-size: 28rpx;
   }
 </style>
 <template>
@@ -594,7 +598,7 @@
 	    	<!-- <image src='../images/icon_07.jpg'/> -->
 	    </view>
 	    <view class="prices">
-            <view class='biaoJia'>券后</view>
+            <view class='biaoJia'>现价</view>
         	<block>
           		<text class='xianJia'>¥ {{clickGoods.goodInfo.price/100}}</text>
           		<text class='numbers'>/ {{clickGoods.goodInfo.subtitle}}</text>
@@ -656,7 +660,7 @@
   			</view>
   		</view>
   		<!-- <image src='{{characteristicBanner}}' mode='widthFix'/> -->
-  		<rich-text nodes="{{characteristicBanner}}"></rich-text>
+  		<rich-text nodes="{{characteristicBanner}}" mode='widthFix'></rich-text>
 	</view>
 	<!-- 底部固定栏 -->
 	<view class="detail-nav">
@@ -669,9 +673,11 @@
 			<text>购物车</text>
 			<view wx:if="{{goodsNum}}">{{cartItemsLength}}</view>
 		</view>
-	  <view class="button-green" @tap='showSpec'><text>¥{{clickGoods.goodInfo.sell/100}}</text><text class='smallTitle'>原价购买</text></view>
-	  <button wx:if="{{btnShare}}" class="shareBuy" open-type="share"><text class='btn-price'>¥{{clickGoods.goodInfo.price/100}}</text><text class='btn-share'>分享领劵购买</text></button>
-	  <button hidden="{{shareEnd}}" class="shareBuy liji-buy" @tap='showSpec'>立即购买</button>
+	  <!-- <view class="button-green" @tap='showSpec'><text>¥{{clickGoods.goodInfo.sell/100}}</text><text class='smallTitle'>原价购买</text></view> -->
+	  <view class="button-green" @tap='joinGoods'><text>+ 加入购物车</text></view>
+	  <!-- <button wx:if="{{btnShare}}" class="shareBuy" open-type="share"><text class='btn-price'>¥{{clickGoods.goodInfo.price/100}}</text><text class='btn-share'>分享领劵购买</text></button> -->
+	  <button wx:if='{{judgeLogin}}' class="shareBuy liji-buy" @tap='immediatelyBuy'>立即购买</button>
+	  <button wx:else open-type='getUserInfo' @getuserinfo='getuserinfo' class='shareBuy liji-buy' @tap='immediatelyBuy'>立即购买</button>
 	</view>
 	<!-- 规格属性底部浮出 -->
 	<view class="bottomShow-box {{bottomShow?'bottomShow':''}}">
@@ -690,7 +696,7 @@
 			</view>
 		</view>
 		<view class = 'bottomShow-middle'>
-			<view class='hezhuang'>盒装</view>
+			<view class='hezhuang'>规格</view>
 			<view class ='hezhuang-x'>
 				<block wx:for="{{goodsSkus}}" wx:key='idx'>
 					<view @tap='hezhuang' class="hezhuang {{item.checked ?'hezhuangBg':''}}" data-id="{{item.id}}">{{item.takeaway_itemTitle}}</view>
@@ -721,7 +727,6 @@
 <script>
   import wepy from 'wepy'
   import api from '../app/app'
-  import timer from '../app/wxTimer'; 
 
   export default class New extends wepy.page {
   	config = {
@@ -759,7 +764,7 @@
 	    //遮罩
 	    maskFlag:true,
 	    //分享后按钮
-	    shareEnd:true,
+	    shareEnd:false,
 	    //选择地址
 	    address:'请选择地址',
 	    bannerImg:[1],
@@ -797,6 +802,9 @@
     }
 
     onLoad(e) {
+		wx.showShareMenu({
+  withShareTicket: true
+})
     	wx.showNavigationBarLoading()
     	// console.log('当前点击商品ID为'+ (e.id))	
     	this.goodsId = e.id,
@@ -811,8 +819,8 @@
 	      // console.log(res.target)
     	}
     	return {
-	      title: '香脆甜的手剥巴西松子@_@',
-	      path: '/pages/details',
+	      title: that.clickGoods.goodInfo.title,
+	      path: '/pages/index/index',
 	      success: function(res) {
 	       // console.log(that.btnShare)
 	       that.btnShare = false
@@ -1013,6 +1021,23 @@
 		})
 	  },
 	  joinGoods(){
+		var goodsSkus= this.goodsSkus;
+		if (this.chooseSpec=='' && this.choosePrice=='' && this.chooseCover=='') {
+	  		// console.log(this.goodsSkus)
+	  		this.choosePrice = Number(this.goodsSkus[0].price)/100
+	  		this.chooseSpec = this.goodsSkus[0].takeaway_itemTitle
+	  		this.chooseCover = this.goodsSkus[0].cover
+	  		this.goodsDetails.id = this.goodsSkus[0].id
+	  		this.goodsDetails.title = this.goodsSkus[0].takeaway_itemTitle
+	  		this.goodsDetails.price = Number(this.goodsSkus[0].price)/100
+	  		this.goodsDetails.cover = this.goodsSkus[0].cover
+	  		this.$apply()
+	  	}
+	  	for(var attr in goodsSkus){
+	  		if (goodsSkus[attr].checked == undefined) {
+	  			this.goodsSkus[0].checked = true
+	  		}
+	  	}
 	  	if(this.address.length == 5){
 	  		this.maskFlag = true
 	        this.bottomShow = false
@@ -1082,6 +1107,23 @@
 	  	}
 	  },
 	  immediatelyBuy(){
+		var goodsSkus= this.goodsSkus;
+		if (this.chooseSpec=='' && this.choosePrice=='' && this.chooseCover=='') {
+	  		// console.log(this.goodsSkus)
+	  		this.choosePrice = Number(this.goodsSkus[0].price)/100
+	  		this.chooseSpec = this.goodsSkus[0].takeaway_itemTitle
+	  		this.chooseCover = this.goodsSkus[0].cover
+	  		this.goodsDetails.id = this.goodsSkus[0].id
+	  		this.goodsDetails.title = this.goodsSkus[0].takeaway_itemTitle
+	  		this.goodsDetails.price = Number(this.goodsSkus[0].price)/100
+	  		this.goodsDetails.cover = this.goodsSkus[0].cover
+	  		this.$apply()
+	  	}
+	  	for(var attr in goodsSkus){
+	  		if (goodsSkus[attr].checked == undefined) {
+	  			this.goodsSkus[0].checked = true
+	  		}
+	  	}
     	this.confirmPay()
 	  }
     }
@@ -1119,10 +1161,11 @@
         	that.noScore = false
         	that.$apply()
         }
-        that.characteristicBanner = res.data.data.content.replace(/<img [^>]*src=['"]([^'"]+)[^>]*>/gi,function(match,capture){
-        	capture = capture
-        	return '<img src="' + capture+'">'
-        })
+        // that.characteristicBanner = res.data.data.content.replace(/<img [^>]*src=['"]([^'"]+)[^>]*>/gi,function(match,capture){
+        // 	capture = capture
+        // 	return '<img src="' + capture+'">'
+		// })
+		that.characteristicBanner = res.data.data.content
         // console.log(that.characteristicBanner)
         if(res.data.data.isColletion == 1){
         	that.dianXin = false
@@ -1172,9 +1215,6 @@
 			data: totalPrice
 		})
         wx.navigateTo({
-			url:"confirmOrder"
-		})
-		wx.navigateTo({
 			url:"confirmOrder"
 		})
     }

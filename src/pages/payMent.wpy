@@ -197,7 +197,7 @@ export default class Test extends wepy.page {
     },
     goIndex(){
       wx.switchTab({
-			  url: 'index'
+			  url: 'homePage'
 			})
     }
   }
@@ -315,7 +315,7 @@ export default class Test extends wepy.page {
               success:function(res){
                   // console.log(res)
                     wx.switchTab({
-                      url: 'index'
+                      url: 'index/index'
                     })
                 },
             })

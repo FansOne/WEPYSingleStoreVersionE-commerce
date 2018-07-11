@@ -116,14 +116,14 @@
 			view{
 				display: flex;
 				justify-content: flex-start;
-				padding-left: 25rpx;
+				padding-left: 15rpx;
 				flex: 1;
 				font-size: 28rpx;
-				color: #333;
+				color: #666;
 			}
 			image{
-				height: 100rpx;
-				width: 80rpx;
+				height: 68rpx;
+				width: 65rpx;
 				margin-left: 40rpx;
 			}
 		}
@@ -311,6 +311,8 @@
 				wx.redirectTo({
 				  url: 'confirmOrder'
 				})
+			  },fail:function (res) {
+				  wx.openSetting({})
 			  }
 			})
     	},
@@ -393,7 +395,7 @@
 			key:'totalPrice',
 			 success: function(res) {
 			 	// console.log(res.data)
-			 	that.orderPrice = (res.data/1000).toFixed(2)
+			 	that.orderPrice = Number(res.data).toFixed(2)
 			 	that.$apply()
 			 }
 		})
@@ -455,7 +457,7 @@
         invoicebank: that.ticketMessage.bankName?that.ticketMessage.bankName:'',
         invoicebanknumber: that.ticketMessage.bankAccount?that.ticketMessage.bankAccount:''
       }
-      // console.log(data)
+    //   console.log(data)
       await wepy.request({
         url: url,
         method: 'POST',
