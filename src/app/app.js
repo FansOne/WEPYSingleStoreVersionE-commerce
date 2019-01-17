@@ -1,6 +1,6 @@
-const apiMall = 'https://api.qumatou.com.cn/'
-const apiSso = 'https://sso.qumatou.com.cn'
-const yscc = 'https://api.yscc.qumatou.com.cn'
+const apiMall = '--项目域名--'
+const apiSso = '--项目域名--'
+const yscc = '--项目域名--'
 
 module.exports = {
   apiMall,
