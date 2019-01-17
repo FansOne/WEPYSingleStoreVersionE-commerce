@@ -17,7 +17,7 @@ module.exports = {
       counter: path.join(__dirname, 'src/components/counter'),
       '@': path.join(__dirname, 'src')
     },
-    aliasFields: ['wepy'],
+    aliasFields: ['wepy', 'weapp'],
     modules: ['node_modules']
   },
   compilers: {
@@ -49,8 +49,7 @@ module.exports = {
 
 if (prod) {
 
-  // 压缩sass
-  // module.exports.compilers['sass'] = {outputStyle: 'compressed'}
+  module.exports.compilers['less'] = {'compress': true};
 
   // 压缩js
   module.exports.plugins = {

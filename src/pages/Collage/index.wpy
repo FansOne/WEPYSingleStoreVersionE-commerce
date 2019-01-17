@@ -1,0 +1,59 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+import collageItem from '../../components/collegeIndexItem'
+
+export default class collageIndex extends wepy.page {
+    config = {
+        navigationBarTitleText: '拼团',
+        // navigationBarTextStyle: '#ffffff',
+        // navigationBarBackgroundColor: '#00d96c'	
+    }
+    components = {
+        collageItem:collageItem
+    };
+
+    data = {
+        //主页数据
+        mockIndexData:[],
+        payMessage:{},
+    };
+    methods = {
+    };
+    onLoad() {
+        this.group()
+    };
+    //拼团首页数据
+    group(){
+        const url = api.apiMall + '/group/index';
+        const data = {
+            merchantId: wepy.$instance.globalData.payMessage.merchantId
+        };
+        wepy.request({
+            url: url,
+            method: 'POST',
+            data: data,
+        }).then((res)=>{
+            res.data.data.forEach(element => {
+                element.price = Number(element.price/100).toFixed(2)
+                element.sell = Number(element.sell/100).toFixed(2)
+            });
+            this.mockIndexData = res.data.data
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<template>
+    <view class='container'>
+        <!-- 商品组件 -->
+        <collageItem :syncTitle.sync="mockIndexData"/>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+</style>

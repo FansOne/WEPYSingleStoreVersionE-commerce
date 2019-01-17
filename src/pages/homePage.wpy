@@ -58,13 +58,13 @@
     /*border: 1px solid red;*/
     image{
       width: 55rpx;
-      height: 65rpx;
+      height: 55rpx;
     }
   }
 
   .store_bottomBox{
     position: relative;
-    /*border: 1px solid red;*/
+    // border: 1px solid red;
     height: 100%;
     bottom: -40rpx;
     /*border-bottom: 1px solid #efeff4;*/
@@ -74,17 +74,20 @@
     display: inline-block;
     position: absolute;
     top: -40rpx;
-    padding-left: 20rpx;
+    padding: 0 20rpx;
     line-height: 70rpx; 
     height: 60rpx;
-    /*border: 1px solid red;*/
+    width: 535rpx;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .store_phone{
     height: 55rpx !important;
     width: 45rpx !important;
     position: absolute;
-    top: -30rpx;
+    top: -35rpx;
     right: 3rpx;
   }
 
@@ -221,7 +224,7 @@
       allData:{},
       topCover:false
     }
-    onLoad() {
+    onShow() {
       wx.showNavigationBarLoading()
       this.getData();
       this.getGoodsData();
@@ -255,6 +258,7 @@
         method: 'POST',
         data: data,
       }).then((res)=>{
+        wx.hideNavigationBarLoading()
         // console.log(res.data)
         that.store_name = res.data.results.title;
         that.logo = res.data.results.cover_url;
@@ -271,11 +275,10 @@
     // 获取商品数据
     async getGoodsData(){
       const that = this;
-      const url = api.apiMall + '/food/show';
+      const url = api.apiMall + '/shop/show';
       const data = {
         merchantId: wepy.$instance.globalData.payMessage.merchantId,
-        tableNum: 1,
-        eatFoodNum: 1
+        goodId: wepy.$instance.globalData.goodId || '',
       }
       await wepy.request({
         url: url,
@@ -302,7 +305,6 @@
         that.goodsTitle = arrGoodsClass;
         that.allGoodsClass = goods;
         that.$apply()
-        // console.log(that.allGoodsClass)
       })
     }
     //获取首页banner

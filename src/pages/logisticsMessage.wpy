@@ -123,9 +123,11 @@
   	data = {
   		logisticsData:{},
   		//实时物流状态
-  		trackList:[],
+			trackList:[],
+			orderId:""
   	}
-    onLoad(){
+    onLoad(options){
+			this.orderId = options.orderId
     	this.getLogistics()
     }
     methods = {
@@ -149,7 +151,7 @@
       const that = this;
       const url = api.apiMall + '/shop/logistic';
       const data = {
-        orderId: 122,
+        orderId: that.orderId,
       }
       wepy.request({
         url: url,

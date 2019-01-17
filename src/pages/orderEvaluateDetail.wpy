@@ -187,8 +187,8 @@
     		let idx = e.currentTarget.dataset.index,
     		    data = this.selectGoods[idx];
     		wx.navigateTo({
-			  url:'startComment?id='+data.id+'&title='+data.title+'&cover='+data.cover+'&price='+data.price+'&nums='+data.nums+'&orderId='+this.orderId
-			})
+			    url:'startComment?id='+data.id+'&title='+data.title+'&cover='+data.cover+'&price='+data.price+'&nums='+data.nums+'&orderId='+this.orderId
+			  })
     	},
       orderGeneralComment(){
         let score = wepy.$instance.globalData.score;

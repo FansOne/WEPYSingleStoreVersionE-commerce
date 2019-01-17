@@ -210,15 +210,15 @@
 	        })
 	        wx.setStorage({
 	        	key: 'selectBuy',
-			    data: cartItems,
+			    	data: cartItems,
 	        })
 	        wx.setStorage({
-				key:'totalPrice',
-				data: totalPrice
-			})
+						key:'totalPrice',
+						data: totalPrice
+					})
 	        wx.navigateTo({
-				url:"confirmOrder"
-			})
+						url:"confirmOrder"
+					})
     	},
     }
     onLoad(){

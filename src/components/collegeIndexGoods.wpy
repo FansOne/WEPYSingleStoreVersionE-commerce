@@ -1,0 +1,106 @@
+<template lang="wxml">
+    <view class='orderGood_box' @tap='goBack'>
+        <image src='{{syncTitle.cover}}'/>
+        <view class='orderGood_right'>
+            <view class='orderGood_title'>{{syncTitle.title}}</view>
+            <!-- <view class='orderGood_skus'>{{collegeIndexGoods.skus}}</view> -->
+            <view class='orderGood_right_'>
+                <view class='orderGood_right_price'>
+                    <view class='orderGood_price'>￥{{syncTitle.price}}</view>
+                    <view class='orderGood_circlePrice'>￥{{syncTitle.sell}}</view>
+                </view>
+                <view class='orderGood_num'>{{syncTitle.number}}人团</view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class collegeIndexGoods extends wepy.component {
+    components = {};
+
+    data = {
+    };
+    methods = {
+        goBack(){
+            wx.navigateTo({
+                url: './datails?id='+this.syncTitle.groupId
+            });
+        }
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){
+    }
+}
+</script>
+
+<style lang="less">
+.orderGood_box{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 30rpx;
+    margin-top: 35rpx;
+    display: flex;
+    padding-bottom: 20rpx;
+    border-bottom: 1px solid #f1f1f1;
+    image{
+        width: 230rpx;
+        height: 230rpx;
+    }
+    .orderGood_right{
+        position: relative;
+        flex: 1;
+        padding-left: 15rpx;
+        .orderGood_title{
+            width: 446rpx;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+            color: #000;
+            font-size: 30rpx;
+        }
+        .orderGood_skus{
+            padding-top: 10rpx;
+            font-size: 26rpx;
+        }
+        .orderGood_right_{
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .orderGood_right_price{
+                display: flex;
+                align-items: center;
+                .orderGood_price{
+                    color: red;
+                    font-size: 38rpx;
+                }
+                .orderGood_circlePrice{
+                    font-size: 28rpx;
+                    text-decoration:line-through;
+                    transform: translateY(6rpx);
+                    margin-left: 15rpx;
+                }
+            }
+            .orderGood_num{
+                border: 1px solid #9d7a35;
+                font-size: 30rpx;
+                color: #9d7a35;
+                padding: 0 20rpx;
+                border-radius: 50rpx;
+            }
+        }
+    }
+}
+</style>

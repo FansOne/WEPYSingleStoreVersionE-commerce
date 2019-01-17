@@ -1,0 +1,471 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+import collegeEnsure from '../../components/collegeEnsure';
+import collegeUserImg from '../../components/collegeUserImg';
+
+export default class paySuccess extends wepy.page {
+    config = {
+        navigationBarTitleText: '支付成功',
+        navigationBarBackgroundColor:'#ffd270',
+    }
+    components = {
+        collegeEnsure:collegeEnsure,
+        collegeUserImg:collegeUserImg
+    };
+    data = {
+        //推荐商品
+        recommendGoods:[],
+        //接口发送数据
+        paySuccess:{},
+        //支付成功返回所有数据
+        successPay:{},
+        // 用户信息展示
+        userMess:{},
+        //用户图像
+        userImg:[],
+        groupOrderId:'',
+        userId:'',
+        //拼团人数是否已满
+        full:'',
+        //定时器
+        timer:'',
+        house:'00',
+        minute:'00',
+        second:'00',
+    };
+    methods = {
+        onShareAppMessage(res) {
+            if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+            }
+            return {
+            title: '一起拼才划算~'+'【'+this.successPay.groups.title+'】'+','+'单品优惠'+(this.successPay.groups.sell-this.successPay.groups.price)+'元！',
+            path: 'pages/Collage/sharingSpells?orderId='+this.groupOrderId,
+            imageUrl: this.successPay.cover
+            }
+        },
+        goDetail(e){
+            wx.navigateTo({
+                url: './datails?id='+e
+            })
+        },
+        otherGroup(){
+            wx.redirectTo({
+                url: './index'
+            })
+        }
+    };
+
+    events = {};
+    onLoad(options) {
+        wx.getStorage({
+            key: 'userId',
+            success: (res)=> {
+                this.userId = res.data
+                this.paySuccess = options
+                this.$apply()
+                this.getAllData()
+                wx.getStorage({
+                    key: 'groupOrderId',
+                    success: res => {
+                        this.groupOrderId = res.data
+                        this.$apply()
+                    }
+                });
+            } 
+        })
+    };
+    //页面退出清除定时
+    onUnload(){
+        clearInterval(this.timer)
+    };
+    //获取支付成功后所有数据
+    getAllData(){
+        const that = this;
+        const url = api.apiMall + '/group/ordersuccess';
+        const data = {
+            orderId: that.paySuccess.orderId,
+            merchantId: that.paySuccess.merchantId,
+            userId: that.userId
+        }
+        wepy.request({
+            url: url,
+            method: 'POST',
+            data: data,
+        }).then((res)=>{
+            res.data.data.groups.price = Number(res.data.data.groups.price/100).toFixed(2);
+            res.data.data.groups.sell = Number(res.data.data.groups.sell/100).toFixed(2);
+            res.data.data.groupRand.forEach(element => {
+                element.price = Number(element.price/100).toFixed(2)
+                element.sell = Number(element.sell/100).toFixed(2)
+            });
+            that.successPay = res.data.data
+            that.full = res.data.data.full
+            that.recommendGoods = res.data.data.groupRand
+            that.$apply()
+            let userImg = res.data.data.avatar;
+            if(userImg.length>1){
+                this.userImg = userImg.reverse()
+                that.$apply()
+            }else{
+                this.userImg = userImg
+                that.$apply()
+            }
+
+            //倒计时判断
+            var num = res.data.data.timeDifference;
+            if(num<0){
+                num = 0
+            }
+            this.timer = setInterval(()=>{
+                this.countDown(num)
+                num --;
+                if(num < 0){
+                    clearInterval(this.timer)
+                    wx.showModal({
+                        title: '活动结束',
+                        content: '很遗憾晚来一步，该商品拼团活动已经结束，返回首页更多优惠在等着你和小伙伴儿一起来拼~',
+                        showCancel: false,
+                        cancelText: '确定',
+                        cancelColor: '#000000',
+                        confirmText: '确定',
+                        confirmColor: '#3CC51F',
+                        success: res => {
+                            if(res.confirm){
+                                wx.redirectTo({
+                                    url: './index'
+                                })
+                            }
+                        }
+                    });
+                }
+            },1000)
+        })
+    };
+    //倒计时函数
+    countDown(res){
+        let house;
+        let minute;
+        let second;
+        if(res<3600){
+            house = '00';
+        }else{
+            house = String(parseInt(res/3600));
+            house = (house.length> 1) ? house : '0' + house;
+        }
+        if(res<60){
+            minute = '00';
+        }else{
+            minute = String(parseInt((res%3600)/60));
+            minute = (minute.length> 1) ? minute : '0' + minute;
+        }
+        
+        second = String(res - house*3600 - minute*60);
+        second = (second.length> 1) ? second : '0' + second;
+        this.house = house;
+        this.minute = minute;
+        this.second = second;
+        this.$apply()
+    };
+}
+</script>
+
+<template>
+    <view class='container'>
+        <view class='payMess_box'>
+            <view class='payMess'>
+                <view class='payMess_goodsMes orderGood_box'>
+                    <image src='{{successPay.groups.cover}}'/>
+                    <view class='orderGood_right'>
+                        <view class='orderGood_title'>{{successPay.groups.title}}</view>
+                        <view class='orderGood_skus'>{{successPay.groups.dateline}}</view>
+                        <view class='orderGood_right_'>
+                            <view class='orderGood_right_price'>
+                                <view class='orderGood_price'>￥{{successPay.groups.price}}</view>
+                                <view class='orderGood_circlePrice'>￥{{successPay.groups.sell}}</view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <!-- usrerIcon -->
+                <view class='userIcon'>
+                    <block wx:for='{{userImg}}' wx:key=''>
+                        <view class='userIcon_colonel'><image src='{{item}}'/></view>
+                        <view class='grouper'>团长</view>
+                    </block>
+                    <view wx:if="{{userImg.length ==1}}" class='userIcon_member'>?</view>
+                </view>
+                <!-- 已参团用户信息组件 -->
+                <!-- <collegeUserImg :syncTitle.sync="userMess"/> -->
+                 <!-- 商家保证组件 -->
+                 <collegeEnsure/>
+            </view>
+        </view>
+        <!-- 分享按钮 -->
+        <view class='shareBtn_box'>
+            <view wx:if='{{!full}}'>
+                <button class='share_btn' open-type="share"><image src='../../images/分享arrow.png'/> <text>邀请好友参团{{house}}:{{minute}}:{{second}}后结束</text></button>
+                <view class='shareBtn_text'>分享到2个微信群，成功率高达99%</view>
+            </view>
+            <view wx:else>
+                <button class='share_btn' @tap='otherGroup'><image class='share_gift' src='../../images/活动.png'/><text>查看其它活动</text></button>
+                <view class='shareBtn_text'>恭喜你已达成开团条件啦！返回个人中心查看订单完成到店提货</view>
+            </view>
+        </view>
+        <!-- 爆款推荐 -->
+        <view class='recommendGoods_box'>
+            <view class='recommendGoods_title'>
+                <image src='../../images/icon_12.jpg'/>
+                <view class='recommendGoods_text'>爆款推荐</view>
+                <image src='../../images/icon_12.jpg'/>
+            </view>
+            <view class='recommendGoods_goods'>
+                <block wx:for='{{recommendGoods}}' wx:key=''>
+                    <view class='recommendGoods_item' @tap="goDetail({{item.id}})">
+                        <image src='{{item.cover}}'/>
+                        <view class='recommendGoods_itemB'>
+                            <view class='recommendGoods_titles'>{{item.title}}</view>
+                            <!-- <view class='recommendGoods_skus'>{{item.skus}}</view> -->
+                            <view class='recommendGoods_prices'>
+                                <view><text>￥</text><text>{{item.price}}</text></view>
+                                <view>￥{{item.sell}}</view>
+                            </view>
+                        </view>
+                    </view>
+                </block>
+            </view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .payMess_box{
+        position: relative;
+        box-sizing: border-box;
+        width: 100%;
+        height: 325rpx;
+        display: flex;
+        background-color: #ffd270;
+        .payMess{
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: auto;
+            top: 40rpx;
+            z-index: 9;
+            width: 93%;
+            background-color: #fff;
+            box-sizing: border-box;
+            padding: 20rpx 30rpx;
+            border-radius: 10rpx;
+            box-shadow: 0 10rpx 15rpx #f1f1f1;
+        }
+    }
+    .payMess_goodsMes{
+        display: flex;
+        image{
+            width: 230rpx;
+            height: 230rpx;
+        }
+        .orderGood_right{
+            position: relative;
+            flex: 1;
+            padding-left: 15rpx;
+            .orderGood_title{
+                width: 395rpx;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 3;
+                overflow: hidden;
+                color: #000;
+                font-size: 30rpx;
+            }
+            .orderGood_skus{
+                padding-top: 10rpx;
+                font-size: 26rpx;
+            }
+            .orderGood_right_{
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                .orderGood_right_price{
+                    display: flex;
+                    align-items: center;
+                    .orderGood_price{
+                        color: red;
+                        font-size: 38rpx;
+                    }
+                    .orderGood_circlePrice{
+                        font-size: 28rpx;
+                        text-decoration:line-through;
+                        transform: translateY(6rpx);
+                        margin-left: 15rpx;
+                    }
+                }
+            }
+        }
+    }
+    .userIcon{
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        padding: 33rpx 75rpx;
+        align-items: center;
+        .userIcon_colonel{
+            height: 100rpx;
+            width: 100rpx;
+            border-radius: 50%;
+            border: 1px solid #ffd270;
+            overflow: hidden;
+            image{
+                height: 100rpx;
+                width: 100rpx;
+                border-radius: 50%;
+            }
+        }
+        .grouper{
+            position: absolute;
+            left: 86rpx;
+            bottom: 6rpx;
+            width: 80rpx;
+            background-color: #000;
+            border: 1rpx solid #fff;
+            color: #ffd270;
+            border-radius: 50rpx;
+            font-size: 25rpx;
+            padding: 3rpx 0;
+            text-align: center;
+        }
+        .userIcon_member{
+            height: 100rpx;
+            width: 100rpx;
+            border-radius: 50%;
+            border: 1px dashed #ffd270;
+            color: #ffd270;
+            line-height: 100rpx;
+            text-align: center;
+            font-size: 33rpx;
+        }
+    }
+    .shareBtn_box{
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 30rpx;
+        padding-bottom: 25rpx;
+        // border-bottom:1px solid #f1f1f1;
+        padding-top: 285rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        view{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            .share_btn{
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #ffd270;
+                padding: 10rpx 0;
+                border-radius: 50rpx;
+                image{
+                    width: 75rpx;
+                    height: 50rpx;
+                }
+                text{
+                    font-size: 35rpx;
+                }
+            }
+            .shareBtn_text{
+                padding-top: 20rpx;
+                font-size: 25rpx;
+                color: #999;
+            }
+        }
+    }
+    .share_gift{
+        width: 60rpx !important;
+        transform:translateY(-1.5rpx);
+    }
+    .recommendGoods_box{
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0 30rpx;
+        .recommendGoods_title{
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            padding: 40rpx 0;
+            .recommendGoods_text{
+                font-size: 37rpx;
+                color: #000;
+                margin: 0 35rpx;
+            } 
+            image{
+                width: 75rpx;
+                height: 23rpx;
+            }
+        }
+    }
+    .recommendGoods_goods{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-bottom: 20rpx;
+        .recommendGoods_item{
+            width: 49%;
+            image{
+                border-radius: 10rpx;
+                width: 100%;
+                height: 320rpx;
+            }
+            .recommendGoods_titles{
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;
+                overflow: hidden;
+                padding-top: 5rpx;
+                font-size: 33rpx;
+                color: #000;
+            }
+            .recommendGoods_skus{
+                color: #969696;
+                font-size: 27rpx;
+                padding-top: 3rpx;
+            }
+            .recommendGoods_prices{
+                display: flex;
+                padding-top: 10rpx;
+                align-items: center;
+                view:nth-child(1){
+                    text:nth-child(1){
+                        color: red;
+                        font-size: 27rpx;
+                    }
+                    text:nth-child(2){
+                        color: red;
+                        font-size: 39rpx;
+                    }
+                }
+                view:nth-child(2){
+                    transform: translateY(5rpx);
+                     text-decoration:line-through;
+                     font-size: 30rpx;
+                     margin-left: 15rpx;
+                }
+            }
+        }
+    }
+</style>

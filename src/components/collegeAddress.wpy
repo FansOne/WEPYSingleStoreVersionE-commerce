@@ -1,0 +1,103 @@
+<template lang="wxml">
+    <view class='goodsAddress_box' @tap="goLocal">
+        <view class='goodsAddress'>
+            <view class='goodsAddress_'>
+                <view class='goodsAddress_title'>提货门店：{{syncTitle.name||syncTitle.title}}</view>
+                <view class='goodsAddress_address'>{{syncTitle.address}}</view>
+                <view class='goodsAddress_time'>门店营业时间：{{syncTitle.starttime}} - {{syncTitle.endtime}}</view>
+            </view>
+            <view class='goodsAddress_arrow'>></view>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class collegeAddress extends wepy.component {
+    components = {};
+
+    data = {};
+    methods = {
+        goLocal() {
+            let that = this;
+            let lat = Number(that.syncTitle.lat);
+            let lon = Number(that.syncTitle.lng);
+            wx.request({
+                url: 'https://apis.map.qq.com/ws/coord/v1/translate?type='+'3'+'&locations='+lat+','+lon+'&key='+'UBWBZ-5WFC4-BWCUY-DTW7U-DOIIK-BYBXU',
+                method: 'GET',
+                success: (res)=>{
+                    // console.log(res.data.locations[0].lat)
+                    let tencentLat = res.data.locations[0].lat,
+                        tencentLng = res.data.locations[0].lng;
+                    wx.getLocation({
+                        type: 'gcj02', //返回可以用于wx.openLocation的经纬度
+                        success: (res)=> {
+                            wx.openLocation({
+                            latitude: tencentLat,
+                            longitude: tencentLng,
+                            scale: 16,
+                            name: that.syncTitle.name || that.syncTitle.title,
+                            address: that.syncTitle.address
+                            })
+                        },
+                        fail:(res)=>{
+                            wx.openSetting()
+                        }
+                    })
+                }
+            })
+      },
+    };
+
+    events = {};
+    props = {
+        syncTitle:{
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){
+    }
+}
+</script>
+
+<style lang="less">
+.goodsAddress_box{
+    transform: translateY(30rpx);
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 30rpx;
+    .goodsAddress{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #fff;
+        border-radius: 10rpx;
+        padding: 15rpx 25rpx;
+        box-shadow: 0 5rpx 10rpx #f1f1f1;
+        .goodsAddress_{
+            flex: 1;
+        }
+    }
+    .goodsAddress_title{
+        color: #000;
+        font-size: 34rpx;
+        padding-bottom: 6rpx;
+    }
+    .goodsAddress_address{
+        font-size: 30rpx;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        overflow: hidden;
+    }
+    .goodsAddress_time{
+        padding-top: 15rpx;
+        font-size: 30rpx;
+        // color: #000;
+    }
+    .goodsAddress_arrow{
+        width: 20rpx;
+    }
+}
+</style>

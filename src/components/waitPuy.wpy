@@ -202,15 +202,15 @@
 	        })
 	        wx.setStorage({
 	        	key: 'selectBuy',
-			    data: cartItems,
+			    	data: cartItems,
 	        })
 	        wx.setStorage({
-				key:'totalPrice',
-				data: totalPrice
-			})
+						key:'totalPrice',
+						data: totalPrice
+					})
 	        wx.navigateTo({
-				url:"confirmOrder"
-			})
+						url:"confirmOrder"
+					})
     	},
     	deleteOrder(e){
     		let index = e.currentTarget.dataset.index,
@@ -243,13 +243,14 @@
         method: 'POST',
         data: data,
       }).then((res)=>{
-        // console.log(res.data.data)
+				// console.log(res.data.data)
+				if(res.data.data.length != 0){
+					that.$emit('allStaus')
+				}else{
+					that.$emit('noStaus','1')
+				}
         that.itemInformation = res.data.data
         that.$apply()
-        wx.setStorage({
-        	key:'waitPuy',
-        	data:that.itemInformation.length
-        })
       })
     }
     //删除订单

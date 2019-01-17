@@ -202,7 +202,7 @@
   </view>
   	<view class='bottom-btnBox'>
   		<button class="{{remind?'applySale':''}}" @tap='merchantTel'>申请售后</button>
-  		<button wx:if="{{collectOrRemind}}" @tap='confirmCollect'>确认收货</button>
+  		<button wx:if="{{collectOrRemind == 2 }}" @tap='confirmCollect'>确认收货</button>
       <button wx:else disabled="{{remind}}" class="{{remind?'disabledButton':''}}" @tap='remind' >{{remindSeller}}</button>
   	</view>
   </view>
@@ -226,9 +226,9 @@
       trackList:{},
       noTrackStatus:'物流信息尚未更新...',
       //有无物流
-      trackStatus:true,
-      //无物流显示提醒发货
-      collectOrRemind:true,
+      trackStatus:1,
+      //status提醒发货
+      collectOrRemind:'',
       //提醒发货禁用
       remind:false,
       //提醒按钮显示
@@ -267,7 +267,7 @@
       },
       goLogistics(){
         wx.navigateTo({
-          url: 'logisticsMessage'
+          url: 'logisticsMessage?orderId='+this.orderId
         })
       },
       confirmCollect(){
@@ -328,6 +328,7 @@
         data: data,
       }).then((res)=>{
         // console.log(res.data.data)
+        that.collectOrRemind = res.data.data.status
         that.userAddress = res.data.data
         that.selectGoods = res.data.data.goods
         that.$apply()
@@ -351,7 +352,6 @@
           that.$apply()
         }else{
           that.trackStatus = false
-          that.collectOrRemind = false
           that.$apply()
         }
       })

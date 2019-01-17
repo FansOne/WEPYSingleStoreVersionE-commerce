@@ -1,0 +1,560 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/api';
+import { requestData } from '../../app/request'
+
+export default class luckDrawDetail extends wepy.page {
+    config = {
+        navigationBarTitleText: '积分抽奖',
+    };
+    components = {};
+
+    data = {
+        allData:{},
+        imgUrls: [],
+        items: [
+            // { name: 'zq', value: '到店自取', checked: 'true',},
+            // { name: 'wl', value: '物流配送',}
+        ],
+        detailedAddress:'',
+        userAddress:{},
+        pick_up_type: 1,
+        maskFlag:true,
+        MaskHeight:'',
+        shareShow:false,
+        haiBaoImg:'',
+        haobaoShow:true,
+        shareShow:false,
+    };
+    methods = {
+        luckDrawSuccess(id){
+            if(this.pick_up_type == 2 && !this.detailedAddress){
+                wx.showToast({
+                    title: '请选择收货地址',
+                    icon: 'none',
+                });
+            }else{
+                this.immediatelyLuckDraw(id)
+            }
+        },
+        radioChange(e){
+            if(e.detail.value == 'wl'){
+                this.chooseLogistics()
+                this.pick_up_type = 2
+            }else{
+                this.pick_up_type = 1
+                this.userAddress={}
+            }
+        },
+        shareFriends(){
+            this.maskFlag = true
+            this.shareShow = false
+        },
+        // 分享
+        sharefriend(){
+            this.maskFlag = false
+            this.shareShow = true
+        },
+        // 生成海报
+        sharequan(id){
+            this.haobaoShow = false;
+            wx.showLoading({
+                title: '海报生成中...',
+                mask: true,
+            });
+            let url = `${api.getShareIntegralLotteries}${id}`;
+            let data = {
+                app_id: wepy.$instance.globalData.payMessage.thirdAppId,
+                path_url: `packageMembershipCard/integralManagement/luckDrawDetail?id=${id}`
+            }
+            requestData(url,'GET',data).then(res=>{
+                wx.hideLoading();
+                this.haiBaoImg = res.data.message
+                this.$apply()
+            })
+        },
+        closeHaiBao(){
+            this.haobaoShow = true;
+            this.$apply()
+        },
+        // 保存图片至相册
+        saveImg(imgUrl){
+            let imgSrc = imgUrl;
+            wx.showLoading({
+			  title: '正在保存...',
+			  mask: true,
+		    });
+            wx.downloadFile({
+                url: imgSrc,
+                success: (res)=>{
+                    wx.saveImageToPhotosAlbum({
+                        filePath: res.tempFilePath,
+                        success: (data)=>{
+                            wx.hideLoading();
+                            wx.showToast({
+                                title: '保存成功',
+                                icon: 'success',
+                                duration: 2000,
+                                success:()=>{
+                                    this.maskFlag = true
+                                    this.shareShow = false
+		                            this.haobaoShow = true
+                                    this.$apply()
+                                }
+                            });
+                        },
+                        fail: (err)=>{
+                            wx.hideLoading();
+                            if (err.errMsg === "saveImageToPhotosAlbum:fail auth denied") {
+                                wx.openSetting({
+                                    success(settingdata) {
+                                    if (settingdata.authSetting['scope.writePhotosAlbum']) {
+                                        console.log('获取权限成功，给出再次点击图片保存到相册的提示。')
+                                    } else {
+                                        console.log('获取权限失败，给出不给权限就无法正常使用的提示')
+                                    }
+                                    }
+                                })
+                            }
+                        }
+                    });
+                }
+            });
+        },
+        bottomShow(){
+            this.haobaoShow = true;
+        },
+    };   
+    events = {};
+    onLoad(options) {
+        // 获取商品详情数据
+        let url = `${api.jifenDetail}${options.id}`;
+        requestData(url).then(res=>{
+            res.data.message.cost = Number(res.data.message.cost/100).toFixed(2)
+            res.data.message.normalsend = Number(res.data.message.normalsend/100).toFixed(2)
+            if(res.data.message.shop_type == 1){
+                this.items.push({ name: 'wl', value: '物流配送',checked: 'true'})
+                this.pick_up_type = 2
+            }else{
+                this.items.push({ name: 'zq', value: '到店自取', checked: 'true',},{ name: 'wl', value: '物流配送'})
+            }
+            this.allData = res.data.message
+            this.imgUrls = res.data.message.banner
+            this.$apply()
+        }).catch(res=>{wx.showToast({
+            title: '数据异常',
+            icon: 'none',
+            duration: 1500,
+            mask: false,
+        });})
+        wx.getSystemInfo({
+            success: (res)=> {
+                this.MaskHeight = res.windowHeight
+                this.$apply()
+            }
+        })
+    };
+    // share
+    onShareAppMessage(res){
+        let shareInfo = {};
+        if (res.from === 'button') {
+            shareInfo.title  = `邀你积分换购${this.allData.title}`
+            shareInfo.path  =  `packageMembershipCard/integralManagement/luckDrawDetail?id=${this.allData.id}`
+            shareInfo.imageUrl = 'http://applet.qumatou.com.cn/static/shop/jifen5_4.png'
+        }
+        return shareInfo
+    };
+    // 选择物流
+    chooseLogistics(){
+        wx.chooseAddress({
+            success: (res)=> {
+                console.log(res)
+                this.detailedAddress = `${res.provinceName}${res.cityName}${res.countyName}${res.detailInfo}`
+                this.userAddress = res
+                this.$apply()
+            },
+            fail:(res)=>{
+                if(res.errMsg == 'chooseAddress:fail auth deny'){
+                    wx.showModal({
+                        title: '警告',
+                        content: '您点击了拒绝授权,将无法添加收货地址,点击确定重新获取授权。',
+                        showCancel: false,
+                        success: res => {
+                            if(res.confirm){
+                                wx.openSetting()
+                            }
+                        }
+                    });
+                }
+            }
+        })
+    }
+    // 立即抽奖
+    immediatelyLuckDraw(id){
+        let data = {
+            pick_up_type : this.pick_up_type,
+            truename : this.userAddress.userName,
+            address : this.detailedAddress,
+            mobile : this.userAddress.telNumber,
+            order_type : api.order_type
+        };
+        let url = `${api.luckDraw}${id}`;
+        requestData(url,'PUT',data).then((res)=>{
+            if(res.data.status == 200){
+                if(res.data.message.payment_type == 1){
+                    wx.showLoading({
+                        title: '发起支付...',
+                        mask: true,
+                    });
+                    wx.requestPayment({
+                        'appId':res.data.message.appId,
+                        'timeStamp': res.data.message.timeStamp,
+                        'nonceStr':res.data.message.nonceStr,
+                        'package': res.data.message.package,
+                        'signType': res.data.message.signType,
+                        'paySign': res.data.message.paySign,
+                        success:(result)=>{
+                            wx.hideLoading();
+                            wx.navigateTo({
+                                url: `./luckDrawSuccess?order_id=${res.data.message.order_id}`
+                            });
+                        },
+                        fail:()=>{
+                            wx.hideLoading();
+                            wx.showToast({
+                                title: '已取消支付',
+                                icon: 'none',
+                                duration: 1500,
+                                mask: false,
+                            });
+                        }
+                    })
+                }else{
+                    wx.navigateTo({
+                        url: `./luckDrawSuccess?order_id=${res.data.message.order_id}`
+                    });
+                }
+            }else{
+                wx.showToast({
+                    title: res.data.message,
+                    icon: 'none',
+                    duration: 1500,
+                    mask: false,
+                });
+            }
+        })
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <swiper autoplay circular indicator-dots>
+            <swiper-item wx:for="{{imgUrls}}" wx:key=''>
+                <image src="{{item}}" class="slide-image" width="355" height="150"/>
+            </swiper-item>
+        </swiper>
+        <!-- skus -->
+        <view class='skusBox'>
+            <view class='titleShare'>
+                <view class='title'>{{allData.title}}</view>
+                <button @tap='sharefriend'><icon class='iconfont icon-fenxiang'/>分享</button>
+            </view>
+            <view class='integralNum'>
+                所需积分: {{allData.integral}}<text>￥{{allData.cost}}</text>
+            </view>
+            <view class='progress_'>
+                <progress percent="{{allData.join_num/allData.people_num*100}}" stroke-width='6' active border-radius='10' activeColor='#fccc70' backgroundColor='#000000'/>
+            </view>
+            <view class='participateNum'>已参与<text>{{allData.join_num}}</text>人，开奖还需<text>{{allData.people_num - allData.join_num}}</text>人</view>
+        </view>
+        <!-- 取货方式 -->
+        <view class='detailTitle'>
+            <view></view>
+            <text>提货方式</text>
+        </view>
+        <view class='radioGroup'>
+            <radio-group class="group" @change="radioChange">
+                <view class="attr_value" wx:for-items="{{items}}" wx:key="name">
+                    <radio value="{{item.name}}" checked="{{item.checked}}" color=''/>
+                    <label class='radio_label'>{{item.value}}</label>
+                </view>
+            </radio-group>
+            <view class='pricePrompt' @tap='chooseLogistics'>
+                <icon class='iconfont icon-tishi'/><text><text wx:if='{{allData.shop_type == 1}}'>选择收货地址</text><text wx:if='{{allData.shop_type == 1}}' class='fuhao'>(</text>选择物流配送时需额外支付￥{{allData.normalsend}} 物流费<text wx:if='{{allData.shop_type == 1}}' class='fuhao'>)</text></text>
+            </view>
+            <view class='userAddress_new' wx:if='{{userAddress.userName}}'>
+                <view class='userAddress_top'>
+                    <view>姓名：{{userAddress.userName}}</view>
+                    <view>电话：{{userAddress.telNumber}}</view>
+                </view>
+                <view class='userAddress_bottom'>地址：{{detailedAddress}}</view>
+            </view>
+        </view>
+        <!-- goodDetail -->
+        <view class='detailTitle'>
+            <view></view>
+            <text>商品详情</text>
+        </view>
+        <image class='detailImg' src='{{allData.details}}' mode='widthFix'/>
+        <view class='bottomBox'>
+            <view>{{allData.integral}} 积分</view>
+            <view @tap='luckDrawSuccess({{allData.id}})'>立即抽奖</view>
+        </view>
+
+        <!-- 遮罩 -->
+        <view class='Mask' @tap='bottomShow' hidden='{{maskFlag}}' style="height:{{MaskHeight}}px"></view>
+        <!-- 分享朋友圈 -->
+        <view class="shareFriends {{shareShow?'shareShow':''}}">
+            <view class='shareFriendsBtn'>
+                <button style='border-right:1rpx solid #f1f1f1' open-type='share'><icon class='iconfont icon-icon-'/><view>分享给好友</view></button>
+                <button @tap = 'sharequan({{allData.id}})'><icon class='iconfont icon-pengyouquan'/><view>发朋友圈</view></button>
+            </view>
+            <view class='shareFriendsCancel' @tap='shareFriends'>取消</view>
+        </view>
+        <!-- 海报 -->
+        <view class="haiBao {{haobaoShow?'':'haobaoShow'}}" hidden='{{haobaoShow}}'>
+            <image src='{{haiBaoImg}}'/>
+            <button @tap='saveImg({{haiBaoImg}})'>保存至相册</button>
+            <view>分享朋友圈时可在相册选取图片</view>
+            <view class='close' @tap='closeHaiBao'>×</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    swiper{
+        height: 300rpx;
+        swiper-item{
+            height: 300rpx;
+            image{
+                width: 100%;
+                height: 300rpx;
+            }
+        }
+    }
+    .progress_{
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 25rpx;
+        progress{
+            border: 1rpx solid #000000;
+            border-radius: 20rpx;
+            overflow: hidden;
+        }
+    }
+    .skusBox{
+        box-sizing: border-box;
+        padding: 30rpx;
+        border-bottom: 1rpx solid #f1f1f1;
+        .titleShare{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .title{
+                flex: .9;
+                font-size: 34rpx;
+                color: #000;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;
+                overflow: hidden;
+            }
+            button{
+                padding: 0;
+                width: 145rpx;
+                height: 58rpx;
+                line-height: 69rpx;
+                font-size: 30rpx;
+                text-align: right;
+                transform: translateY(-6rpx);
+                background-color: #fff;
+                icon{
+                    margin-right: 15rpx;
+                    font-size: 29rpx;
+                }
+            }
+        }
+        .integralNum{
+            padding-top: 15rpx;
+            font-size: 28rpx;
+            color:red;
+            text{
+                padding-left: 10rpx;
+                font-size: 25rpx;
+                text-decoration:line-through
+            }
+        }
+        .participateNum{
+            width: 100%;
+            text-align: center;
+            padding-top: 22rpx;
+            font-size: 28rpx;
+            color: #000;
+            text{
+                color: red;
+            }
+        }
+    }
+    .detailTitle{
+        box-sizing: border-box;
+        padding: 30rpx;
+        display: flex;
+        align-items: center;
+        view{
+            height: 36rpx;
+            width: 10rpx;
+            background-color: #ffd270;
+            margin-right: 18rpx;
+        }
+        text{
+            font-size: 34rpx;
+            color: #000;
+        }
+    }
+    .detailImg{
+        width: 100%;
+        margin-bottom: 91rpx;
+    }
+    .bottomBox{
+        z-index: 1;
+        position: fixed;
+        bottom: 0;
+        display: flex;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100rpx;
+        background-color: #fff;
+        view:nth-child(1){
+            flex: 1;
+            line-height: 100rpx;
+            padding-left: 30rpx;
+            font-size: 36rpx;
+            color: red;
+        }
+        view:nth-child(2){
+            width: 240rpx;
+            line-height: 100rpx;
+            text-align: center;
+            background-color: #ffd270;
+            font-size: 36rpx;
+            color: #000;
+        }
+    }
+
+    .radioGroup{
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 60rpx;
+    }
+    .group{
+        display: flex;
+    }
+    .attr_value {
+      position: relative;
+      margin-right: 50rpx;
+      width: 196rpx;
+      height: 58rpx;
+    }
+    .radio_label{
+        display: block;
+        padding:0 24rpx;
+        height: 58rpx;
+        line-height: 58rpx;
+        font-size: 28rpx;
+        color: #000;
+        text-align:center;
+    }
+    /*radio默认样式重置*/
+    radio {
+        box-sizing: border-box;
+        background: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top:0;
+        left:0;
+    }
+    
+    radio .wx-radio-input {
+        margin-right: 15rpx;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top:0;
+        left:0;
+        background: none;
+        border-radius: 6rpx;
+        box-sizing: border-box;
+    }
+    
+    radio .wx-radio-input.wx-radio-input-checked {
+        background-color:transparent;
+        border-color:#ffd270;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+    
+    radio .wx-radio-input.wx-radio-input-checked::before {
+        content: '\e612';
+        font-family:"iconfont" !important;
+        font-size:38rpx;
+        color: #ffd270;
+        top:auto;
+        left:auto;
+        right:-4rpx;
+        bottom:-4rpx;
+        transform:translate(0, 0) scale(1);
+        -webkit-transform:translate(0, 0) scale(1);
+    }
+    .pricePrompt{
+        icon{
+            color: red;
+            font-size: 25rpx;
+        }
+        text{
+            padding-left: 6rpx;
+            font-size: 22rpx;
+            .fuhao{
+                font-size: 22rpx;
+                padding-right: 0rpx;
+            }
+            text{
+                color:#5759d0;
+                font-size: 24rpx;
+                padding-right: 10rpx;
+            }
+        }
+    }
+    .userAddress_new{
+        border-top: 1rpx dashed rgb(139, 139, 139);
+        border-bottom: 1rpx dashed rgb(139, 139, 139);
+        padding: 15rpx 22rpx;
+        margin-top: 25rpx;
+        background-color: #faf9f9;
+        .userAddress_top{
+            display: flex;
+            view{
+                font-size: 25rpx;
+                color: #000;
+            }
+            view:nth-child(1){
+                margin-right: 50rpx;
+            }
+        }
+        .userAddress_bottom{
+            margin-top: 15rpx;
+            font-size: 25rpx;
+            color: #000;
+            overflow: hidden;
+            text-overflow:ellipsis;
+            white-space: nowrap;
+        }
+    }
+    .bottomShow,.shareShow{
+        transform: translateY(0) !important;
+    }
+</style>

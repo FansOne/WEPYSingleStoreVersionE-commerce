@@ -1,0 +1,277 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app'
+
+export default class myIntegral extends wepy.page {
+    config = {
+        navigationBarTitleText: '我的积分',
+        navigationBarBackgroundColor: '#ffd270',
+    };
+    components = {};
+
+    data = {
+        navbar: ['获取记录', '消费记录'],
+        currentTab: 0,
+        //获取积分记录
+        acquisitionIntegral:[],
+        noAcquisitionIntegral:true,
+        // 积分消费记录
+        lntegralConsumptionLists:[],
+        noLntegralConsumptionLists:true,
+        userInfo:{},
+        coin:'',
+    };
+    methods = {
+        navbarTap(e){
+            this.currentTab = e
+            if(!e){
+                wx.showLoading({
+                    title: '加载中...'
+                });
+                this.getcoins()
+            }else{
+                wx.showLoading({
+                    title: '加载中...'
+                });
+                this.coinrecords()
+            }
+    	},
+        goExchange(){
+            wx.navigateTo({
+                url: './exchange'
+            });
+        }
+    };
+    onShow(){
+        wx.getStorage({
+            key: 'userInfo',
+            success: res => {
+                this.userInfo = res.data
+                this.$apply()
+                this.userMoney(res.data.id)
+            }
+        });
+    }
+    onLoad() {
+        wx.getStorage({
+            key: 'userInfo',
+            success: res => {
+                this.userInfo = res.data
+                this.$apply()
+                this.userMoney(res.data.id)
+            }
+        });
+        this.getcoins()
+    };
+    // 获取用户积分
+    userMoney(id){
+        wepy.request({
+            url: api.apiMall+'card/usercard',
+            method: 'POST',
+            data: {
+                userId: id,
+                type:1,
+                merchantId:wepy.$instance.globalData.payMessage.merchantId
+            }
+        }).then((res)=>{
+            this.coin = Math.floor(res.data.data.coin)
+            this.$apply()
+        });
+    }
+    // 积分获取记录
+    getcoins(){
+        wepy.request({
+            url: api.apiMall+'card/getcoins',
+            method: 'POST',
+            data: {
+                merchantId: wepy.$instance.globalData.payMessage.merchantId,
+                userId: wepy.$instance.globalData.userId
+            }
+        }).then((res)=>{
+            wx.hideLoading();
+            if(!res.data.data.length){
+                this.noAcquisitionIntegral = false
+                this.$apply()
+            }else{
+                this.noAcquisitionIntegral = true
+                this.acquisitionIntegral = res.data.data
+                this.$apply()
+            }
+        });
+    }
+    // 积分消费记录
+    coinrecords(){
+        wepy.request({
+            url: api.apiMall+'card/coinrecords',
+            method: 'POST',
+            data: {
+                merchantId: wepy.$instance.globalData.payMessage.merchantId,
+                userId: wepy.$instance.globalData.userId
+            }
+        }).then((res)=>{
+            wx.hideLoading();
+            if(!res.data.data.length){
+                this.noLntegralConsumptionLists = false
+                this.$apply()
+            }else{
+                this.noLntegralConsumptionLists = true
+                this.lntegralConsumptionLists = res.data.data
+                this.$apply()
+            }
+        });
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='integralRechargeBox'>
+            <view class='integralNum'><block wx:if='{{coin}}'>{{coin}}</block><block wx:else>0</block></view>
+            <view class='exchangeIntegral' @tap='goExchange'>立即兑换</view>
+        </view>
+        <!--导航菜单-->
+        <view class="navbar" style=" z-index:50">
+            <!--循环-->
+            <view wx:for="{{navbar}}" wx:key="unique" class="item {{currentTab==index ? 'active' : ''}}" @tap="navbarTap({{index}})">
+                <view class="notice" wx:if="{{count[index]>0}}">{{count[index]}}</view>
+                {{item}}
+            </view>
+        </view>
+        <!-- TabContant -->
+        <!-- 获取记录 -->
+        <view hidden="{{currentTab !== 0}}">
+            <scroll-view scroll-y style='height:776rpx;' wx:if='{{noAcquisitionIntegral}}'>
+                <view wx:for='{{acquisitionIntegral}}' wx:key='' class='acquisitionIntegralBox'>
+                    <view class='acquisitionIntegralBox_left'>
+                        <view>购买商品</view>
+                        <view>{{item.dateline}}</view>
+                    </view>
+                    <view class='acquisitionIntegralBox_right'>
+                        <view>+ {{item.coin}}</view>
+                    </view>
+                </view>
+            </scroll-view>
+            <view wx:else class='noStatus'>暂无积分获取记录!</view>
+        </view>
+        <!-- 消费记录 -->
+        <view hidden="{{currentTab !== 1}}">
+            <scroll-view scroll-y style='height:776rpx;' wx:if='{{noLntegralConsumptionLists}}'>
+                <view wx:for='{{lntegralConsumptionLists}}' wx:key='' class='acquisitionIntegralBox'>
+                    <view class='acquisitionIntegralBox_left'>
+                        <view>兑换会员卡余额</view>
+                        <view>{{item.dateline}}</view>
+                    </view>
+                    <view class='acquisitionIntegralBox_right'>
+                        <view style='color:red;'>- {{item.scores}}</view>
+                    </view>
+                </view>
+            </scroll-view>
+            <view wx:else class='noStatus'>暂无积分兑换会员卡余额记录!</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .integralRechargeBox{
+        margin-bottom: 88rpx;
+        position: relative;
+        background-color: #ffd270;
+        height: 270rpx;
+        border-radius: 0 0 50% 50%;
+        .integralNum{
+            height: 60rpx;
+            line-height: 60rpx;
+            font-size: 56rpx;
+            color: #000;
+            text-align: center;
+            padding-top: 85rpx;
+        }
+        .exchangeIntegral{
+            position: absolute;
+            right: 0;
+            left: 0;
+            margin: auto;
+            bottom: -20rpx;
+            width: 350rpx;
+            height: 80rpx;
+            color: #ffd270;
+            background-color: #333;
+            font-size: 32rpx;
+            line-height: 80rpx;
+            text-align: center;
+            border-radius: 15rpx;
+            box-shadow: 0 0 10rpx #333;
+        }
+    }
+    /*顶部导航样式*/
+  .navbar{ 
+    flex: none; 
+    display: flex; 
+    background: #ffffff; 
+    z-index: 50; 
+  } 
+  .navbar .item{ 
+    position: relative; 
+    flex: auto; 
+    text-align: center;
+    line-height: 60rpx; 
+    font-size: 24rpx;
+    color: #666666;
+    font-family: Microsoft YaHei;
+    padding-bottom: 10rpx;
+    border-bottom: 1px solid #f1f1f1;
+  } 
+  .navbar .item.active{ 
+    color: #333;
+    font-weight: bold; 
+    font-size: 30rpx;
+    font-family: Microsoft YaHei;
+  } 
+  .navbar .item.active:after{ 
+      content: ""; 
+      position: absolute;
+      bottom: 0rpx; 
+      left: 0; 
+      right: 0;
+      margin: auto; 
+      height: 5rpx;
+      width: 100rpx;
+      background-color: #000;
+    }
+    .acquisitionIntegralBox{
+        box-sizing: border-box;
+        padding: 30rpx 50rpx;
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        .acquisitionIntegralBox_left{
+            flex: .8;
+            view:nth-child(1){
+                font-size: 24rpx;
+                color: #333;
+            }
+            view:nth-child(2){
+                font-size: 18rpx;
+                color: #666;
+                margin-top: 20rpx;
+            }
+        }
+        .acquisitionIntegralBox_right{
+            flex: .2;
+            justify-content: flex-end;
+            view{
+                text-align: right;
+                color: #00bb2a;
+                font-size: 24rpx;
+            }
+        }
+    }
+    .noStatus{
+        font-size: 27rpx;
+        width: 100%;
+        text-align: center;
+        line-height: 333px;
+    }
+</style>

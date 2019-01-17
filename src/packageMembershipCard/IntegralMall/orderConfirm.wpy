@@ -1,0 +1,182 @@
+<script>
+import wepy from 'wepy';
+import { requestData } from '../../app/request'
+import api from '../../app/api'
+
+export default class orderConfirm extends wepy.page {
+    config = {
+        navigationBarTitleText: '确认订单',
+        disableScroll:true
+    };
+    components = {};
+
+    data = {
+        allData:{},
+        userAddress:{},
+        detailedAddress:''
+    };
+    methods = {
+        chooseAddress(){
+            wx.chooseAddress({
+                success: (res)=> {
+                    wx.setStorageSync('address', res);
+                    this.detailedAddress = `${res.provinceName}${res.cityName}${res.countyName}${res.detailInfo}`
+                    this.userAddress = res
+                    this.$apply()
+                },
+                fail:(res)=>{
+                    if(res.errMsg == 'chooseAddress:fail auth deny'){
+                        wx.showModal({
+                            title: '警告',
+                            content: '您点击了拒绝授权,将无法添加收货地址,点击确定重新获取授权。',
+                            showCancel: false,
+                            success: res => {
+                                if(res.confirm){
+                                    wx.openSetting()
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+        },
+        confirmPay(){
+            if (!this.userAddress.provinceName){
+                wx.showToast({
+                    title: '请选择收货地址',
+                    icon: 'none',
+                });
+            }else{
+                let url = api.goodLists;
+                let data = {
+                    good_id: this.allData.id,
+                    truename: this.userAddress.userName,
+                    address: this.detailedAddress,
+                    mobile: this.userAddress.telNumber,
+                    order_type: api.order_type
+                };
+                requestData(url,'POST',data).then((res)=>{
+                    wx.showLoading({ title: '发起支付...',mask: true });
+                    if(res.data.status == 200){
+                        if(res.data.message.appId){
+                            wx.hideLoading();
+                            wx.requestPayment({
+                                'appId':res.data.message.appId,
+                                'timeStamp': res.data.message.timeStamp,
+                                'nonceStr':res.data.message.nonceStr,
+                                'package': res.data.message.package,
+                                'signType': res.data.message.signType,
+                                'paySign': res.data.message.paySign,
+                                success:(result)=>{
+                                     wx.redirectTo({
+                                        url: `./paySuccess?integral=${this.allData.integral}&price=${this.allData.price}`
+                                    });
+                                },
+                                fail:()=>{
+                                    wx.hideLoading();
+                                    wx.showToast({
+                                        title: '已取消支付',
+                                        icon: 'none',
+                                        duration: 1500,
+                                        mask: false,
+                                    });
+                                }
+                            })
+                        }else{
+                            wx.hideLoading();
+                            wx.redirectTo({
+                                url: `./paySuccess?integral=${this.allData.integral}&price=${this.allData.price}`
+                            });
+                        }
+                    }else{
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: res.data.message,
+                            icon: 'none',
+                        });
+                    }
+                })
+            }
+        }
+    };
+
+    events = {};
+    onLoad() {
+        this.allData = wx.getStorageSync('orderConfirmData');
+        let userAddress = wx.getStorageSync('address');
+        if(userAddress) this.userAddress = userAddress, this.detailedAddress = `${userAddress.provinceName}${userAddress.cityName}${userAddress.countyName}${userAddress.detailInfo}`
+    };
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <!-- 收货地址 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>收货地址</view>
+        </view>
+        <view class='address__' @tap='chooseAddress'>
+            <view class='noAddress' wx:if='{{!userAddress.userName}}'><icon class='iconfont icon-daifahuo'/><view>请添加收货地址!</view></view>
+            <view wx:else class='useerAddress'>
+                <view class='top'>
+                    <view>姓名：{{userAddress.userName}}</view>
+                    <view>电话：{{userAddress.telNumber}}</view>
+                </view>
+                <view class='bottom'>地址：{{userAddress.provinceName}}{{userAddress.cityName}}{{userAddress.countyName}}{{userAddress.detailInfo}}</view>
+            </view>
+            <view class='arrow'>></view>
+        </view>
+        <!-- 商品信息 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>商品信息</view>
+        </view>
+        <view class='goodItemConfrim'>
+            <image src='{{allData.cover}}'/>
+            <view class='goodItem_right'>
+                <view class='title'>{{allData.title}}</view>
+                <view class='skus__'>
+                    <view class='price__'>{{allData.integral}}积分+{{allData.price}}元</view>
+                    <view class='num'>× 1</view>
+                </view>
+            </view>
+        </view>
+        <!-- 积分合计 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>积分合计</view>
+        </view>
+        <view class='jifenNums'>
+            <view>次订单积分合计</view>
+            <view>{{allData.integral}}积分</view>
+        </view>
+        <!-- 现金合计 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>现金合计</view>
+        </view>
+        <view class='jifenNums' style='padding-bottom:10rpx;'>
+            <view>商品合计</view>
+            <view>￥ {{allData.price}}</view>
+        </view>
+        <view class='jifenNums' style='padding-top:0rpx;'>
+            <view>邮费</view>
+            <view>￥ {{allData.normalsend}}</view>
+        </view>
+    </view>
+    <!-- 支付 -->
+    <view class='payBtnBox'>
+        <view class='left'>
+            <view>合计</view>
+            <view>{{allData.integral}}积分 + ￥{{allData.price}}</view>
+        </view>
+        <view class='right' @tap='confirmPay'>确认支付</view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+</style>

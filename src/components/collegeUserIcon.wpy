@@ -1,0 +1,27 @@
+<template lang="wxml">
+
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class collegeUserIcon extends wepy.component {
+    components = {};
+
+    data = {
+    };
+    methods = {};
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){
+    }
+}
+</script>
+
+<style lang="less">
+</style>

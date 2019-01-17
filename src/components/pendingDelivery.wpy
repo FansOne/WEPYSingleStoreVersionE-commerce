@@ -207,10 +207,11 @@
         method: 'POST',
         data: data,
       }).then((res)=>{
-        wx.setStorage({
-        	key:'pendingGoods',
-        	data:res.data.data.length
-        })
+        if(res.data.data.length != 0){
+			that.$emit('allStaus')
+		}else{
+			that.$emit('noStaus','2')
+		}
         // console.log(res.data.data)
         res.data.data.forEach(val=>{
         	val.btn_disabled = false

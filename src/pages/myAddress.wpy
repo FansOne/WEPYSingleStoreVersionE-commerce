@@ -78,12 +78,12 @@
 			height: 100%; 
 		}*/
 		view{
-			color: #ffffff;
+			color: #000;
 			width:100%;
 			text-align: center;
 			line-height: 120rpx;
 			height: 100%; 
-			background-color: rgb(244,148,0);
+			background-color: #ffd270;
 			letter-spacing: 5rpx;
 		}
 	}
@@ -122,9 +122,9 @@
 	  			</view>
 	  		</view>
   		</view>
-  		<view class='bottom-nav'>
+  		<view class='bottom-nav' @tap='wxAdd'>
   			<!-- <view @tap = 'editAddress'>手动添加</view> -->
-  			<view @tap = 'wxAdd'>添加收货地址</view>
+  			<view>添加收货地址</view>
   		</view>
   </view>
 </template>

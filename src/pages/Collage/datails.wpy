@@ -1,0 +1,594 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+export default class datails extends wepy.page {
+    config = {
+        navigationBarTitleText: '商品详情',
+    }
+    components = {
+    };
+
+    data = {
+        //详情数据
+        mockIndexData:{},
+        banner:[],
+        // 商户保证
+        ensure:[],
+        //底部浮出默认
+        bottomShow:false,
+        Mask:true,
+        //浮出内容
+        bottomEnsure_contant:[
+            {
+                icon:'../../images/退款.png',
+                title:'不好吃瞬间退款',
+                contant:'支持门店和App订单，不新鲜、不满意、不好吃、无理由，48小时内瞬间退款'
+            },
+            {
+                icon:'../../images/全球购-全球直采.png',
+                title:'全球直采“真正的吃遍全球”',
+                contant:'全国15大配送品控中心，可满足5000家门店每日的果品配送需求'
+            },
+            {
+                icon:'../../images/质检.png',
+                title:'品控质检“真正的安全放心”',
+                contant:'八大环节 重重检验筛选，为安全把关果品标准体系“四度一味一安全”'
+            },
+        ],
+        //详情返回所有数据
+        detailData:{},
+        //倒计时
+        wxTimerList:{},
+        countDownList: [],
+        actEndTimeList: [],
+        house:'00',
+        minute:'00',
+        second:'00',
+        millisecond:'0',
+        timeTitle:'距离结束仅剩',
+        btnDis:false,
+        //定时器
+        timer:'',
+        timer1:'',
+        //后台返回数据成功
+        backDataSuccess:false,
+        merchantName:''
+    };
+    methods = {
+        bottomShow(){
+            this.bottomShow = !this.bottomShow
+            this.Mask = !this.Mask
+        },
+        goindex(){
+            wx.redirectTo({
+                url: './index'
+            })
+        },
+        goConfirmOrder(){
+            wx.navigateTo({
+                url: './confirmOrder?groupId='+this.groupId
+            });
+        },
+    };
+    onLoad(options) {
+        this.groupId = options.id
+        this.detail_Data()
+    };
+    // 分享
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+        // 来自页面内转发按钮
+        // console.log(res.target)
+        }
+        return {
+        title: '【'+this.mockIndexData.title+'】'+','+'拼团购仅需'+this.mockIndexData.price+'元！',
+        path: 'pages/Collage/datails?id='+this.mockIndexData.id
+        }
+    };
+    //详情数据
+    detail_Data () {
+        wx.showLoading({
+            title: '加载中...',
+            mask: true,
+        });
+        const url = api.apiMall + '/group/detail';
+        const data = {
+            groupId: this.groupId
+        };
+        wepy.request({
+            url: url,
+            method: 'POST',
+            data: data,
+            async : false,
+        }).then((res)=>{
+            res.data.data.result.price = Number(res.data.data.result.price/100).toFixed(2)
+            res.data.data.result.sell = Number(res.data.data.result.sell/100).toFixed(2)
+            wx.hideLoading()
+            this.merchantName = res.data.data.merchantInfo.title
+            this.backDataSuccess = true
+            this.detailData = res.data.data
+            this.banner = res.data.data.banners
+            this.ensure = res.data.data.label
+            this.mockIndexData = res.data.data.result
+            this.$apply()
+            
+            //倒计时判断
+            var num = res.data.data.timeDifference;
+            if(num<0){
+                num = 0
+            }else{
+                var milliseconds = 9
+                this.timer1 = setInterval(()=>{
+                    milliseconds --
+                    if(milliseconds < 0) milliseconds = 9
+                    this.millisecond = milliseconds
+                    this.$apply()
+                },100)
+            };
+            this.timer = setInterval(()=>{
+                this.countDown(num)
+                num --;
+                if(num < 0){
+                    clearInterval(this.timer)
+                    clearInterval(this.timer1)
+                    this.timeTitle = '该活动已结束';
+                    this.btnDis = true;
+                    this.$apply()
+                    wx.showModal({
+                        title: '活动结束',
+                        content: '很遗憾晚来一步，该商品拼团活动已经结束，返回首页更多优惠在等着你和小伙伴儿一起来拼~',
+                        showCancel: false,
+                        cancelText: '确定',
+                        cancelColor: '#000000',
+                        confirmText: '确定',
+                        confirmColor: '#3CC51F',
+                        success: res => {
+                            if(res.confirm){
+                                wx.redirectTo({
+                                    url: './index'
+                                })
+                            }
+                        }
+                    });
+                }
+            },1000)
+        })
+    };
+    //页面退出清除定时
+    onUnload(){
+        clearInterval(this.timer)
+        clearInterval(this.timer1)
+    }
+    //倒计时函数
+    countDown(res){
+        let house;
+        let minute;
+        let second;
+        if(res<3600){
+            house = '00';
+        }else{
+            house = String(parseInt(res/3600));
+            house = (house.length> 1) ? house : '0' + house;
+        }
+        if(res<60){
+            minute = '00';
+        }else{
+            minute = String(parseInt((res%3600)/60));
+            minute = (minute.length> 1) ? minute : '0' + minute;
+        }
+        
+        second = String(res - house*3600 - minute*60);
+        second = (second.length> 1) ? second : '0' + second;
+        this.house = house;
+        this.minute = minute;
+        this.second = second;
+        this.$apply()
+    };
+}
+</script>
+
+<template>
+    <view class='container' wx:if='{{backDataSuccess}}'>
+        <!-- 轮播Banner -->
+        <swiper indicator-dots="{{banner}}" autoplay interval="3000" circular indicator-active-color='#00d96c' class='bannerSwiper'>
+            <block wx:for="{{banner}}" wx:key="">
+                <swiper-item>
+                <image src="{{item.cover}}" class="slide-image"  style='width:100%' mode='scaleToFill'/>
+                </swiper-item>
+            </block>
+        </swiper>
+        <!-- 商品标题规格 -->
+        <view class='goodsTitle_box'>
+            <view class='goodsTitle_title'>
+                <view class='goodsTitle_title_'>{{mockIndexData.title}}</view>
+                <button class='goodsTitle_share' open-type="share">
+                    <image src='../../images/icon_07.jpg'/>
+                </button>
+            </view>
+            <view class='goodsTitle_group'>
+                <!-- <view>{{mockIndexData.skus}}</view> -->
+                <view>·已团{{detailData.count}}件</view>
+            </view>
+        </view>
+        <!-- 活动倒计时 -->
+        <view class='countDown_box'>
+            <view class='countDown'>
+                <view  class='countDown_price'>
+                    <view class='countDown_price_btn'>{{mockIndexData.number}}人团</view>
+                    <view class='countDown_price_'><text>￥</text><text>{{mockIndexData.price}}</text></view>
+                    <view class='countDown_discount'>￥{{mockIndexData.sell}}</view>
+                </view>
+                <view class='countDown_time'>
+                    <view>{{timeTitle}}</view>
+                    <view>
+                        <text>{{house}}</text>时<text style="width:37rpx">{{minute}}</text>分<text style="width:37rpx">{{second}}</text>秒<text style="width:32rpx">{{millisecond}}</text>
+                    </view>
+                </view>
+            </view>
+        </view>
+        <!-- 商家保证 -->
+        <view class='ensure_box'>
+            <view class='ensure' @tap='bottomShow'>
+                <block wx:for='{{ensure}}' wx:key=''>
+                    <view class='ensure_item'>
+                        <image src='../../images/对号.png'/>
+                        <view>{{item}}</view>
+                    </view>
+                </block>
+            </view>
+            <view class='ensure_arrow'>></view>
+        </view>
+        <!-- 商品特色 -->
+        <view class='commodityTrait-box'>
+            <view class = 'tuijian-titlebox'>
+                <view class = 'tuijian-title'>
+                    <view>商品特色</view>
+                    <image src='../../images/icon_12.jpg' style='width:55rpx;'/>
+                </view>
+            </view>
+            <view class='commodityTrait-top'>
+                <view>
+                    <block wx:for='{{detailData.attributes}}' wx:key=''>
+                        <view class='commodityTrait-text'>【{{item.attribute_title}}】<text>{{item.attribute_item_title}}</text></view>
+                    </block>
+                </view>
+                <!-- <image src='{{detailData.goodInfo.cover}}'/> -->
+            </view>
+            <!-- <image src='{{characteristicBanner}}' mode='widthFix'/> -->
+            <rich-text nodes="{{detailData.goodInfo.content}}" mode='widthFix'></rich-text>
+        </view>
+        <!-- 底部导航 -->
+        <view class='bottomNav_box'>
+            <view class='bottomNav'>
+                <view class='bottomNav_index' @tap='goindex'>
+                    <image src='../../images/goindex.jpg'/>
+                    <view>拼团首页</view>
+                </view>
+                <button class='bottomNav_btn' @tap= 'goConfirmOrder' disabled='{{btnDis}}'><text>￥</text><text>{{mockIndexData.price}}</text><text>一键开团</text></button>
+            </view>
+        </view>
+        <!-- 底部浮出 -->
+        <view class="bottomEnsure_box {{bottomShow?'bottomShow':''}}">
+            <view class="bottomEnsure_title">
+                <view>—— {{merchantName}}服务说明 ——</view>
+            </view>
+            <view class="bottomEnsure_contant">
+                <block wx:for='{{bottomEnsure_contant}}' wx:key=''>
+                    <view class="bottomEnsure_contant_">
+                        <image src='{{item.icon}}'/>
+                        <view class="bottomEnsure_contant_right">
+                            <view class="bottomEnsure_contant_title">{{item.title}}</view>
+                            <view class="bottomEnsure_contant_contant">{{item.contant}}</view>
+                        </view>
+                    </view>
+                </block>
+            </view>
+            <view class="bottomEnsure_btn" @tap='bottomShow'>
+                <view>我知道了</view>
+            </view>
+        </view>
+
+        <!-- 遮罩 -->
+        <view class='Mask' @tap='bottomShow' hidden='{{Mask}}'></view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .bannerSwiper{
+        width: 100%;
+        height: 420rpx;
+    }
+    .goodsTitle_box{
+        box-sizing: border-box;
+        padding: 20rpx 35rpx;
+        .goodsTitle_title{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .goodsTitle_title_{
+                color:#333;
+                width: 596rpx;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                font-size: 33rpx;
+                letter-spacing: 3rpx;
+            }
+            .goodsTitle_share{
+                background-color: #fff;
+                padding: 0;
+                width: 50rpx;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                image{
+                    width: 40rpx;
+                    height: 37rpx;
+                }
+                view{
+                    // margin-top: 10rpx;
+                    font-size: 25rpx;
+                    color: #666;
+                }
+            }
+        }
+        .goodsTitle_group{
+            display: flex;
+            margin-top: 5rpx;
+            transform: translateX(-4rpx);
+            view:nth-child(1){
+                color: #666;
+                font-size: 25rpx;
+            }
+        }
+    }
+    .countDown_box{
+        box-sizing: border-box;
+        padding: 0 35rpx;
+        .countDown{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 0 10rpx #dcdcdc;
+            padding: 20rpx;
+            .countDown_price{
+                display: flex;
+                align-items: center;
+                .countDown_price_btn{
+                    background-color: #fccc70;
+                    font-size: 28rpx;
+                    color: #333;
+                    border-radius: 50rpx;
+                    padding: 5rpx 17rpx;
+                }
+                .countDown_price_{
+                    color: #ff262f;
+                    margin-left: 10rpx;
+                    text:nth-child(2){
+                        font-size: 39rpx;
+                    }
+                }
+                .countDown_discount{
+                    font-size: 25rpx;
+                    text-decoration:line-through;
+                    color:#333;
+                    margin-left: 7rpx;
+                    transform: translateY(5rpx)
+                }
+            }
+            .countDown_time{
+                display: flex;
+                font-size: 26rpx;
+                color: #333;
+                flex-direction: column;
+                align-items: center;
+                letter-spacing: 3rpx;
+                view:nth-child(1){
+                    font-weight: bold;
+                }
+                view:nth-child(2){
+                    margin-top: 8rpx;
+                    font-size: 27rpx;
+                    text{
+                        text-align: center;
+                        display: inline-block;
+                        font-size: 28rpx;
+                        color: white;
+                        background-color:#00d96c;
+                        padding: 3rpx 7rpx;
+                        border-radius: 10rpx;
+                    }
+                }
+            }
+        }
+    }
+    .ensure_box{
+        box-sizing: border-box;
+        padding: 20rpx 35rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f1f1f1;
+        .ensure{
+            display: flex;
+            flex: .9;
+            justify-content: space-between;
+            align-items: center;
+            .ensure_item{
+                display: flex;
+                align-items: center;
+                image{
+                    width: 35rpx;
+                    height: 35rpx;
+                    margin-right: 7rpx;
+                }
+                view{
+                    color: #805915;
+                    font-size: 26rpx;
+                }
+            }
+        }
+        .ensure_arrow{
+            flex: .1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26rpx;
+            color: #666;
+        }
+    }
+
+    .bottomNav_box{
+        background-color: #fff;
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        box-sizing: border-box;
+        padding: 15rpx 80rpx;
+        display: flex;
+        align-items: center;
+        border-top: 1px solid #f1f1f1;
+        .bottomNav{
+            width: 100%;
+            display: flex;
+            .bottomNav_index{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                transform: translateY(6rpx);
+                image{
+                    width: 50rpx;
+                    height: 50rpx;
+                }
+                view{
+                    font-size: 25rpx;
+                    color: #333;
+                    padding-top: 7rpx;
+                }
+            }
+            .bottomNav_btn{
+                margin-right: 0;
+                background-color: #ffd270;
+                border-radius: 50rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 40rpx;
+                text{
+                    display: inline-block;
+                    font-size: 28rpx;
+                    color: red;
+                    font-weight: bold;
+                }
+                text:nth-child(1){
+                    transform: translateY(2rpx)
+                }
+                text:nth-child(2){
+                    font-size: 38rpx;
+                }
+                text:nth-child(3){
+                    color: #333;
+                    font-size: 33rpx;
+                    margin-left: 15rpx;
+                    transform: translateY(2rpx)
+                }
+            }
+        }
+    }
+    .Mask{
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        background-color: rgba(0, 0, 0, .5);
+        width: 100%;
+        height: 100%;
+    }
+    .bottomEnsure_box{
+        transition: transform .2s;
+        transform: translateY(100%);
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        z-index: 10;
+        background-color: #fff;
+        .bottomEnsure_title{
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            padding: 15rpx 0;
+            view{
+                font-size: 26rpx;
+                letter-spacing: 4rpx;
+            }
+        }
+        .bottomEnsure_contant{
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20rpx 30rpx;
+            .bottomEnsure_contant_{
+                display: flex;
+                align-items: center;
+                margin-bottom: 30rpx;
+                image{
+                    width: 75rpx;
+                    height: 75rpx;
+                }
+                .bottomEnsure_contant_right{
+                    flex: 1;
+                    padding-left: 25rpx;
+                    .bottomEnsure_contant_title{
+                        font-size: 28rpx;
+                        color: #00d96c;
+                    }
+                    .bottomEnsure_contant_contant{
+                        font-size: 26rpx;
+                        padding-top: 5rpx;
+                    }
+                }
+            }
+        }
+        .bottomEnsure_btn{
+            padding: 20rpx;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #f1f1f1;
+            view{
+                color: #00d96c;
+                font-size: 33rpx;
+                letter-spacing: 5rpx;
+            }
+        }
+    }
+    .bottomShow{
+        transform: translateY(0) !important;
+    }
+    .commodityTrait-box{
+        padding-bottom: 120rpx;
+        .commodityTrait-top{
+            box-sizing: border-box;
+            display: flex;
+            padding: 0 17rpx;
+            .commodityTrait-text{
+                color: #696969;
+                font-size: 27rpx;
+                margin-bottom: 15rpx;
+            }
+        }
+        rich-text{
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0 10rpx;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 28rpx;
+        }
+    }
+</style>

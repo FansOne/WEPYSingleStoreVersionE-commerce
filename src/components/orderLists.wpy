@@ -1,0 +1,149 @@
+<template lang="wxml">
+    <view class='goodItem__' wx:for='{{goodItem}}' wx:key='' @tap='goOrderDetail({{item.id}})'>
+        <view class='goodItem_top'>
+            <view class='goodItem_top_l'>
+                <image src='{{item.cover_url}}'/>
+                <view>{{item.shop_name}} ></view>
+            </view>
+            <view class='goodItem_top_r'>{{item.status == 0?'待付款':(item.status == 1?'待发货':item.status==2?'待收货':'已完成')}}</view>
+        </view>
+        <view class='goodItem_middle'>
+            <image src='{{item.cover}}'/>
+            <view class='goodItem_middle_r'>
+                <view>{{item.title}}</view>
+                <view>￥{{item.price}}</view>
+            </view>
+        </view>
+        <view class='goodItem_bottom'>
+            <view class='shifujia'>实付：{{item.total}}元(运费：{{item.courier_fee}}元)</view>
+            <view class='goodItem_bottom_btn' wx:if='{{item.status == 0}}' @tap.stop='pay({{item.id}})'>立即支付</view>
+        </view>
+    </view>
+    <view class='nodata' wx:if='{{!goodItem.length}}'>暂无相关订单数据</view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class orderLists extends wepy.component {
+
+    data = {};
+    methods = {
+        pay(id){
+            this.$emit('payOrderItem',id)
+        },
+        goOrderDetail(id){
+            wx.navigateTo({
+                url: `./orderdetail?id=${id}`
+            });
+        }
+    };
+    props = {
+        goodItem: {
+            type: String,
+            default: 'null'
+        }
+    };
+}
+</script>
+
+<style lang="less">
+    .goodItem__{
+        background-color: #fff;
+        border-bottom: 1rpx solid #e2dfdf;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15rpx;
+        .goodItem_top{
+            display: flex;
+            align-items: center;
+            margin-bottom: 20rpx;
+            .goodItem_top_l{
+                flex: .8;
+                display: flex;
+                align-items: center;
+                image{
+                    width: 60rpx;
+                    height: 60rpx;
+                    margin-right: 15rpx;
+                }
+                view{
+                    flex: 1;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 1;
+                    overflow: hidden;
+                    font-size: 26rpx;
+                    color: #000;
+                }
+            }
+            .goodItem_top_r{
+                flex: .2;
+                text-align: right;
+                color: red;
+                font-size: 26rpx;
+            }
+        }
+        .goodItem_middle{
+            height: 200rpx;
+            box-sizing: border-box;
+            padding: 10rpx;
+            border-radius: 7rpx;
+            background-color: #efeff4;
+            display: flex;
+            margin-bottom: 25rpx;
+            image{
+                border-radius: 7rpx;
+                height: 180rpx;
+                width: 180rpx;
+            }
+            .goodItem_middle_r{
+                flex: 1;
+                box-sizing: border-box;
+                padding-left: 25rpx;
+                display: flex;
+                flex-flow: column;
+                padding-top: 8rpx;
+                view:nth-child(1){
+                    flex: .5;
+                    color: #000;
+                    font-size: 30rpx;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 2;
+                    overflow: hidden;
+                }
+                view:nth-child(2){
+                    font-size: 30rpx;
+                    color: red;
+                    flex: .5;
+                    display: flex;
+                    align-items: flex-end;
+                }
+            }
+        }
+        .goodItem_bottom{
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-end;
+            .shifujia{
+                font-size: 28rpx;
+                color: #000;
+            }
+            .goodItem_bottom_btn{
+                margin-top: 25rpx;
+                background-color: #ffd270;
+                box-sizing: border-box;
+                font-size: 28rpx;
+                color: #000;
+                border-radius: 10rpx;
+                padding: 10rpx 15rpx;
+            }
+        }
+    }
+    .nodata{
+        width: 100%;
+        margin-top: 335rpx;
+        text-align: center;
+    }
+</style>

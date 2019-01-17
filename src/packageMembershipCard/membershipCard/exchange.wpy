@@ -1,0 +1,166 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app'
+
+export default class exchange extends wepy.page {
+    config = {
+        navigationBarTitleText: '积分兑换',
+        navigationBarBackgroundColor: '#ffd270',
+    };
+    components = {};
+
+    data = {
+        // 汇率 余额
+        cardRatio:{},
+        //兑换金额
+        cardMoney:'0.00',
+        inputValue:'',
+    };
+    methods = {
+        userInput(e){
+            this.inputValue = e.detail.value
+            this.$apply()
+            let exchangeNum = e.detail.value;
+            this.cardMoney = (exchangeNum*Number(this.cardRatio.cardRatio/100)).toFixed(2)
+            if(Number(e.detail.value)>Number(this.cardRatio.coin)){
+                this.cardMoney = '0.00'
+                this.$apply()
+            }
+        },
+        redeemNow(){
+            if(!Number(this.inputValue)){
+                wx.showToast({
+                    title: '请输入兑换积分',
+                    icon: 'none'
+                });
+            }else{
+                this.cardExchange()
+            }
+        }
+    };
+
+    events = {};
+    watch = {
+        inputValue(newValue, oldValue){
+            if(Number(newValue)>Number(this.cardRatio.coin) || newValue =='00'){
+                this.inputValue = ''
+                wx.showToast({
+                    title: '积分不足,未达到输入数量',
+                    icon: 'none',
+                    duration: 1500,
+                    mask: false,
+                });
+            }
+        }
+    };
+    onLoad() {
+        this.userExchange()
+    };
+    // 兑换积分接口
+    userExchange(){
+        let data = {
+            merchantId: wepy.$instance.globalData.payMessage.merchantId,
+            userId: wepy.$instance.globalData.userId
+        };
+        wx.request({
+            url: api.apiMall+'card/proportion',
+            method: 'POST',
+            data: data,
+            success: (res)=>{
+                res.data.coin = Math.floor(res.data.coin)
+                this.cardRatio = res.data
+                this.$apply()
+            }
+        });
+    }
+    // 兑换余额
+    cardExchange(){
+        wepy.request({
+            url: api.apiMall+'/card/exchange',
+            method: 'POST',
+            data: {
+                merchantId: wepy.$instance.globalData.payMessage.merchantId,
+                userId: wepy.$instance.globalData.userId,
+                scores: this.inputValue,
+                cards: Number(this.cardMoney)*100,
+                proportion: this.cardRatio.cardRatio
+            }
+        }).then((res)=>{
+            this.inputValue = ''
+            this.$apply()
+            this.userExchange()
+            wx.showToast({
+                title: '兑换成功',
+                icon: 'success',
+            });
+        });
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='duiHuanBox'>
+            <view class='duiHuanBox_'>
+                <view class='duiHuanBox_title'>积分兑换会员卡金额</view>
+                <input placeholder='请输入需兑换积分数量' maxlength='7' placeholder-style='font-size:27rpx;' bindinput='userInput' type='number' value="{{inputValue}}"/>
+                <view class='duiHuanBox_money'>当前可兑换会员卡金额：<text>￥{{cardMoney}}</text></view>
+                <view class='duiHuanBox_jifen'><view>当前积分：{{cardRatio.coin}}</view><view>兑换率：{{cardRatio.cardRatio}}%</view></view>
+                <button @tap='redeemNow'>立即兑换</button>
+            </view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .duiHuanBox{
+        height: 555rpx;
+        box-sizing: border-box;
+        padding: 35rpx;
+        .duiHuanBox_{
+            box-sizing: border-box;
+            padding: 40rpx;
+            box-shadow: 0 0 50rpx #f1f1f1;
+            height: 555rpx;
+            .duiHuanBox_title{
+                font-size: 33rpx;
+                text-align: center;
+                color: #666;
+            }
+            input{
+                margin-top: 30rpx;
+                padding-left: 20rpx;
+                font-size: 34rpx;
+                height: 90rpx;
+                background-color: #f1f1f1;
+            }
+            .duiHuanBox_money{
+                font-size: 30rpx;
+                color: #000;
+                padding-top: 30rpx;
+                text{
+                    color: red;
+                } 
+            }
+            .duiHuanBox_jifen{
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20rpx;
+                view{
+                    font-size: 30rpx;
+                }
+            }
+            button{
+                margin-top: 75rpx;
+                width: 560rpx;
+                height: 90rpx;
+                line-height: 90rpx;
+                background-color:#ffd270;
+                font-size:  34rpx;
+            }
+        }
+    }
+</style>

@@ -1,0 +1,272 @@
+<script>
+import wepy from 'wepy';
+import { requestData } from '../../app/request'
+import api from '../../app/api'
+
+export default class orderdetail extends wepy.page {
+    config = {
+        navigationBarTitleText: '订单详情',
+    };
+    components = {};
+
+    data = {
+        options:{},
+        allData:{},
+    };
+    methods = {
+        // 查看物流信息
+        goLM(e){
+            let out_id = e.currentTarget.dataset.out_id;
+            wx.navigateTo({
+                url: '../../pages/newLogisticsMessage?out_id='+out_id
+            })
+        },
+        // 立即支付
+        pay(){
+            wx.showLoading({ title: '发起支付...', mask: true });
+            let url = `${api.integralOrders}/${this.allData.id}`;
+            requestData(url,'PUT').then((res)=>{
+                wx.hideLoading();
+                wx.requestPayment({
+                    'appId':res.data.message.appId,
+                    'timeStamp': res.data.message.timeStamp,
+                    'nonceStr':res.data.message.nonceStr,
+                    'package': res.data.message.package,
+                    'signType': res.data.message.signType,
+                    'paySign': res.data.message.paySign,
+                    success:(result)=>{
+                        wx.showToast({
+                            title: '支付成功',
+                            icon: 'success',
+                        });
+                        setTimeout(() => {
+                            this.getAllData()
+                        }, 1200);
+                    },
+                    fail:()=>{
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: '已取消支付',
+                            icon: 'none',
+                            duration: 1500,
+                            mask: false,
+                        });
+                    }
+                })
+            })
+        },
+        // 提醒发货
+        reminderShipment(){
+            wx.showToast({
+                title: '已提醒卖家发货',
+                icon: 'success',
+                duration: 1500,
+                mask: false,
+            });
+        },
+        // 确认收货
+        confirmReceipt(){
+            let url = `${api.integralOrders}/${this.allData.id}`;
+            wx.showModal({
+                title: '收货提醒',
+                content: '货物已签收，确认收货。',
+                showCancel: true,
+                cancelText: '取消',
+                cancelColor: '#000000',
+                confirmText: '确定',
+                confirmColor: '#3CC51F',
+                success: res => {
+                    if(res.confirm){
+                        requestData(url,'DELETE').then((res)=>{
+                            if(res.data.status == 200){
+                                wx.showToast({
+                                    title: '签收成功',
+                                    icon: 'success'
+                                });
+                                setTimeout(() => {
+                                    wx.redirectTo({
+                                        url: `./orderLists?currentTab=3`
+                                    });
+                                }, 1200);
+                            }else{
+                                wx.showToast({
+                                    title: res.data.message,
+                                    icon: 'success'
+                                });
+                            }
+                        })
+                    }
+                }
+            });
+        }
+    };
+
+    events = {};
+    onLoad(options) {
+        this.options = options
+        this.getAllData()
+    };
+    // 获取初始数据
+    getAllData(){
+        let url = `${api.integralOrders}/${this.options.id}`;
+        requestData(url).then((res)=>{
+            res.data.message.price = Number(res.data.message.price/100).toFixed(2)
+            res.data.message.courier_fee = Number(res.data.message.courier_fee/100).toFixed(2)
+            res.data.message.total = Number(res.data.message.total/100).toFixed(2)
+            this.allData = res.data.message
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <!-- 物流信息 -->
+        <view class='logisticsMessage' @tap="{{allData.tracklist?'goLM':''}}" data-out_id='{{allData.out_id}}'>
+            <view class='logisticsIcon' style="{{allData.tracklist?'':'display:flex;align-items:center;'}}">
+                <icon class='iconfont icon-daifahuo'/>
+            </view>
+            <view class='logisticsStatus'>
+                <block wx:if='{{allData.tracklist}}'>
+                    <view>{{allData.tracklist.TrackStatus}}</view>
+                    <view>{{allData.tracklist.TrackDate}}</view>
+                </block>
+                <block wx:else>
+                    <view style='flex:1;display:flex;align-items:center;'>物流状态暂未更新...</view>
+                </block>
+            </view>
+            <view class='logisticsArrow' wx:if='{{allData.tracklist}}'>></view>
+        </view>
+        <!-- 收货地址 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>收货地址</view>
+        </view>
+        <view class='address__' style='border-bottom:none;margin-bottom:0rpx;'>
+            <view class='useerAddress'>
+                <view class='top'>
+                    <view>姓名：{{allData.truename}}</view>
+                    <view>电话：{{allData.mobile}}</view>
+                </view>
+                <view class='bottom'>地址：{{allData.address}}</view>
+            </view>
+            <view class='arrow'></view>
+        </view>
+        <!-- 商品信息 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>商品信息</view>
+        </view>
+        <view class='goodItemConfrim'>
+            <image src='{{allData.cover}}'/>
+            <view class='goodItem_right'>
+                <view class='title'>{{allData.title}}</view>
+                <view class='skus__'>
+                    <view class='price__'>{{allData.integral}}积分+{{allData.price}}元</view>
+                    <view class='num'>× 1</view>
+                </view>
+            </view>
+        </view>
+        <!-- 积分合计 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>积分合计</view>
+        </view>
+        <view class='jifenNums'>
+            <view>次订单积分合计</view>
+            <view>{{allData.integral}}积分</view>
+        </view>
+        <!-- 现金合计 -->
+        <view class='h2Title'>
+            <view></view>
+            <view>现金合计</view>
+        </view>
+        <view class='jifenNums' style='padding-bottom:10rpx;'>
+            <view>商品合计</view>
+            <view>￥ {{allData.price}}</view>
+        </view>
+        <view class='jifenNums' style='padding-top:0rpx;'>
+            <view>邮费</view>
+            <view>￥ {{allData.courier_fee}}</view>
+        </view>
+        <!-- button -->
+        <view class='detailBtn' wx:if="{{allData.status != 3}}" @tap="{{allData.status == 0?'pay':allData.status==1?'reminderShipment':'confirmReceipt'}}">
+            <view class='btn'>{{allData.status==0?'立即支付':(allData.status==1?'提醒发货':'确认收货')}}</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .logisticsMessage{
+        height: 170rpx;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15rpx 30rpx; 
+        display: flex;
+        align-items: center;
+        border-bottom: 1rpx solid #e7e6e6;
+        margin-bottom: 30rpx;
+        .logisticsIcon{
+            padding-top: 15rpx;
+            height: 100%;
+            flex: .1;
+            icon{
+                color: #e4a00f;
+                font-size: 45rpx;
+                transform: translateY(-12rpx);
+            }  
+        }
+        .logisticsStatus{
+            height: 100%;
+            flex: .8;
+            display: flex;
+            flex-flow: column;
+            view:nth-child(1){
+                flex: .6;
+                font-size: 28rpx;
+                color: #000;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+            }
+            view:nth-child(2){
+                flex: .4;
+                font-size: 24rpx;
+                display: flex;
+                align-items: flex-end;
+            }
+        }
+        .logisticsArrow{
+            flex: .1;
+            text-align: right;
+            font-size: 36rpx;
+            color: #000;
+        }
+    }
+    .detailBtn{
+        height: 120rpx;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 40rpx;
+        display: flex;
+        align-items: center;
+        position: fixed;
+        bottom: 0;
+        border-top: 1rpx solid #f1f1f1;
+        .btn{
+            height: 85rpx;
+            width: 100%;
+            line-height: 85rpx;
+            text-align: center;
+            background-color: #ffd270;
+            font-size: 32rpx;
+            color: #000;
+            border-radius: 50rpx;
+        }
+    }
+</style>

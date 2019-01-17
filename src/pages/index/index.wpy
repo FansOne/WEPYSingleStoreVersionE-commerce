@@ -1,7 +1,7 @@
 <style lang="less">
     page{
-        background-color:#F5F5F5;
         position: relative;
+        background-color: #fff;
     }
     .bgBannerBox{
         height: 355rpx;
@@ -13,99 +13,53 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            margin: 0 25rpx;
-            height: 350rpx;
             background-color: #fff;
-            transform: translateY(-390/2rpx);
             border-radius: 10rpx;
-            box-shadow: 0 0 10rpx #b1b1b1;
-            padding-bottom: 15rpx;
             .logo{
-                position: relative;
+                box-sizing: border-box;
+                padding: 15rpx;
                 display: flex;
-                justify-content: center;
-                margin-top: -90rpx;
-                image{
-                    width: 180rpx;
-                    height: 180rpx;
-                    border-radius: 7rpx;
-                    // box-shadow: 0 0 3rpx #b1b1b1;
-                }
-                .checkImg{
-                    transform: rotate(15deg) translateX(15rpx);
-                    position: absolute;
-                    right: 10rpx;
-                    top: 15rpx;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content:center;
-                    box-shadow: 0 5rpx 10rpx #D3D3D3;
-                    width: 140rpx;
-                    height: 150rpx;
-                    background-color: #fff;
-                    border-radius: 50% 50% 0 0;
-                    .maidan-text{
-                        background-image: -webkit-linear-gradient(left,blue,#66ffff 10%,#cc00ff 20%,#CC00CC 30%, #CCCCFF 40%, #00FFFF 50%,#CCCCFF 60%,#CC00CC 70%,#CC00FF 80%,#66FFFF 90%,blue 100%);
-                        -webkit-text-fill-color: transparent;/* 将字体设置成透明色 */
-                        -webkit-background-clip: text;/* 裁剪背景图，使文字作为裁剪区域向外裁剪 */
-                        -webkit-background-size: 200% 100%; 
-                        -webkit-animation: masked-animation 8s linear infinite;
-                        color: #333;
-                        text-align: center;
-                        font-size: 28rpx;
-                        letter-spacing: 5rpx;
-                        font-weight: bold;
-                        padding-top: 5rpx;
-                    }
-                    @keyframes masked-animation {
-                        0% {
-                            background-position: 0  0;
-                        }
-                        100% {
-                            background-position: -100%  0;
-                        }
-                    }
-                    .line{
-                        position: absolute;
-                        bottom: 0;
-                        height: 25rpx;
-                        width: 95%;
-                    }
-                    image{
-                        width: 90rpx;
-                        height: 90rpx;
-                        margin-left: 27rpx;
-                    }
-                }
-            }
-            .title{
-                text-align: center;
-                font-size: 33rpx;
-                font-weight: bold;
-                letter-spacing: 5rpx;
-                padding-top: 20rpx;
-                color: #333;
-                // border: 1px solid red;
-            }
-            .time{
-                padding: 0 60rpx;
-                display: flex;
-                flex-direction: row;
                 justify-content: space-between;
-                // border: 1px solid red;
-                padding-top: 10rpx;
                 align-items: center;
-                view:nth-child(1){
-                    font-size: 27rpx;
+                .logo-right{
+                    display: flex;
+                    flex: 1;
+                    .title{
+                        flex: .6;
+                        margin-left: 20rpx;
+                        text-align: center;
+                        font-size: 33rpx;
+                        font-weight: bold;
+                        letter-spacing: 5rpx;
+                        display: flex;
+                        align-items: center;
+                        color: #333;
+                    }
+                    .time{
+                        flex: .4;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-end;
+                        // text-align: right;
+                        view:nth-child(2){
+                            font-size: 27rpx;
+                            margin-top: 30rpx;
+                        }
+                        view:nth-child(1){
+                            color:#fff;
+                            background-color: #f40;
+                            width: 120rpx;
+                            font-size: 27rpx;
+                            text-align: center;
+                            height:45rpx;
+                            line-height: 45rpx;
+                            border-radius: 7rpx;
+                        }
+                    }
                 }
-                view:nth-child(2){
-                    color:#fff;
-                    background-color: #f40;
-                    width: 120rpx;
-                    font-size: 27rpx;
-                    text-align: center;
-                    height:45rpx;
-                    line-height: 45rpx;
+                image{
+                    width: 130rpx;
+                    height: 130rpx;
                     border-radius: 7rpx;
                 }
             }
@@ -115,7 +69,6 @@
                 display: flex;
                 align-items: center;
                 flex-direction: row;
-                margin-top: 20rpx;
                 justify-content: space-between;
                 view:nth-child(1){
                     display: flex;
@@ -129,6 +82,10 @@
                         font-size: 28rpx;
                         letter-spacing: 3rpx;
                         padding-left: 15rpx;
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 1;
+                        overflow: hidden;
                     }
                 }
             }
@@ -141,88 +98,160 @@
         padding-left: 20rpx;
         padding-right: 20rpx;
         padding-top: 20rpx;
-        padding-bottom:10rpx;
-        margin-top: 215rpx;
-        margin-left: 25rpx;
-        margin-right: 25rpx;
-        box-shadow: 0 0 3rpx #b1b1b1;
-        border-radius: 10rpx;
+        margin-top: 111rpx;
         background-color: #fff;
-        margin-bottom: 5rpx;
-        .shopIntroduce-title{
+        .shopIntroduce_title{
             display: flex;
-            flex-direction: row;
             align-items: center;
-            view:nth-child(1){
-                background-color: #ee6c4b;
-                width: 10rpx;
-                height: 50rpx;
+            // justify-content: center;
+            position: relative;
+            margin: 5rpx 0;
+            image{
+                width: 161rpx;
+                height: 39rpx;
             }
-            view:nth-child(2){
-                font-size: 30rpx;
-                font-weight: bold;
-                letter-spacing: 3rpx;
-                color: #333;
-                padding-left: 20rpx;
+            view{
+                position: absolute;
+                right: 20rpx;
+                bottom: 0;
+                color: #ff6041;
+                font-size: 27rpx;
             }
-        }
-        .shopIntroduce-content{
-            font-size: 28rpx;
-            letter-spacing: 3rpx;
-            padding-left: 30rpx;
-            padding-right: 0;
-            padding-top: 15rpx;
-            padding-bottom: 15rpx;
-            line-height: 45rpx;
-            text-align: justify;
         }      
     }
-    .shopIntroduce-image{
-        border-radius: 8rpx;
-        height: 365rpx;
-        margin-bottom: 15rpx;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        image{
-            height: 365rpx !important;
-            border-radius: 8rpx;
-        }
+    .featuredItem{
+        margin-top: -15rpx;
     }
-    //买单
-    .merchantTel{
-        position: fixed;
-		width: 43px;
-        height: 43px;
-		border-radius:50%;
-		box-shadow: 8px 6px 8px #DCDCDC;
-        z-index: 100;
-        background-color: #ee6c4b;
-        text-align: center;
-        line-height: 43px;
-        color: #fff;
-        font-size: 30rpx;
-        letter-spacing: 3rpx;
+  .page-swiper-wrap{
+    width:100%;
+    height:220rpx;
+    swiper{
+      width:100%;
+      height:100%;
+      .slide-image{
+        width:100%;
+        height:100%;
+      }
     }
+  }
+  .threeIcon_box{
+      box-sizing: border-box;
+      padding: 20rpx 80rpx;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 20rpx;
+      margin-top: 20rpx;
+      height: 170rpx;
+      box-shadow: 0 0 25rpx #e9e6e6;
+      .threeIcon_item{
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          image{
+              width: 91rpx;
+              height: 88rpx;
+          }
+          view{
+              color: #333;
+              font-size: 25rpx;
+              margin-top:13rpx;
+          }
+      }
+  }
+  .indexGoods_box{
+      .indexGoods_item{
+          margin-top: 30rpx;
+          display: flex;
+          image{
+              width: 240rpx;
+              height: 240rpx;
+              border-radius: 7rpx;
+          }
+          .indexGoods_right{
+              flex: 1;
+              padding-left: 25rpx;
+              .indexGoods_title{
+                  color: #000;
+                  font-size: 33rpx;
+                  width: 448rpx;
+                  overflow: hidden;
+                  white-space: nowrap;
+                  text-overflow: ellipsis;
+              }
+              .indexGoods_subtitle{
+                  margin: 28rpx 0;
+                  font-size: 22rpx;
+                  width: 448rpx;
+                  overflow: hidden;
+                  white-space: nowrap;
+                  text-overflow: ellipsis;
+              }
+              .indexGoods_new{
+                  width: 66rpx;
+                  height: 36rpx;
+                  margin-bottom: 28rpx;
+                  background-color: #fc8161;
+                  font-size: 20rpx;
+                  color: #fff;
+                  line-height: 36rpx;
+                  text-align: center;
+                  letter-spacing: 3rpx;
+                  border-radius: 7rpx;
+              }
+              .indexGoods_price{
+                  display: flex;
+                  .indexGoods_nowPrice{
+                      border:2px solid red;
+                      width: 64rpx;
+                      height: 36rpx;
+                      font-size: 22rpx;
+                      line-height: 36rpx;
+                      text-align: center;
+                      color: red;
+                  }
+                  .indexGoods_nowPrice_right{
+                    //   transform: translateY(5rpx);
+                      margin-left: 15rpx;
+                      color: red;
+                      .nowPrice{
+                          font-size: 36rpx;
+                      }
+                      .originalPrice{
+                          font-size: 25rpx;
+                          text-decoration:line-through;
+                      }
+                  }
+              }
+          }
+      }
+  }
 </style>
 <template>
-  <view calss ='container'>
+  <view calss ='container' hidden='{{pageShow}}'>
+    <view class="header-wrap">
+      <!-- 轮播图 -->
+      <view class="page-swiper-wrap">
+        <swiper indicator-dots autoplay interval="4000" duration="1000" circular>
+          <block wx:for="{{imgUrls}}" wx:key="index">
+            <swiper-item>
+              <image src="{{item.cover}}" class="slide-image" mode='widthFix'/>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view>
       <view class='bgBannerBox'>
-          <image src='../../images/ss_02.jpg' style='filter: blur(10rpx);'/>
           <view class='shopMessage'>
               <view class='logo'>
-                  <image src="{{allData.results.cover_url}}"/>
-                  <view class="checkImg" @tap="goCheck">
-                      <image src='http://applet.qumatou.com.cn/static/shop/支付.png'/>
-                      <view class='maidan-text'>买单</view>
-                      <!-- <view class='line'></view> -->
-                  </view>
-              </view>
-              <view class='title'>{{allData.results.title}}</view>
-              <view class="time">
-                  <view>营业时间：{{allData.results.starttime}} - {{allData.results.endtime}}</view>
-                  <view wx:if="{{shoppStatus}}">营业中</view>
-                  <view wx:else>休息中</view>
+                    <image src="{{allData.results.cover_url}}"/>
+                    <view class='logo-right'>
+                        <view class='title'>{{allData.results.title}}</view>
+                        <view class="time">
+                            <view wx:if="{{shoppStatus}}">营业中</view>
+                            <view wx:else>休息中</view>
+                            <view>{{allData.results.starttime}} - {{allData.results.endtime}}</view>
+                        </view>
+                    </view>
               </view>
               <view class='contact' @tap="storeCall">
                   <view>
@@ -238,21 +267,38 @@
                   </view>
                   <view>></view>
               </view>
+              <view class='threeIcon_box'>
+                  <view class='threeIcon_item' @tap="goCheck"><image src='http://applet.qumatou.com.cn/static/shop/maidan@.png'/><view>买单</view></view>
+                  <view class='threeIcon_item' @tap='ShoppingList'><image src='http://applet.qumatou.com.cn/static/shop/mall@.png'/><view>进入门店</view></view>
+                  <view class='threeIcon_item' @tap='goIntegralMall'><image src='http://applet.qumatou.com.cn/static/shop/jifenMall@.png'/><view>积分商城</view></view>
+                  <view class='threeIcon_item' @tap='luckDrawIndex'><image src='http://applet.qumatou.com.cn/static/shop/choujiang@.png'/><view>积分抽奖</view></view>
+              </view>
           </view>
       </view>
-      <view class="shopIntroduce-box">
-          <view class='shopIntroduce'>
-              <view class='shopIntroduce-title'>
-                  <view></view>
-                  <view>商家介绍</view>
-              </view>
-              <view class='shopIntroduce-content'>{{allData.results.introduction}}</view>
-              <view class='shopIntroduce-title' style="margin-bottom:25rpx;">
-                  <view></view>
-                  <view>商家实景</view>
-              </view>
-              <view class='shopIntroduce-image' wx:for="{{allData.pictures}}" wx:key="index">
-                  <image src="{{item.cover}}" alt="{{item.title}}" mode="widthFix" @tap='previewImage({{index}})'/>
+    </view>
+      <view class="shopIntroduce-box"  @tap='goGroup' wx:if='{{mockIndexData.length}}'>
+          <view class='shopIntroduce_title'><image src='http://applet.qumatou.com.cn/static/shop/echatIMG8.png'/><view>更多 ></view></view>
+           <!-- 商品组件 -->
+          <collageItem :syncTitle.sync="mockIndexData"/>
+      </view>
+      <view class="shopIntroduce-box featuredItem" style="{{mockIndexData.length?'':'margin-top:126rpx;'}}">
+          <view class='shopIntroduce_title' @tap='ShoppingList'><image src='http://applet.qumatou.com.cn/static/shop/echatIMG7.png'/><view>更多 ></view></view>
+           <!-- 商品组件 -->
+          <view class='indexGoods_box'>
+              <view wx:for='{{indexGoods}}' wx:key='' class='indexGoods_item' @tap='goShoppingList({{item.id}})'>
+                  <image src='{{item.cover}}'/>
+                  <view class='indexGoods_right'>
+                        <view class='indexGoods_title'>{{item.title}}</view>
+                        <view class='indexGoods_subtitle'>{{item.subtitle}}</view>
+                        <view class='indexGoods_new'>上新</view>
+                        <view class='indexGoods_price'>
+                            <view class='indexGoods_nowPrice'>现价</view>
+                            <view class='indexGoods_nowPrice_right'>
+                                <text class='nowPrice'>¥{{ item.price}} /</text>
+                                <text class='originalPrice'>¥{{ item.sell}}</text>
+                            </view>
+                        </view>
+                  </view>
               </view>
           </view>
       </view>
@@ -263,11 +309,17 @@
 <script>
   import wepy from 'wepy'
   import api from '../../app/app'
+  import collageItem from '../../components/collegeIndexItem'
 
   export default class commentContent extends wepy.page {
     config = {
         navigationBarTitleText: '加载中...',
+        enablePullDownRefresh:true,
+        backgroundTextStyle:'dark',
     }
+    components = {
+        collageItem:collageItem
+    };
     onLoad(){
         wx.showNavigationBarLoading()
         this.getData()
@@ -280,13 +332,39 @@
 	        _this.$apply()
 	      }
         })
+        this.group()
+        wepy.request({
+            url: api.apiMall + '/shop/indexBanners',
+            method: 'POST',
+            data: {
+                merchantId:  wepy.$instance.globalData.payMessage.merchantId
+            }
+        }).then((res)=>{
+            // console.log(res.data.data)
+            this.imgUrls = res.data.data
+            this.$apply()
+        });
+        // 检查版本更新
+        const updateManager = wx.getUpdateManager();
+        updateManager.onUpdateReady( ()=> {
+            wx.showModal({
+                title: '更新提示',
+                content: '新版本已经准备好，是否重启应用？',
+                success:  (res)=> {
+                    if (res.confirm) {
+                        // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
+                        updateManager.applyUpdate()
+                    }
+                }
+            })
+        })
     }
     onShow(){
         //获取当前时间戳  
         let timestamp = Date.parse(new Date());  
         timestamp = timestamp / 1000;
         //获取当前时间  
-        let n = timestamp * 1000;  
+        let n = timestamp * 1000;
         let date = new Date(n);  
         //年  
         let Y = date.getFullYear();  
@@ -312,6 +390,7 @@
     }
 
   	data = {
+        imgUrls:[],
         allData:{},
         baidu_local: 'http://applet.qumatou.com.cn/static/shop/位置.png',
         store_phone: 'http://applet.qumatou.com.cn/static/shop/电话.png',
@@ -324,7 +403,22 @@
         nowTime:'',
         shoppStatus:true,
         topCover:false,
+        // 拼团商品
+        mockIndexData:[],
+        //店铺商品
+        indexGoods:[],
+        pageShow:false,
   	}
+    //下拉刷新
+    onPullDownRefresh(){
+        this.pageShow = true
+        this.$apply()
+        this.getData()
+        this.group()
+    }
+    onReachBottom(){
+        console.log(1)
+    }
     watch = {
         nowTime (newValue, oldValue) {
             if(this.allData.results){
@@ -371,43 +465,74 @@
                     })
                 }
             })
-      },
-      storeCall() {
-        wx.makePhoneCall({
-          phoneNumber: this.allData.results.tel 
-        })
-      },
-      ballMoveEvent(e){
-    		let touchs = e.touches[0];
-		    let pageX = touchs.pageX;
-		    let pageY = touchs.pageY;
-		    // console.log('pageX: ' + pageX)
-		    // console.log('pageY: ' + pageY)
-		    //防止坐标越界,view宽高的一半
-		    if (pageX < 21) return;
-		    if (pageX > this.screenWidth - 21) return;
-		    if (this.screenHeight - pageY <= 21) return;
-		    if (pageY <= 21) return;
-		    //用right和bottom.所以需要将pageX pageY转换
-		    let x = this.screenWidth - pageX - 21;
-		    let y = this.screenHeight - pageY - 21;
-		    // console.log('x: ' + x)
-		    // console.log('y: ' + y)
-		    this.ballBottom = y,
-		    this.ballRight = x
-		    this.$apply()
-    	},
-        goCheck(){
-            wx.navigateTo({
-                url: '../payMent'
+        },
+        storeCall() {
+            wx.makePhoneCall({
+            phoneNumber: this.allData.results.tel 
             })
         },
-        //图片预览
-        previewImage(e){
-            wx.previewImage({
-                current: this.allData.pictures[e].cover, 
-                urls: this.arrUrlGroup
-            })
+        ballMoveEvent(e){
+            let touchs = e.touches[0];
+            let pageX = touchs.pageX;
+            let pageY = touchs.pageY;
+            // console.log('pageX: ' + pageX)
+            // console.log('pageY: ' + pageY)
+            //防止坐标越界,view宽高的一半
+            if (pageX < 21) return;
+            if (pageX > this.screenWidth - 21) return;
+            if (this.screenHeight - pageY <= 21) return;
+            if (pageY <= 21) return;
+            //用right和bottom.所以需要将pageX pageY转换
+            let x = this.screenWidth - pageX - 21;
+            let y = this.screenHeight - pageY - 21;
+            // console.log('x: ' + x)
+            // console.log('y: ' + y)
+            this.ballBottom = y,
+            this.ballRight = x
+            this.$apply()
+        },
+        goCheck(){
+            wx.getStorage({
+                key: 'token',
+                success: res => {
+                    wx.navigateTo({
+                        url: '../payMent'
+                    })
+                },
+                fail:()=>{
+                    wx.navigateTo({
+                        url: '../signIn'
+                    })
+                }
+            });
+        },
+        goGroup(){
+            wx.navigateTo({
+                url: '../Collage/index'
+            });
+        },
+        goShoppingList(e){
+            wepy.$instance.globalData.goodId = e
+            wx.switchTab({
+                url: '../homePage',
+            });
+        },
+        ShoppingList(){
+            wx.switchTab({
+                url: '../homePage',
+            });
+        },
+        // 积分商城
+        goIntegralMall(){
+            wx.navigateTo({
+                url: '../../packageMembershipCard/IntegralMall/index'
+            });
+        },
+        // 积分抽奖
+        luckDrawIndex(){
+            wx.navigateTo({
+                url: '../../packageMembershipCard/integralManagement/luckDrawIndex'
+            });
         }
     }
     // 获取店铺数据
@@ -429,7 +554,7 @@
             })
             wx.hideNavigationBarLoading()
             that.topCover = true
-            // console.log(res.data)
+            // console.log(res.data.abvers)
             for(let arr in res.data.pictures){
                 let coverUrl = res.data.pictures[arr].cover;
                 arrUrlGroup.push(coverUrl)
@@ -437,6 +562,7 @@
             that.arrUrlGroup = arrUrlGroup
             that.allData = res.data
             wepy.$instance.globalData.merchantName = res.data.results.title
+            that.pageShow = false
             that.$apply()
             let numTime = Number(that.nowTime.split(":").join(""));
             let startTime = Number(that.allData.results.starttime.split(":").join(""));
@@ -456,5 +582,51 @@
             })
         })
     }
+    //拼团首页数据
+    group(){
+        const url = api.apiMall + '/shop/index';
+        const data = {
+            merchantId: wepy.$instance.globalData.payMessage.merchantId
+        };
+        wepy.request({
+            url: url,
+            method: 'POST',
+            data: data,
+        }).then((res)=>{
+            wx.stopPullDownRefresh()
+            wx.setStorage({
+                key: 'normalsend',
+                data: Number(res.data.results.normalsend/100).toFixed(2)
+            });
+            wx.setStorage({
+                key: 'sendprice',
+                data: Number(res.data.results.sendprice/100).toFixed(2)
+            });
+            res.data.groups.forEach(element => {
+                element.price = Number(element.price/100).toFixed(2)
+                element.sell = Number(element.sell/100).toFixed(2)
+                element.index = 'indexItem'
+            });
+            res.data.goods.forEach(element => {
+                element.price = Number(element.price/100).toFixed(2)
+                element.sell = Number(element.sell/100).toFixed(2)
+            });
+            this.mockIndexData = res.data.groups
+            this.indexGoods = res.data.goods
+            this.pageShow = false
+            this.$apply()
+        })
+    }
+    onShareAppMessage(res){
+    	let that = this;
+    	if (res.from === 'button') {
+	      // 来自页面内转发按钮
+	      // console.log(res.target)
+    	}
+    	return {
+	    //   title: wepy.$instance.globalData.nickname,
+	      path: '/pages/index/index',
+	    }
+	}
   }
 </script>

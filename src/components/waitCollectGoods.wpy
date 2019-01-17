@@ -198,13 +198,12 @@
         method: 'POST',
         data: data,
       }).then((res)=>{
-      	wx.setStorage({
-        	key:'waitCollectGoods',
-        	data:res.data.data.length
-        })
-        // console.log(res.data.data)
+				if(res.data.data.length != 0){
+					that.$emit('allStaus')
+				}else{
+					that.$emit('noStaus','3')
+				}
         that.itemInformation = res.data.data
-        // console.log(that.itemInformation)
         that.$apply()
       })
     }

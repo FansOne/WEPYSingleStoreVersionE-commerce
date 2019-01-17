@@ -1,0 +1,231 @@
+<script>
+import wepy from 'wepy';
+import api from '../app/app';
+import couponShare from '../components/couponShare';
+
+export default class userVoucher extends wepy.page {
+    config = {
+        navigationBarTitleText: '我的卡券',
+    };
+    components = {
+        couponShare:couponShare
+    };
+
+    data = {
+        MaskHeight:'',
+        userCoupon:[],
+        maskFlag:true,
+        shareBtn:'',
+        index:'',
+        nodata:true,
+        haiBaoImg:'',
+        haobaoShow:true,
+        token:'',
+        uuid:'',
+        shareShow:false,
+    };
+    methods = {
+        bottomShow(){
+            this.haobaoShow = true;
+        },
+        sharequan(){
+            this.haobaoShow = false;
+            wx.showLoading({
+                title: '海报生成中...',
+                mask: true,
+            });
+            wepy.request({
+                url: 'https://api.yscc.qumatou.com.cn/api/get_coupon_share_img',
+                method: 'GET',
+                data: {
+                    path_url:'pages/shareCpn?uuid='+this.uuid
+                },
+                header: {
+                    Accept : 'application/vnd.lingmo.v1+json',
+                    Authorization : 'Bearer '+this.token
+                }
+            }).then(result=>{
+                wx.hideLoading();
+                this.haiBaoImg = result.data.message
+                this.$apply()
+            });
+        },
+        closeHaiBao(){
+            this.haobaoShow = true;
+            this.$apply()
+        },
+        // 保存图片至相册
+        saveImg(imgUrl){
+            let imgSrc = imgUrl;
+            wx.showLoading({
+			  title: '正在保存...',
+			  mask: true,
+		    });
+            wx.downloadFile({
+                url: imgSrc,
+                success: (res)=>{
+                    wx.saveImageToPhotosAlbum({
+                        filePath: res.tempFilePath,
+                        success: (data)=>{
+                            wx.hideLoading();
+                            wx.showToast({
+                                title: '保存成功',
+                                icon: 'success',
+                                duration: 2000,
+                                success:()=>{
+                                    this.maskFlag = true
+                                    this.shareShow = false
+		                            this.haobaoShow = true
+                                    this.$apply()
+                                }
+                            });
+                        },
+                        fail: (err)=>{
+                                wx.hideLoading();
+                                if (err.errMsg === "saveImageToPhotosAlbum:fail auth denied") {
+                                    wx.openSetting({
+                                        success(settingdata) {
+                                        if (settingdata.authSetting['scope.writePhotosAlbum']) {
+                                            console.log('获取权限成功，给出再次点击图片保存到相册的提示。')
+                                        } else {
+                                            console.log('获取权限失败，给出不给权限就无法正常使用的提示')
+                                        }
+                                        }
+                                    })
+                                }
+                        }
+                    });
+                }
+            });
+        },
+        shareFriends(){
+            this.maskFlag = true
+            this.shareShow = false
+        }
+    };
+    computed = {}
+    watch = {}
+    // share
+    onShareAppMessage(res){
+        let shareInfo = this.userCoupon;
+        let activityId = this.index;
+        if (res.from === 'button') {
+            shareInfo.title  = '送你一张'+'【'+shareInfo[activityId].title+'】'+(shareInfo[activityId].type == 1?'优惠券':(shareInfo[activityId].type == 2?'折扣券':'代金券'))+'！'
+            shareInfo.path  =  'pages/shareCpn?uuid='+this.uuid
+            shareInfo.imageUrl = 'http://applet.qumatou.com.cn/static/shop/123yy.png'
+        }
+        return shareInfo
+    };
+    events = {
+        sharefriend:(id,index)=>{
+            this.index = index
+            this.maskFlag = false
+            this.shareShow = true
+            wx.request({
+                url: api.yscc + '/api/share_coupons',
+                method: 'POST',
+                data: {
+                    num : 1,
+                    coupon_id: id
+                },
+                header:{
+                    Accept: 'application/vnd.lingmo.v1+json',
+                    Authorization: `Bearer ${this.token}`
+                },
+                success:(res)=>{
+                    this.uuid = res.data.message.uuid
+                    this.$apply()
+                }
+            })
+        }
+    }
+    onLoad() {
+        wx.getSystemInfo({
+            success: (res)=> {
+                this.MaskHeight = res.windowHeight
+                this.$apply()
+            }
+        })
+        wx.getStorage({
+            key: 'token',
+            success: res => {
+                this.token = res.data
+                this.$apply()
+                wepy.request({
+                    url: api.yscc + '/api/user_coupons',
+                    method: 'GET',
+                    data: {
+                        merchantId : wepy.$instance.globalData.payMessage.merchantId,
+                        order_type:1
+                    },
+                    header:{
+                        Accept: 'application/vnd.lingmo.v1+json',
+                        Authorization: `Bearer ${res.data}`
+                    }
+                }).then((res)=>{
+                    res.data.message.forEach(element => {
+                        if(element.begin_time){
+                            element.begin_time = this.timestampToTime(element.begin_time)
+                            element.end_time = this.timestampToTime(element.end_time)
+                        }
+                    });
+                    this.userCoupon = res.data.message
+                    this.$apply()
+                    if(!res.data.message.length){
+                        this.nodata = false
+                        this.$apply()
+                    }else{
+                        this.nodata = true
+                        this.$apply()
+                    }
+                });
+            }
+        });
+    };
+    // 转时间戳
+    timestampToTime(timestamp) {
+        var date = new Date(timestamp * 1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+        var Y = date.getFullYear() + '.';
+        var M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '.';
+        var D = date.getDate() + ' ';
+        return Y+M+D
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <couponShare :syncTitle.sync="userCoupon"/>
+        <view hidden='{{nodata}}' class='nodata'>暂无卡券</view>
+        <!-- 遮罩 -->
+        <view class='Mask' @tap='bottomShow' hidden='{{maskFlag}}' style="height:{{MaskHeight}}px"></view>
+        <!-- 分享朋友圈 -->
+        <view class="shareFriends {{shareShow?'shareShow':''}}">
+            <view class='shareFriendsBtn'>
+                <button style='border-right:1rpx solid #f1f1f1' open-type='share'><icon class='iconfont icon-icon-'/><view>分享给好友</view></button>
+                <button @tap = 'sharequan'><icon class='iconfont icon-pengyouquan'/><view>发朋友圈</view></button>
+            </view>
+            <view class='shareFriendsCancel' @tap='shareFriends'>取消</view>
+        </view>
+        <!-- 海报 -->
+        <view class="haiBao {{haobaoShow?'':'haobaoShow'}}" hidden='{{haobaoShow}}'>
+            <image src='{{haiBaoImg}}'/>
+            <button @tap='saveImg({{haiBaoImg}})'>保存至相册</button>
+            <view>分享朋友圈时可在相册选取图片</view>
+            <view class='close' @tap='closeHaiBao'>×</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .nodata{
+        text-align: center;
+        margin-top: 550rpx;
+    }
+    .bottomShow,.shareShow{
+        transform: translateY(0) !important;
+    }
+</style>

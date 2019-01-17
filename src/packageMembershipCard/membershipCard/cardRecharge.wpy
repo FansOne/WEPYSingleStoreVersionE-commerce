@@ -1,0 +1,267 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app'
+
+export default class cardRecharge extends wepy.page {
+    config = {
+        navigationBarTitleText: '会员卡充值',
+        navigationBarBackgroundColor: '#ffd270',
+    };
+    components = {};
+
+    data = {
+        token:null,
+        msgList:[],
+        amount:'',
+        inputValue:'',
+        openid:'',
+        jssdk:'',
+        amount:0,        //会员卡余额
+        shopId:''
+    };
+    methods = {
+        changeInput (e) {
+            let value = e.detail.value
+            if (value[0] === '.' || (value[0] === '0' && value[1] !== '.' && this.inputValue.length !== 2)) {
+                this.inputValue = '0.'
+                return {
+                    value: '0.',
+                }
+            } else if (this._have2Digit(value)) {
+                this.inputValue = value.slice(0, -1)
+                return {
+                value: value.slice(0, -1)
+                }
+            } else if (this._haveDigit(value)) {
+                let index = value.indexOf('.')
+                this.inputValue = value.slice(0, index + 3)
+                return {
+                    value: value.slice(0, index + 3)
+                }
+            }
+            this.inputValue = value
+        },
+        payMent(){
+            this.orderComfirm()
+        }
+    };
+    _have2Digit (str) {
+        let sum = 0;
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] === '.') {
+                sum += 1
+            }
+        }
+        return sum > 1
+    }
+    _haveDigit (str) {
+        let index = str.indexOf('.')
+        if (index === -1) {
+            return false
+        } else {
+            return true
+        }
+    }
+    events = {};
+    onLoad(options) {
+        //获取商户id
+        this.shopId = options.shopId
+        //获取token
+        this.token = wx.getStorageSync('token');
+        wx.getStorage({
+            key: 'openid',
+            success: res => {
+                this.openid = res.data
+                this.$apply()
+            }
+        });
+        this.userMoney()
+        this.getCardLists()
+    };
+    // 会员卡充值优惠列表
+    getCardLists(){
+        wepy.request({
+            url: api.yscc+'/api/charge_members/' + this.shopId,
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json'
+            }
+        }).then((res)=>{
+            console.log(res.data.message)
+            this.msgList = res.data.message;
+            this.$apply()
+        });
+    }
+    // 获取用户会员卡余额
+    userMoney(){
+        wepy.request({
+            url: api.yscc+'/api/user_card/' + this.shopId,
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            }
+        }).then((res)=>{
+            console.log(res)
+            res.data.message.money = Number(res.data.message.money/100).toFixed(2)
+		    this.amount = res.data.message.money;
+            this.$apply()
+        });
+    }
+    // 订单提交
+    orderComfirm(){
+        wepy.request({
+            url: api.yscc+'/api/recharge_records',
+            method: 'POST',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+            data: {
+                payment_method:1,
+                money: this.inputValue,
+                merchant_id:this.shopId
+            }
+        }).then((res)=>{
+            this.wxPay(res.data.message)
+        });
+    }
+    //发起微信支付
+    wxPay(orderId){
+        wepy.request({
+            url: api.yscc+'/api/recharge_records/' + orderId,
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+        }).then((res)=>{
+            this.jssdk = res.data.message
+            this.$apply()
+            //发起微信支付
+            wx.requestPayment({
+                'appId':this.jssdk.appId,
+                'timeStamp': this.jssdk.timeStamp,
+                'nonceStr':this.jssdk.nonceStr,
+                'package': this.jssdk.package,
+                'signType': this.jssdk.signType,
+                'paySign': this.jssdk.paySign,
+                success:(res)=>{
+                    wx.showToast({
+                        title: '充值成功',
+                        icon: 'success',
+                        success:()=>{
+                            wx.navigateBack({
+                                delta: 1
+                            });
+                        }
+                    });
+                    this.userMoney()
+                },
+            })
+        });
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='cardRecharge_top'>
+            <view class='cardRecharge_title'>余额</view>
+            <view class='cardRecharge_money'><text>￥</text>{{amount}}</view>
+        </view>
+        <view class='youhui' wx:if='{{msgList.length}}'>
+            <view class='youhui_title'>充值优惠：</view>
+            <swiper class="swiper_container" vertical autoplay circular interval="3000">
+                <block wx:for="{{msgList}}" wx:key=''>
+                    <swiper-item>
+                        <view class="swiper_item">{{item.content}}</view>
+                    </swiper-item>
+                </block>
+            </swiper>
+        </view>
+
+        <input placeholder='请输入充值金额' placeholder-style='font-size:33rpx;' type="digit" @input="changeInput" focus='true' maxlength="8"/>
+        <button @tap='payMent'>立即充值</button>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .cardRecharge_top{
+        height: 320rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-image: url('http://applet.qumatou.com.cn/static/shop/cardRechargeBg.png');
+        background-size: 100%;
+        .cardRecharge_title{
+            padding-left: 5rpx;
+            margin-top: 20rpx;
+            font-size: 30rpx;
+            color: #666;
+        }
+        .cardRecharge_money{
+            margin-top: 15rpx;
+            font-size: 50rpx;
+            color: #000;
+            text{
+                font-size: 40rpx;
+            }
+        }
+    }
+    input{
+        position: absolute;
+        padding-left: 20rpx;
+        left: 0;
+        right: 0;
+        margin: auto;
+        margin-top: 20rpx;
+        width: 671rpx;
+        height: 90rpx;
+        line-height: 90rpx;
+        background-color: #f2f2f2;
+        font-size: 40rpx;
+        color: #000;
+    }
+    button{
+        font-size: 34rpx;
+        color: #000;
+        height: 98rpx;
+        width: 100%;
+        line-height: 98rpx;
+        border-radius: 0;
+        position: fixed;
+        bottom: 0;
+        background-color: #ffd270;
+    }
+    .youhui{
+        transform: translateY(-95rpx);
+        box-sizing: border-box;
+        padding: 10rpx 30rpx;
+        display: flex;
+        align-items: center;
+        .youhui_title{
+            height: 50rpx;
+            line-height: 50rpx;
+            font-size: 40rpx;
+            width: 200rpx;
+            color: #f40;
+            text-align: center;
+        }
+    }
+    .swiper_container {
+        flex: 1;
+        height: 50rpx;
+    }
+    .swiper_item {
+        line-height: 50rpx;
+        color: #333;
+        font-size: 40rpx;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>

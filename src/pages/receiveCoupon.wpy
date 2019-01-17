@@ -1,0 +1,90 @@
+<script>
+import wepy from 'wepy';
+import api from '../app/app';
+import couponItem  from '../components/couponItem';
+
+export default class receiveCoupon extends wepy.page {
+    config = {
+        navigationBarTitleText: '领取优惠券',
+    };
+    components = {
+        couponItem:couponItem
+    };
+
+    data = {
+        userCoupon:[],
+    };
+    methods = {
+    };
+
+    events = {
+        userSelect(e,idx){
+            wx.getStorage({
+                key: 'userId',
+                success: res => {
+                    wepy.request({
+                        url: api.apiMall + '/coupon/receive',
+                        method: 'POST',
+                        data: {
+                            launchId: e,
+                            userId: res.data,
+                            merchantId:wepy.$instance.globalData.payMessage.merchantId,
+                            number:1,
+                        }
+                    }).then((res)=>{
+                        this.userCoupons()
+                        this.userCoupon[idx].isrev = 1
+                        this.$apply()
+                        if(res.data.code != '-3000'){
+                                wx.showToast({
+                                    title: res.data.message,
+                                    icon: 'success',
+                                });
+                        }else{
+                            wx.showToast({
+                                title: res.data.message,
+                                icon: 'none',
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    };
+    onLoad() {
+        this.userCoupons()
+    };
+    // 用户会员卡
+    userCoupons(){
+        wx.getStorage({
+            key: 'userId',
+            success: res => {
+                wepy.request({
+                    url: api.apiMall + '/coupon/lists',
+                    method: 'POST',
+                    data: {
+                        merchantId:wepy.$instance.globalData.payMessage.merchantId
+                    }
+                }).then((res)=>{
+                    // console.log(res.data.data)
+                    this.userCoupon = res.data.data
+                    this.$apply()
+
+                }); 
+            }
+        });          
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <couponItem :syncTitle.sync="userCoupon"/>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+</style>

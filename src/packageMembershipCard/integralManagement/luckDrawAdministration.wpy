@@ -1,0 +1,154 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/api';
+import { requestData } from '../../app/request'
+
+export default class luckDrawAdministration extends wepy.page {
+    config = {
+        navigationBarTitleText: '抽奖管理',
+    };
+    components = {};
+
+    data = {
+        allData:[],
+        page:1,
+        icon:{
+            goodLists:'../../images/shangpinhide.png',
+            goodStyle:'#666',
+            orderLists:'../../images/dingdanshow.png',
+            orderStyle:'#000'
+        },
+    };
+    methods = {
+        tabs(id){
+            if(id == 0){
+                wx.redirectTo({
+                    url: './luckDrawIndex'
+                });
+            }else{
+                wx.redirectTo({
+                    url: './luckDrawAdministration'
+                });
+            }
+        },
+        goLdSuccess(order_id){
+            wx.navigateTo({
+                url: `./luckDrawSuccess?order_id=${order_id}`
+            });
+        }
+    };
+
+    events = {};
+    onLoad() {
+        this.orderLists()
+    };
+    onReachBottom(){
+        wx.showLoading({title: '加载中...', mask: true });
+        this.page++
+        this.orderLists()
+    }
+    // 获取用户订单
+    orderLists(){
+        let merchant_id = wx.getStorageSync('extConfig').merchantId;
+        let url = `${api.IntegralLotteries}`;
+        let data = { page:this.page,merchant_id:merchant_id };
+        requestData(url,'GET',data).then(res=>{
+            if(this.page == 1){
+                res.data.message.forEach(element => {
+                    element.cost = Number(element.cost/100).toFixed(2)
+                });
+                this.allData = res.data.message
+                this.$apply()
+            }else{
+                wx.hideLoading();
+                if(!res.data.message.length){
+                    return wx.showToast({
+                        title: '已加载全部数据',
+                        icon: 'none',
+                        duration: 1500,
+                        mask: false,
+                    });
+                }else{
+                    res.data.message.forEach(element => {
+                        element.cost = Number(element.cost/100).toFixed(2)
+                        this.allData.push(element)
+                        this.$apply()
+                    });
+                }
+            }
+        })
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='noData' wx:if='{{!allData.length}}'>暂无积分抽奖订单</view>
+        <view class='orderItem' wx:for='{{allData}}' wx:key=''>
+            <view class='orderItem_top'>
+                <view>抽奖规则：积分兑换</view>
+                <view>{{item.status?(item.flag?'恭喜中奖':'未中奖'):'等待开奖'}}</view>
+            </view>
+            <view class='goodItem' @tap='goLdSuccess({{item.id}})'>
+                <image src='{{item.cover}}'/>
+                <view class='goodRight'>
+                    <view class='goodTitle'>{{item.title}}</view>
+                    <view class='prices'>
+                        <view>原价￥{{item.cost}}</view>
+                        <view>{{item.join_num}}人已参与成功</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+    <!-- 菜单 -->
+    <view class='menuBox'>
+        <view class='menuBox_left' @tap='tabs(0)'>
+            <image src='{{icon.goodLists}}'/>
+            <view style='color:{{icon.goodStyle}}'>商品列表</view>
+        </view>
+        <view class='menuBox_right' @tap='tabs(1)'>
+            <image src='{{icon.orderLists}}'/>
+            <view style='color:{{icon.orderStyle}}'>我的订单</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .container{
+        padding: 0 25rpx;
+    }
+    .orderItem{
+        margin-bottom: 22rpx;
+        .orderItem_top{
+            height: 90rpx;
+            box-sizing: border-box;
+            padding: 25rpx 15rpx;
+            background-color: #f3f3f3;
+            border-radius: 10rpx 10rpx 0rpx 0rpx;
+            margin-bottom: 2rpx;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            view:nth-child(1){
+                font-size: 24rpx;
+            }
+            view:nth-child(2){
+                font-size: 30rpx;
+                color: red;
+            }
+        }
+        .goodItem{
+            border-radius: 0 0 10rpx 10rpx;
+        }
+    }
+    .noData{
+        width: 100%;
+        text-align: center;
+        font-size: 28rpx;
+        margin-top: 500rpx;
+    }
+</style>

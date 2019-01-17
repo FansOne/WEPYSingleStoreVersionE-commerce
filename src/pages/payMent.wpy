@@ -1,20 +1,24 @@
-<style lang="less" scoped>
-.checkBanner{
-  image{
-    width: 100%;
+<style lang="less">
+  page{
+    background-color: #fff;
   }
-}
-.content-box{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  margin: 0 20rpx;
-  border-radius: 10rpx;
-  background-color: #fff; 
-  padding-bottom: 20rpx;
-}
-.btn {
+  .checkBanner{
+    image{
+      width: 100%;
+    }
+  }
+  .content-box{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 0 20rpx;
+    border-radius: 10rpx;
+    background-color: #fcfcfd; 
+    padding-bottom: 20rpx;
+    box-shadow: 0 0 10rpx #f1f1f1;
+  }
+  .btn {
     margin-top: 0rpx;
     width: 70%;
     height: 75rpx;
@@ -22,85 +26,225 @@
     color: white;
     text-align: center;
     line-height: 75rpx;
-}
-.disabled {
-    color: white;
-    border-radius: 8rpx;
-    background-color:#b1b1b1;
-}
-.payTitle{
-  padding-left: 40rpx;
-  margin: 20rpx 0;
-  color: #333;
-  font-size: 30rpx;
-  font-weight: bold;
-  letter-spacing: 3rpx;
-}
-.userIput{
-  border-bottom: 1px dashed #b1b1b1;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding-bottom: 15rpx;
-  padding-top: 15rpx;
-  view{
+  }
+  .payTitle{
+    display: flex;
+    align-items: center;
+    padding: 0 40rpx;
+    margin: 20rpx 0;
     color: #333;
-    padding-left: 20rpx;
-    font-size: 28rpx;
-    letter-spacing: 2rpx;
+    font-size: 30rpx;
+    font-weight: bold;
+    letter-spacing: 3rpx;
+    view:nth-child(1){
+      flex: .6;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+      overflow: hidden;
+    }
+    .selectCoupon{
+      flex: .4;
+      color: red;
+      font-size: 26rpx;
+      text-align: right;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+      overflow: hidden;
+    }
   }
-}
-.largeMoney{
-  width: 100%;
-  text-align: center;
-  padding: 35rpx 0;
-  font-size: 80rpx;
-  font-weight: bold;
-  color: #333;
-  text{
-    display: inline-block;
-    transform: translateY(-7rpx);
-    font-size: 55rpx;
+  .userIput{
+    border-bottom: 1px dashed #b1b1b1;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-bottom: 15rpx;
+    padding-top: 15rpx;
+    view{
+      color: #333;
+      padding-left: 20rpx;
+      font-size: 30rpx;
+      letter-spacing: 2rpx;
+    }
   }
-}
-button::after{
-  border: none;
-}
-.numBeyond{
-  padding: 8rpx 0;
-  position: fixed;
-  top: -56rpx;
-  width: 100%;
-  text-align: center;
-  height: 40rpx;
-  background-color: #f40;
-  color: white;
-  font-size: 30rpx;
-  line-height: 40rpx;
-}
-.numBeyondShow{
-  transform: translateY(56rpx) !important;
-  transition: transform .5s;
-}
+  .largeMoney{
+    width: 100%;
+    text-align: center;
+    padding: 35rpx 0;
+    font-size: 80rpx;
+    font-weight: bold;
+    color: #333;
+    text{
+      display: inline-block;
+      transform: translateY(-7rpx);
+      font-size: 55rpx;
+    }
+  }
+  button::after{
+    border: none;
+  }
+  .numBeyond{
+    padding: 8rpx 0;
+    position: fixed;
+    top: -56rpx;
+    width: 100%;
+    text-align: center;
+    height: 40rpx;
+    background-color: #f40;
+    color: white;
+    font-size: 30rpx;
+    line-height: 40rpx;
+  }
+  .numBeyondShow{
+    transform: translateY(56rpx) !important;
+    transition: transform .5s;
+  }
+  .recommendCardHidden{
+    transform: translateY(269rpx) !important;
+  }
+  .recommendCard{
+    transition: transform .3s;
+    z-index: 8;
+    position: fixed;
+    top: -254rpx;
+    width: 100%;
+    height: 254rpx;
+    box-sizing: border-box;
+    padding: 0 40rpx;
+    .recommendCard_item{
+      position: relative;
+      background-image: url('http://applet.qumatou.com.cn/static/shop/tanxingbg.png');
+      background-size: 100%;
+      height: 254rpx;
+      .contantBtn{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 62%;
+        box-sizing: border-box;
+        padding-top: 104rpx;
+        padding-bottom: 22rpx;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        view:nth-child(1){
+          flex: 1;
+          color: #fee64d;
+          font-size: 28rpx;
+          text{
+            padding: 0 10rpx;
+            font-size: 47rpx;
+          }
+        }
+        view:nth-child(2){
+          width: 139rpx;
+          height: 49rpx;
+          line-height: 49rpx;
+          background-color: #fee64d;
+          font-size: 24rpx;
+          text-align: center;
+          border-radius: 8rpx;
+        }
+      }
+    }
+  }
+  .mask{			/*遮罩*/
+    z-index: 7;
+    width:100%;
+    height:280rpx;
+    position:absolute;
+    background-color:rgba(0,0,0,.9);
+    top:0;
+    left:0;
+    opacity:0.5;
+  }
+  .paymentMethod{
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
+		padding: 10rpx 10rpx;
+		border-bottom: 1rpx solid #f1f1f1;
+		.paymentMethod_title{
+			flex: .5;
+			font-size: 30rpx;
+			padding-left: 25rpx;
+		}
+		.paymentMethod_select{
+			flex: .5;
+			display: flex;
+			align-items: center;
+      justify-content: flex-end;
+      padding-right: 25rpx;
+			view:nth-child(1){
+				font-size: 30rpx;
+				color: #969696;
+				margin-right: 40rpx;
+			}
+		}
+	}
+	switch{
+		zoom: .7;
+	}
 </style>
 
 <template>
   <view class="container">
     <view class="numBeyond {{topPrompt?'':'numBeyondShow'}}">总支付金额不能超过 ¥ 50000元</view>
     <view class='checkBanner' @tap='goIndex'>
-      <image src="../images/ss_02.jpg" mode="widthFix"/>
+      <image src="{{banner?banner:'http://applet.qumatou.com.cn/static/shop/fastPayImage.png'}}" mode="widthFix"/>
     </view>
-    <view class='payTitle'>付款给：{{merchantName}}</view>
+    <view class='payTitle'>
+      <view>付款给：{{shopInfo.title}}</view>
+      <view class='selectCoupon' @tap='selectCoupon' wx:if='{{couponTitle.type}}'>已选择：{{couponTitle.type == 1?'满'+couponTitle.min_money/100+'减'+couponTitle.amount/100+'元':(couponTitle.type == 2?couponTitle.amount+'折优惠':couponTitle.amount/100+'元代金券')}}</view>
+      <view class='selectCoupon' @tap='selectCoupon' wx:if='{{!couponTitle.type}}'>{{couponTitle}} ></view>
+    </view>
+    <!-- 会员卡和子卡支付 -->
+    <view class='paymentMethod'>
+      <view class='paymentMethod_title' style='flex:.3'>会员卡支付</view>
+      <view class='paymentMethod_select' @tap="selectPayMent" data-id='0' style='flex:.7'>
+        <view style='margin-right:28rpx'>余额：￥{{amount}}<text wx:if='{{amount == 0}}' style='color:#ff915e;padding-left:15rpx;' @tap='cardRecharge'>(点击充值优惠)</text></view>
+        <icon type="success" size="17" color="{{selectPayWay == 0 ?'#ffd270':'#969696'}}" style='transform: translateX(6rpx)'/>
+      </view>
+    </view>
+    <view class='paymentMethod'>
+      <view class='paymentMethod_title' style=''>微信支付</view>
+      <view class='paymentMethod_select' @tap="selectPayMent" data-id='2' style=''>
+        <icon type="success" size="17" color="{{selectPayWay == 2 ?'#ffd270':'#969696'}}" style='transform: translateX(6rpx)'/>
+      </view>
+    </view>
+    <!-- <view class='paymentMethod'>
+      <view class='paymentMethod_title' style='flex:.2'>子卡支付</view>
+      <view class='paymentMethod_select' @tap.stop="selectPayMent" data-id='1' style='flex:.8;'>
+        <view wx:if='{{!selectSonCard.share_nickname}}'>选择支付子卡</view>
+        <view wx:else>{{selectSonCard.share_nickname}}分享的<text style='color:#f40'>￥{{selectSonCard.amount}}</text>会员卡</view>
+        <view>></view>
+      </view>
+    </view> -->
     <view class="content-box">
       <view class='userIput'>
         <view>消费总额 ¥</view>
         <digit :inputValue.sync="inputValue"></digit>
       </view>
-      <view wx:if="{{inputValue}}" class='largeMoney'><text>¥</text> {{inputValue}}</view>
+      <view wx:if="{{inputValue}}" class='largeMoney' hidden='{{tt}}'><text>¥</text> {{inputValue}}</view>
       <view wx:else="{{inputValue}}" class='largeMoney' style='color:#b1b1b1;'><text>¥</text> 0.00</view>
-      <button open-type='getUserInfo' @getuserinfo='getuserinfo' class="btn flex-center {{inputValid ? '' : 'disabled'}}" @tap='confirmPayMent'>确认支付</button>
+      <view wx:if="{{tt}}" class='largeMoney'><text>¥</text> {{tt}}</view>
+      <button disabled="{{inputValid ? false : true}}" class="btn flex-center" @tap='confirmPayMent'>确认支付</button>
     </view>
+
+    <!-- 会员卡充值推荐 -->
+    <view class="recommendCard {{shows?'':'recommendCardHidden'}}">
+      <view class='recommendCard_item'>
+        <view class='contantBtn'>
+          <view>充值<text>{{rechargeAmount}}</text>送<text>{{rechargeDiscount}}</text></view>
+          <view @tap.stop='goRecharge({{rechargeAmount}},{{rechargeDiscount}})'>立即充值</view>
+        </view>
+      </view>
+    </view>
+    <!-- MASK -->
+    <view class='mask' hidden='{{shows}}'></view>
   </view>
 </template>
 
@@ -108,6 +252,7 @@ button::after{
 import wepy from 'wepy'
 import digit from "../components/digit"
 import api from '../app/app'
+let clx_ = 0;
 export default class Test extends wepy.page {
   config = {
     navigationBarTitleText: '快速买单'
@@ -123,205 +268,369 @@ export default class Test extends wepy.page {
     userinfo:{},
     userMessage:'',
     jssdk:'',
-    merchantName:''
-  }
-  onShow(){
-    let loginFlag = wx.getStorageSync('skey');
-    if (!loginFlag.length) {
-      wx.login({
-        success: (res)=> {
-            const url = api.apiMall + '/third/getSessionKey';
-            const url_openLogin = api.apiMall + '/index/openLogin';
-            const data = {
-              code: res.code,
-              thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
-            };
-              wx.request({
-              url: url,
-              data: data,
-              method: 'POST',
-              success: res => {
-                // console.log(res)
-                wx.setStorageSync('skey',res.data.session_key)
-                wx.setStorage({
-                  key: 'openid',
-                  data: res.data.results.openid
-                });
-                wx.request({
-                  url: url_openLogin,
-                  data: {
-                    openId: res.data.results.openid,
-                    merchantId:  wepy.$instance.globalData.payMessage.merchantId
-                  },
-                  method: 'POST',
-                  success: res => {
-
-                    wepy.$instance.globalData.userId = res.data.userInfo.id
-                    wepy.$instance.globalData.avatar = res.data.userInfo.avatar
-                    wepy.$instance.globalData.nickname = res.data.userInfo.nickname
-                    // wx.setStorageSync('skey',res.data.session_key)
-                    this.userId = res.data.userInfo.id
-                    this.$apply()
-                  }
-                });
-              }
-            });
-        }
-      })
-    }
+    merchantName:'',
+    merchantId:'',
+    banner:'',
+    //后台直接返回商户名
+    merchantTitle:'',
+    token:'',
+    shopId:'',
+    shopInfo:{},
+    couponTitle:'使用优惠券',
+    shows:true,
+    membershipCard:{},
+    rechargeAmount:'',
+    rechargeDiscount:'',
+    amount:0,
+    payType:999,
+    selectSonCard:null,
+    selectCoupon:{},
+    tt:0,
+    userId:0,
+    orderId:0,
+    selectPayWay:0
   }
   computed = {
     inputValid () {
       if (this.inputValue === '0' || this.inputValue === '0.' || !this.inputValue || this.inputValue === '0.0' || this.inputValue === '0.00' ||
-       this.inputValue[this.inputValue.length - 1] === '.') {
+        this.inputValue[this.inputValue.length - 1] === '.') {
+        this.shows = true;
         return false
       } else if(this.inputValue > 50000){
+        this.shows = true
         this.topPrompt = false
         return false
       }else {
-        this.topPrompt = true
+        this.computedDiscount()
+        this.topPrompt = true;
         return true
       }
     }
   }
+  watch = {
+      inputValue (newValue, oldValue) {
+        wx.removeStorage({key: 'selectCoupon'});
+        this.couponTitle = '使用优惠券';
+        this.selectCoupon = {}
+        this.tt = 0;
+        this.$apply()
+        wx.setStorage({
+          key: 'clx',
+          data: newValue
+        });
+      }
+  }
+  onShow(){
+    //获取token
+    let token = wx.getStorageSync("token");
+    this.token = token;
+    this.getCardMoney();
+    let that =this;
+    wx.getStorage({
+      key: 'selectCoupon',
+      success: res => {
+        this.couponTitle = res.data;
+        this.selectCoupon = res.data;
+        this.tt = wepy.$instance.globalData.clxValue;
+        this.$apply()
+      }
+    });
+    //选择子卡
+    wx.getStorage({
+      key: 'selectSonCard',
+      success: res => {
+        that.selectSonCard = res.data;
+        that.$apply();
+      }
+    });
+  }
   onLoad(){
-    this.merchantName = wepy.$instance.globalData.merchantName
+    //获取token
+    let token = wx.getStorageSync("token");
+    this.token = token;
+    this.extConfig = wx.getStorageSync("extConfig");
+    this.shopId = this.extConfig.merchantId;
+    this.userId = wx.getStorageSync('userId');
+    this.$apply();
+    if(this.shopId){
+      this.payPicture()
+      this.no_nothing();
+      this.getMember();
+    }
   }
   methods = {
+    //跳转充值
+    cardRecharge(){
+      wx.navigateTo({
+        url: '../packageMembershipCard/membershipCard/cardRecharge?shopId=' + this.extConfig.merchantId
+      });
+    },
     confirmPayMent(){
-      if(this.inputValid){
-        // console.log(this.inputValue)
+      wx.getStorage({
+        key: 'token',
+        success: res => {
+          this.token = res.data;
+          if(this.token){
+            this.goodsCollection()
+          }
+        },
+        fail:()=>{
+            wx.navigateTo({
+                url: './signIn'
+            })
+        }
+      });
+    },
+    //选择优惠券
+    selectCoupon(){
+      if(this.inputValue){
+        wx.navigateTo({
+          url: './selectCoupon?shopId=' + this.shopId + '&fastMoney='+ this.inputValue
+        });
       }else{
-        return false
+        wx.showToast({
+          title: '请输入买单金额',
+          icon: 'none',
+          duration: 1500,
+          mask: false,
+        });
       }
     },
     goIndex(){
       wx.switchTab({
 			  url: 'homePage'
 			})
+    },
+    goRecharge(rechargeAmount,rechargeDiscount){
+      wx.navigateTo({
+        url: `../packageMembershipCard/membershipCard/payMentCardRecharge?rechargeAmount=${rechargeAmount}&rechargeDiscount=${rechargeDiscount}&shopId=${this.shopId}&money=${this.inputValue}`
+      });
+    },
+    selectPayMent(e){
+      let idx = Number(e.currentTarget.dataset.id);
+      if(idx == 0){
+        this.selectPayWay = 0;
+        this.payType = 2;      //微信支付
+        // this.selectSonCard = {}
+        // wx.removeStorage({key:'selectSonCard'})
+      }else if(idx == 1){
+        wx.navigateTo({
+          url: '../packageMembershipCard/membershipCard/selectCardLists?shopId=' + this.shopId
+        });
+      }else if(idx == 2){
+        this.payType = 1;         //微信支付
+        this.selectPayWay = 2;
+      }else{
+        // wx.navigateTo({
+        //   url: './selectCoupon?shopId=' + this.shopId + '&fastMoney='+ this.inputValue
+        // });
+      }
+    },
+  }
+  onHide(){
+    wx.removeStorage({key: 'selectCoupon'});
+  }
+  onUnload(){
+    wx.removeStorage({key: 'selectCoupon'});
+  }
+  //快速支付
+  goodsCollection(){
+    if(this.selectCoupon.usetype) {
+      if (this.selectCoupon.usetype == 2) {
+        return wx.showToast({title: '该优惠券仅指定商品可用',icon: 'none'})
+      }else{ this.fastPay_() }
+    }else{
+      this.fastPay_()
+    };
+  }
+  // -- 支付 --
+  fastPay_(){
+    const that = this;
+    const url = api.apiMall + 'food/memfastpayOrder';
+    const data = {
+      merchantId:that.extConfig.merchantId,
+      userId:that.userId,
+      total:that.inputValue*100,
+      subcardId:that.selectSonCard!=null ? that.selectSonCard.id : "",
+      userCouponId:that.selectCoupon.id ? that.selectCoupon.id : "",
+      type:this.payType
     }
-  }
-  events = {
-  }
-  getuserinfo(e) {
-    if (e.detail.errMsg == 'getUserInfo:fail auth deny') {
-      wx.showModal({
-        title: '官方提示',
-        content:
-          '若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
-        duration: 1000,
-        showCancel: false,
-        confirmText: '授权',
-        success: res => {
-          wx.openSetting({
-            success: () => {}
+    wepy.request({
+      url: url,
+      method: 'POST',
+      data: data,
+    }).then((res)=>{
+      // console.log(res.data.data);
+      if(res.data.message == '会员卡金额不足'){
+        wx.showToast({
+          title: res.data.message,
+          icon: 'none',
+          duration: 1000,
+          mask: false,
+        });
+      }else{
+        this.orderId = res.data.orderId;
+        that.$apply();
+        if(res.data.code == 0 && res.data.message == "支付成功"){
+          //会员卡支付成功
+          wx.redirectTo({
+            url:'./payedCouponsList?shopId=' + that.extConfig.merchantId + '&total=' + that.inputValue
+          })
+        }else if(res.data.code == 100 && res.data.balance != 0){
+          //掉微信支付
+          that.wechatPay()
+        }else{
+          wx.showToast({
+            title: '支付失败',
+            icon: 'none',
+            duration: 1000,
+            mask: false,
           });
         }
-      });
-    }else{
-      wx.showNavigationBarLoading();
-      let url = api.apiMall + '/index/updateLogin';
-      let data = {
-        avatar : e.detail.userInfo.avatarUrl,
-        nickname : e.detail.userInfo.nickName,
-        userId : wepy.$instance.globalData.userId
       }
-      wepy.request({
-        url: url,
-        method: 'POST',
-        data: data
-      }).then(res => {
-        wx.hideNavigationBarLoading();
-         let userInfo = res.data.userInfo;
-         wx.setStorage({
-           key: 'userInfo',
-           data: userInfo,
-           success: (res)=>{
-             this.goodsCollection()
-           }
-         })
-      }) 
-    }
+    })
   }
-  //用户登陆授权返回信息
-  userLogin() {
-    let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {};
-    const that = this;
-    const url = api.apiMall + '/index/userLogin';
-    const data = {
-      openId: that.openid,
-      merchantId: extConfig.merchantId,
-      mobile: 18220559986,
-      nickname: that.userinfo.nickName,
-      avatar: that.userinfo.avatarUrl
-    };
-    // console.log(data)
-    wepy.request({
-        url: url,
-        method: 'POST',
-        data: data
-      }).then(res => {
-        wx.hideNavigationBarLoading();
-        // console.log(res.data)
-        wx.setStorage({
-          key: 'userId',
-          data: res.data.userInfo.id
-        });
-        wx.getStorage({
-          key: 'userinfo',
-          success: res => {
-            let arr = Object.keys(res.data);
-            if (arr.length) {
-              this.login = true;
-              this.maskFlag = true;
-              this.userInfo = res.data;
-              this.$apply();
-            }
-            this.goodsCollection()
-          }
-        });
-      });
-  }
-   //快速支付
-  goodsCollection(){
-    const that = this;
-    const url = api.apiMall + '/wxpay/fastPay';
+  //调微信支付接口
+  wechatPay(){
+    const url = api.apiMall + '/wxpay/cardfoodfastpay';
     wx.getStorage({
       key: 'openid',
-      success: function(res){
+      success:res=>{
         const data = {
-          openId: res.data,
-          total: that.inputValue*100,
+          openId:res.data,
+          orderId:this.orderId,
           merchantNumber: wepy.$instance.globalData.payMessage.merchantAppId,
           thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
         }
-        // console.log(data)
         wepy.request({
           url: url,
           method: 'POST',
           data: data,
-        }).then((res)=>{
-          // console.log(res)
-          that.jssdk = res.data.jssdk
-          that.$apply()
+        }).then(res=>{
+          console.log(res)
+          this.jssdk = res.data.jssdk;
+          this.$apply()
           //发起微信支付
-            wx.requestPayment({
-                'appId':that.jssdk.appId,
-                'timeStamp': that.jssdk.timestamp,
-                'nonceStr':that.jssdk.nonceStr,
-                'package': that.jssdk.package,
-                'signType': that.jssdk.signType,
-                'paySign': that.jssdk.paySign,
-              success:function(res){
-                  // console.log(res)
-                    wx.switchTab({
-                      url: 'index/index'
-                    })
-                },
-            })
+          wx.requestPayment({
+            'appId':this.jssdk.appId,
+            'timeStamp':this.jssdk.timestamp,
+            'nonceStr':this.jssdk.nonceStr,
+            'package': this.jssdk.package,
+            'signType': this.jssdk.signType,
+            'paySign': this.jssdk.paySign,
+            success:res=>{
+              wx.request({
+                url: api.apiMall+'coupon/distribution',
+                method: 'POST',
+                data: {
+                  orderId:orderId,
+                  type:2
+                }
+              });
+              wx.showToast({
+                title:'支付成功',
+                icon:'success',
+                duration:1000,
+                success:res=>{
+                  wx.redirectTo({
+                    url:'./payedCouponsList?shopId=' + this.extConfig.merchantId + '&money=' + this.inputValue
+                  })
+                }
+              }) 
+            },
+            fail:res=>{}
+          })
         })
       }
     })
+
+  }
+  //买单封面
+  payPicture(){
+    const url = api.yscc + '/api/in_store_payment/' + this.shopId;
+    wepy.request({
+      url: url,
+      method: 'GET',
+      header:{
+        'Content-Type':'application/x-www-form-urlencoded;charset=utf-8',
+        'Accept':'application/vnd.lingmo.v1+json',
+        'Authorization':'Bearer ' + this.token
+      },
+    }).then((res)=>{
+      this.shopInfo = res.data.message;
+      this.banner = res.data.message.ads_pictures;
+      this.$apply()
+    })
+  }
+  //update
+  no_nothing(){
+    // 上浮比例
+    wepy.request({
+      url: api.yscc + '/api/in_store_init/' + this.shopId,
+      method: 'GET',
+      header: {
+        Accept:'application/vnd.lingmo.v1+json'
+      }
+    }).then((res)=>{
+      res.data.message.discount = res.data.message.discount/100
+      res.data.message.floatation = res.data.message.floatation/100
+      this.membershipCard = res.data.message
+      this.$apply()
+    });
+  }
+  // 计算充值会员优惠
+  computedDiscount(){
+    let total = parseInt(Number(this.inputValue) + Number(this.inputValue)*this.membershipCard.floatation);
+    let discount = parseInt(total*this.membershipCard.discount);
+    if(discount){
+      this.rechargeAmount = total
+      this.rechargeDiscount = discount
+      this.shows = false
+    }else{
+      this.shows = true
+    }
+  }
+  async getMember(){
+    const url = api.yscc + '/api/user_card';
+    const data = {
+        merchant_id:this.shopId
+    }
+    wepy.request({
+      url: url,
+      method: 'POST',
+      header:{
+          'Accept':'application/vnd.lingmo.v1+json',
+          'Content-Type':'application/x-www-form-urlencoded;charset=utf-8',
+          'Authorization':'Bearer ' + this.token
+      },
+      data: data,
+    }).then(res=>{
+      if(res.data.status == 200){
+          this.getCardMoney();
+      }
+    })
+  }
+  //获取会员卡金额
+  getCardMoney(){
+    wepy.request({
+      url: api.yscc+'/api/user_card/'+ this.shopId,
+      method: 'GET',
+      header:{
+        'Accept':'application/vnd.lingmo.v1+json',
+        'Authorization':'Bearer ' + this.token
+      }
+    }).then((res)=>{
+      res.data.message.money = Number(res.data.message.money/100).toFixed(2)
+      this.amount = res.data.message.money;
+      if(Number(this.amount)>0){
+        this.payType = 2;
+        this.selectPayWay = 0;
+      }else{
+        this.payType = 1;
+        this.selectPayWay = 2;
+      }
+      this.$apply()
+    });
   }
 }
 </script>

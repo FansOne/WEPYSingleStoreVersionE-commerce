@@ -1,0 +1,91 @@
+<script>
+import wepy from 'wepy';
+import api from '../app/app';
+import userSelectUseCoupon from '../components/userSelectUseCoupon';
+
+let goodId_s = [];
+export default class selectCoupon extends wepy.page {
+    config = {
+        navigationBarTitleText: '选择支付卡券',
+    };
+    components = {
+        userSelectUseCoupon:userSelectUseCoupon
+    };
+
+    data = {
+        userCoupon:[],
+        orderPrice_:'',
+        orderPrice:''
+    };
+    methods = {
+    };
+
+    events = {};
+    onLoad(options) {
+        if(options.fastMoney){
+            let token = wx.getStorageSync('token');
+            if (options.goodId) options.goodId = options.goodId.split(",")
+            this.userCoupons(options,result.data)
+        }else{
+            let token = wx.getStorageSync('token');
+            wx.getStorage({
+                key: 'selectBuy',
+                success: (res)=> {
+                    res.data.forEach(element => {
+                        let total = (Number(element.price)*element.quantity*100).toFixed(2);
+                        goodId_s.push({'id': element.id,'money':total})
+                    });
+                    wepy.request({
+                        url: api.yscc + '/api/myCard',
+                        method: 'GET',
+                        data: {
+                            order_type: 1,
+                            goods : JSON.stringify(goodId_s),
+                            merchant_id :wepy.$instance.globalData.payMessage.merchantId
+                        },
+                        header:{
+                            Accept:'application/vnd.lingmo.v1+json',
+                            Authorization : `Bearer ${token}`
+                        }
+                    }).then((res)=>{
+                        this.userCoupon = res.data.message
+                        this.$apply()
+                    });
+                }
+            })
+        }
+    };
+    // 用户会员卡
+    userCoupons(options,token){
+        let requestData = {};
+            requestData.order_type = 1
+            requestData.merchant_id = wepy.$instance.globalData.payMessage.merchantId
+        if (options.goodId) requestData.goods = JSON.stringify(options.goodId)
+        if (options.total) requestData.money = options.total
+            wepy.request({
+                url: api.yscc + '/api/user_coupons',
+                method: 'GET',
+                data: requestData,
+                header:{
+                    Accept: 'application/vnd.lingmo.v1+json',
+                    Authorization : `Bearer ${token}`
+                }
+            }).then((res)=>{
+                this.userCoupon = res.data.message
+                this.$apply()
+            });           
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <userSelectUseCoupon :syncTitle.sync="userCoupon"/>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+</style>

@@ -1,0 +1,194 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app'
+
+export default class cardShare extends wepy.page {
+    config = {
+        navigationBarTitleText: '',
+        navigationBarBackgroundColor: '#ffd270',
+    };
+    components = {};
+
+    data = {
+        options:{},
+        allData:{},
+        merchantId:'',
+        receiveUserId:''
+    };
+    methods = {
+        //领取分享的会员卡
+        receiveBtn(){
+            if(this.receiveUserId){
+                if(this.options.userId == this.receiveUserId){
+                    wx.showToast({
+                        title: '请分享至好友领取',
+                        icon: 'none'
+                    });
+                }else{
+                    wepy.request({
+                        url: api.apiMall+'card/receivecard',
+                        method: 'POST',
+                        data: {
+                            merchantId: this.merchantId,
+                            usercardId: this.options.userId,
+                            userId: this.receiveUserId,
+                            nums: this.options.nums
+                        }
+                    }).then((res)=>{
+                        wx.showToast({
+                            title: res.data.message,
+                            icon: 'success'
+                        });
+                        setTimeout(() => {
+                            wx.switchTab({
+                                url: '../../pages/about'
+                            });
+                        }, 1500);
+                    });
+                }
+            }else{
+                wx.navigateTo({
+                    url: '../../pages/signIn'
+                });
+            }
+        }
+    };
+
+    events = {};
+    onShow(){
+        wx.getStorage({
+            key: 'userId',
+            success: res => {
+                this.receiveUserId = res.data
+                this.$apply()
+            }
+        });
+    }
+    onLoad(options) {
+        this.getData(options)
+        let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {}
+        wepy.$instance.globalData.payMessage = extConfig
+        this.options = options
+        this.merchantId = wepy.$instance.globalData.payMessage.merchantId
+    };
+    
+    getData(options){
+        const data = {
+            userId: options.userId,
+            nums: options.nums
+        };
+        wepy.request({
+            url: api.apiMall+'/card/shareshow',
+            method: 'POST',
+            data: data,
+        }).then((res)=>{
+            res.data.amount = Math.round(res.data.amount)
+            this.allData = res.data
+            this.$apply()
+        });
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view calss='container'>
+        <view class='shareBox'>
+            <image src='{{allData.avatar}}' class='userIcon'/>
+            <view class='nickname'>{{allData.nickname}} 送你一张会员卡</view>
+            <view class='amount'>{{allData.amount}}</view>
+            <view class='nums'>待使用次数：{{allData.nums==-1?'无限次使用':(allData.nums)+'次'}}</view>
+            <view class='useRules'><text>使用规则：</text>达到使用次数或单笔消费满额后失效。此卡在结算时能否使用，以待使用次数为准(无限卡例外)</view>
+            <view class='useRules_'><text>注：</text>会员卡分享人享有撤卡使用权</view>
+            <button @tap='receiveBtn'>立即领取</button>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .shareBox{
+        width: 695rpx;
+        height: 1100rpx;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 35rpx;
+        background-image: url('http://applet.qumatou.com.cn/static/shop/cardShareBg_.png');
+        background-size: 100%;
+    }
+    .userIcon{
+        width: 150rpx;
+        height: 150rpx;
+        border-radius: 50%;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top:182rpx;
+    }
+    .nickname{
+        color: #46320d;
+        font-size: 35rpx;
+        font-weight: bold;
+        width: 100%;
+        height: 45rpx;
+        line-height: 45rpx;
+        text-align: center;
+        position: absolute;
+        top: 410rpx;
+    }
+    .amount{
+        width: 100%;
+        padding-left: 17rpx;
+        text-align: center;
+        color: #7a5b1e;
+        font-size: 120rpx;
+        line-height: 120rpx;
+        position: absolute;
+        top:545rpx;
+    }
+    .nums{
+        font-size: 24rpx;
+        line-height: 24rpx;
+        text-align: center;
+        width: 100%;
+        position: absolute;
+        top:685rpx;
+        padding-left: 10rpx;
+    }
+    button{
+        width: 460rpx;
+        height: 90rpx;
+        background-color: #333;
+        color: #ffd270;
+        font-size: 36rpx;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        bottom: 70rpx;
+    }
+    .useRules{
+        font-size: 20rpx;
+        color: #333;
+        box-sizing: border-box;
+        padding: 0 111rpx;
+        transform: translateY(785rpx);
+        text{
+            font-weight: bold;
+            color: #333;
+        }
+    }
+    .useRules_{
+        font-size: 20rpx;
+        padding: 0 111rpx;
+        // color: #969696;
+        transform: translateY(795rpx);
+        text{
+            font-weight: bold;
+        }
+    }
+</style>

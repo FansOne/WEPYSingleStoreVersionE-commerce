@@ -1,10 +1,10 @@
 <style lang="less">
   page{
-    background-color: #ffffff;
+    background-color: #fff;
   }
   .paymentTop{
-    height: 276rpx;
-    background-color: #f3825d;
+    height: 130rpx;
+    background-color: #ffd270;
     display: flex;
     flex-direction: column;
     color: #ffffff;
@@ -12,18 +12,17 @@
     font-weight: bold;
     letter-spacing: 3rpx;
     image{
-      width: 90rpx;
-      height: 90rpx;
+      width: 65rpx;
+      height: 65rpx;
     }
     view{
-      margin-top: 60rpx;
       display: flex;
       justify-content: center;
     }
     text{
       display: block;
       text-align: center;
-      margin-top: 20rpx;
+      margin-top: 15rpx;
     }
   }
   .paymentmiddle{
@@ -47,13 +46,13 @@
   }
   .paymentBottom{
      margin: 0 60rpx;
-     border-bottom: 1px solid #efeff4;
-     padding-top: 50rpx;
+     border-bottom: 1px solid #f1f1f1;
+     padding-top: 20rpx;
   }
   .userInfo{
     color: #333333;
     font-size: 32rpx;
-    margin-bottom: 50rpx;
+    margin-bottom: 24rpx;
   }
   .paymentBottom-btn{
     display: flex;
@@ -73,7 +72,7 @@
       letter-spacing: 2rpx;
     }
     view:nth-child(2){
-      background-color: #f3825d;
+      background-color: #ffd270;
       color: #ffffff;
       font-size: 28rpx;
       letter-spacing: 2rpx;
@@ -84,74 +83,138 @@
      font-size: 22rpx;
      color: #969696;
      letter-spacing: 3rpx;
-     margin-top: 60rpx;
+     margin-top: 24rpx;
   }
 </style>
 <template>
   <view calss='container'>
     <view class='paymentTop'>
       <view><image src='../images/paymentSuccess.png'/></view>
-      <text>支付成功</text>
-    </view>
-    <view class='paymentmiddle'>
-      <view>您已成功支付</view>
-      <view>¥ {{payment}}</view>
+      <text wx:if='{{userCoupon.length}}' style='font-size:26rpx;color:#000;'>恭喜获得领券资格</text>
     </view>
     <view class = 'paymentBottom'>
-      <view class='userInfo'>{{userInfo.userName}}</view>
-      <view class='userInfo'>{{userInfo.telNumber}}</view>
+      <view style='display:flex'>
+        <view style='flex:.5' class='userInfo'>{{userInfo.userName}}</view>
+        <view style='flex:.5;text-align:right;' class='userInfo'>{{userInfo.telNumber}}</view>
+      </view>
       <view class='userInfo'>{{userInfo.provinceName+userInfo.cityName+userInfo.countyName+userInfo.detailInfo}}</view>
       <view class = 'paymentBottom-btn'>
         <view @tap = 'seeOrder'>查看订单</view>
         <view @tap = 'goIndex'>继续购物</view>
       </view>
     </view>
-    <view class = 'readPrompt'>{{readPrompt}}</view>
+    <scroll-view scroll-y style='height:794rpx;box-sizing: border-box;background-color:#fff'>
+        <couponItem :syncTitle.sync="userCoupon"/>
+    </scroll-view>
+    <!-- <view class = 'readPrompt'>{{readPrompt}}</view> -->
   </view>
 </template>
 <script>
-  import wepy from 'wepy'
+  import wepy from 'wepy';
+  import api from '../app/app';
+  import couponItem  from '../components/couponItem';
 
   export default class New extends wepy.page {
     config = {
       navigationBarTitleText: '支付成功',
+      navigationBarBackgroundColor: '#ffd270',
+      navigationBarTextStyle: 'black'
     }
   	data = {
-  		payment: 0,
       userInfo:{},
-      readPrompt:'安全提醒：我们不会以系统维护，订单异常等理由，要求您进行任何方式的退款操作，或以各种理由索取您的隐私信息（如个人信息,会员账号信息,银行卡账户,密码以及手机验证码等）。',
+      userCoupon:[],
+      token:''
   	}
-    components = {}
+    components = {couponItem:couponItem}
     methods = {
       seeOrder(){
         wx.redirectTo({
-          url: 'orderDetails'
+          url: 'order'
         })
       },
       goIndex(){
         wx.switchTab({
-          url: 'index'
+          url: './homePage'
         })
       }
     }
     onLoad(){
-      let that = this;
-      wx.getStorage({
-        key: 'totalPrice',
-        success: function(res) {
-            // console.log(res.data)
-            that.payment = res.data
-            that.$apply()
-        } 
-      })
       wx.getStorage({
         key: 'address',
-        success: function(res) {
+        success: (res)=> {
             // console.log(res.data)
-            that.userInfo = res.data
-            that.$apply()
+            this.userInfo = res.data
+            this.$apply()
         } 
       })
+      wx.getStorage({
+        key: 'token',
+        success: res => {
+          this.token = res.data
+          this.$apply()
+          this.userCoupons(res.data)
+        }
+      });
+    }
+    events = {
+        userSelect(idx,index){
+            wepy.request({
+                url: api.yscc + `/api/user_coupons/${idx}`,
+                method: 'GET',
+                header: {
+                    Accept:'application/vnd.lingmo.v1+json',
+                    Authorization: `Bearer ${this.token}`
+                }
+            }).then((res)=>{
+                if(res.data.status == '200'){
+                        wx.showToast({
+                            title: '领取成功',
+                            icon: 'success',
+                            success:()=>{
+                              this.userCoupon[index].endReceive = true
+                              this.$apply()
+                            }
+                        });
+                }else{
+                    wx.showToast({
+                        title: res.data.message,
+                        icon: 'none',
+                    });
+                }
+            });
+        }
+    };
+    // 用户会员卡
+    userCoupons(token){
+        wepy.request({
+            url: api.yscc + '/api/coupons',
+            method: 'GET',
+            data: {
+                merchant_id:wepy.$instance.globalData.payMessage.merchantId
+            },
+            header:{
+              Accept:'application/vnd.lingmo.v1+json',
+              Authorization : `Bearer ${token}`
+            }
+        }).then((res)=>{
+            res.data.message.forEach(element => {
+                if(element.begin_time){
+                  element.begin_time = this.timestampToTime(element.begin_time)
+                  element.end_time = this.timestampToTime(element.end_time)
+                }
+                element.qiangNum = Math.floor(element.receive/(element.lave+element.receive)*100)
+            });
+            this.userCoupon = res.data.message
+            this.$apply()
+        });          
+    }
+    // 转时间戳
+    timestampToTime(timestamp) {
+        var date = new Date(timestamp * 1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+        var Y = date.getFullYear() + '-';
+        var M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+        var D = date.getDate() + ' ';
+        return Y+M+D
     }
   }
 </script>

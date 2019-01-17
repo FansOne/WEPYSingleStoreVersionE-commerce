@@ -1,0 +1,96 @@
+<script>
+import wepy from 'wepy';
+
+export default class paySuccess extends wepy.page {
+    config = {
+        navigationBarTitleText: '支付成功',
+        navigationBarBackgroundColor: '#ffd270',
+        disableScroll:true
+    };
+    components = {};
+
+    data = {
+        options:{}
+    };
+    methods = {
+        goIndex(){
+            wx.redirectTo({
+                url: './index'
+            });
+        }
+    };
+
+    events = {};
+    onLoad(options) {
+        this.options = options
+    };
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='smilingFace'>
+            <icon class='iconfont icon-success'/>
+            <view>支付成功</view>
+        </view>
+        <view class='pricePrompt'>
+            <view class='promptText'>您已成功支付</view>
+            <view class='price__'>{{options.integral}}积分 + {{options.price}}元</view>
+            <view class='btn' @tap='goIndex'>继续逛逛</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .smilingFace{
+        height: 290rpx;
+        width: 100%;
+        background-color: #ffd270;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        icon{
+            color: #000;
+            font-size: 94rpx;
+        }
+        view{
+            margin-top: 20rpx;
+            color: #000;
+            font-size: 32rpx;
+            font-weight: bold;
+            letter-spacing: 3rpx;
+        }
+    }
+    .pricePrompt{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 65rpx;
+        .promptText{
+            font-size: 28rpx;
+            color: #969696;
+        }
+        .price__{
+            color: red;
+            font-size: 46rpx;
+            padding-top: 25rpx;
+        }
+        .btn{
+            width: 195rpx;
+            height: 65rpx;
+            border-radius: 50rpx;
+            border: 1rpx solid #000;
+            line-height: 65rpx;
+            text-align: center;
+            font-size: 28rpx;
+            color: #000;
+            margin-top: 65rpx;
+        }
+    }
+</style>

@@ -17,6 +17,7 @@
 		width: 100%;
 	}
 	.confirmComputed{
+		position: relative;
 		display: flex;
 		flex-direction: row;
 		flex:1;
@@ -30,13 +31,19 @@
 			font-size: 32rpx;
 			line-height: 120rpx;
 			color: #fd2323;
-			margin-left: 44rpx;
+			margin-left: 20rpx;
+		}
+		.sendprice{
+			position: absolute;
+			left: 35rpx;
+			bottom: 8rpx;
+			font-size: 20rpx;
 		}
 	}
 	.confirmBuy{
 		height: 100%;
-		background-color: rgb(238,108,75);
-		color: #ffffff;
+		background-color:#ffd270;
+		color: #000;
 		text-align: center;
 		line-height:120rpx;
 		font-size: 34rpx;
@@ -45,29 +52,6 @@
 	
 	.discount-box{
 		margin-bottom: 20rpx;
-	}
-	.ticketOpening-box{
-		margin: 20rpx 40rpx;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-	}
-	.ticketOpening-left{
-		display: flex;
-		align-items: center;
-		image{
-			margin: 0 10rpx 0 25rpx;
-			width: 50rpx;
-			height: 50rpx;
-		}
-		text{
-			font-size: 26rpx;
-		}
-	}
-	.ticketOpening-left .colBg{
-		height: 64rpx;
-		width: 10rpx;
-		background-color: #ee7942;
 	}
 	.startTicketOpening{
 		margin: 20rpx 40rpx;
@@ -116,14 +100,14 @@
 			view{
 				display: flex;
 				justify-content: flex-start;
-				padding-left: 15rpx;
+				padding-left: 10rpx;
 				flex: 1;
 				font-size: 28rpx;
 				color: #666;
 			}
 			image{
-				height: 68rpx;
-				width: 65rpx;
+				height: 53rpx;
+				width: 55rpx;
 				margin-left: 40rpx;
 			}
 		}
@@ -139,6 +123,18 @@
 			}
 		}
 	}
+	// .pic {
+	// 	width: 200rpx;
+	// 	height: 200rpx;
+	// 	background-image: url('https://user-images.githubusercontent.com/8554143/34239878-63f8787a-e645-11e7-9903-b7858c93f3e4.png');
+	// 	background-size: cover;
+	// }
+	// .pic1 {
+	// 	background-image: url(https://user-images.githubusercontent.com/8554143/34239878-63f8787a-e645-11e7-9903-b7858c93f3e4.png), linear-gradient(#f00, #f00);
+	// 	background-blend-mode: lighten;
+	// 	background-size: cover;
+	// }
+
 </style>
 <template>
   <view class='container'>
@@ -192,14 +188,14 @@
   		</view>
   		<view class='smallPrice'>
   			<view @tap='sss'>共{{item.quantity}}件</view>
-  			<view>小计 <text>¥{{item.quantity*item.price}}</text></view>
+  			<view>小计 <text>¥{{item.price}}</text></view>
   		</view>
   	</view>
 	</view>
 	<!-- 开票 -->
-	<view class='ticketOpening-box'>
+	<view class='ticketOpening-box' style='margin-bottom:25rpx;'>
 		<view class='ticketOpening-left'><view class='colBg'></view><image src='../images/提供发票.png'/><text>开具发票</text></view>
-		<switch @change="switchChange"/>
+		<switch @change="switchChange" color='#ffd270'/>
 	</view>
 	<view class="startTicketOpening" hidden="{{TicketOpening}}" @tap = "selectTicketOpening">
 		<view><text hidden="{{piao}}">请选择发票抬头</text><text wx:if="{{piao}}">已选择</text></view>
@@ -216,13 +212,44 @@
 			<view>税号：{{ticketMessage.taxNumber}}</view>
 		</view>
 	</view>
+	<!-- 优惠券 -->
+	<view class='ticketOpening-box' style='padding-right:10rpx;' @tap="selectPayMent" data-id='2'>
+		<view class='ticketOpening-left'><view class='colBg'></view><text style='padding-left:30rpx;'>优惠券</text></view>
+		<view style='font-size:25rpx;color:#969696;'>
+			<block wx:if='{{!selectCoupon.title}}'>
+				<block wx:if='{{userUseCoupon}}'><text style='color:#ff915e'>{{userUseCoupon}}</text>张优惠券可用</block>
+				<block wx:else>暂无可用优惠券</block>
+			</block>
+			<block wx:else><text style='color:#ff915e'>{{selectCoupon.type == 1?'满'+selectCoupon.min_money/100+'减'+selectCoupon.amount/100+'元':(selectCoupon.type == 2?selectCoupon.amount+'折优惠':selectCoupon.amount/100+'元代金券')}}</text></block>
+			<text style='font-size:30rpx;color:#666;padding-left:38rpx;'>></text>
+		</view>
+	</view>
+	<!-- 支付方式 -->
+	<view class='ticketOpening-box'>
+		<view class='ticketOpening-left'><view class='colBg' style='margin-right:30rpx;'></view><text>支付方式</text></view>
+	</view>
+	<view class='paymentMethod'>
+		<view class='paymentMethod_title' style='flex:.3'>会员卡支付</view>
+		<view class='paymentMethod_select' @tap="selectPayMent" data-id='0' style='flex:.7'>
+			<view style='margin-right:28rpx'>余额：￥{{amount}}<text wx:if='{{amount == 0}}' style='color:#ff915e;' @tap='cardRecharge'>(点击充值优惠)</text></view>
+			<icon type="success" size="17" color="{{selectSonCard.nickname?'#969696':'#ffd270'}}" style='transform: translateX(6rpx)'/>
+		</view>
+	</view>
+	<view class='paymentMethod'>
+		<view class='paymentMethod_title' style='flex:.2'>子卡支付</view>
+		<view class='paymentMethod_select' @tap="selectPayMent" data-id='1' style='flex:.8'>
+			<view wx:if='{{!selectSonCard.nickname}}'>选择支付子卡</view>
+			<view wx:else>{{selectSonCard.nickname}}分享的<text style='color:#f40'>￥{{selectSonCard.amount}}</text>会员卡</view>
+			<view>></view>
+		</view>
+	</view>
 	<!-- 联系卖家 -->
 	<image class ='merchantTel' src='http://applet.qumatou.com.cn/static/shop/群蜂电话.png' @tap='merchantTel' style="bottom:{{ballBottom}}px;right:{{ballRight}}px;" @touchmove="ballMoveEvent"/>
-
 	<view class='confirmOrder-bottom'>
 		<view class='confirmComputed'>
 			<view>合计</view>
 			<view>¥{{orderPrice}}</view>
+			<view class='sendprice'>￥{{sendprice}}起送,另需配送费￥{{normalsend}}</view>
 		</view>
 		<view class='confirmBuy' @tap ='confirmPayment'>确认支付</view>
 	</view>
@@ -231,22 +258,22 @@
 <script>
   import wepy from 'wepy'
   import api from '../app/app'
-
+  
+  let goodId_s  = [];
   export default class New extends wepy.page {
   	config = {
   		navigationBarTitleText: '确认订单',
   	}
   	data = {
-  		ballBottom: 120,
-	    ballRight: 30,
+  		ballBottom: 80,
+	    ballRight: 20,
 	    screenHeight: 0,
 	    screenWidth: 0,
   		orderPrice:'',
+		orderPrice_:'',
   		selectGoods:[],
   		userCode:'',
   		userInfo:{},
-  		//订单信息
-  		orderResult:{},
   		//微信支付所需参数
   		jssdk:{},
   		//用户地址
@@ -263,9 +290,46 @@
   		piao:false,
   		userid:'',
   		//有无地址
-  		haveAddress:true
+  		haveAddress:true,
+		userId:'',
+		normalsend:0,
+		sendprice:0,
+		amount:'',
+		selectSonCard:{},
+		selectCoupon:{},
+		goodId_s:[],
+		userUseCoupon:'',
+		token:'',
   	}
   	onLoad(){
+		wx.getStorage({
+			key: 'userId',
+			success: res => {
+				this.userId = res.data
+				this.$apply()
+			}
+		});
+		wx.getStorage({
+			key: 'token',
+			success: res => {
+				this.token = res.data
+				this.$apply()
+			}
+		});
+		wx.getStorage({
+			key: 'normalsend',
+			success: res => {
+				this.normalsend = res.data
+				this.$apply()
+			}
+		});
+		wx.getStorage({
+			key: 'sendprice',
+			success: res => {
+				this.sendprice = res.data
+				this.$apply()
+			}
+		});
   		//获取屏幕宽高
   		var _this = this;
 	    wx.getSystemInfo({
@@ -275,8 +339,9 @@
 	        _this.$apply()
 	      }
 	    });
+		_this.getCardMoney()
   	}
-    components = {}
+	components = {}
     methods = {
     	ballMoveEvent(e){
     		var touchs = e.touches[0];
@@ -303,13 +368,11 @@
 		  	wx.chooseAddress({
 			  success: function (res) {
 			  	that.userAddress = res
+				that.haveAddress = true
 			  	that.$apply()
 			    wx.setStorage({
 					key:'address',
 					data: res
-				})
-				wx.redirectTo({
-				  url: 'confirmOrder'
 				})
 			  },fail:function (res) {
 				  wx.openSetting({})
@@ -320,11 +383,20 @@
 			wx.getStorage({
 				key: 'address',
 				success: (res)=>{
-					this.getPaymentData()
-					wx.setStorage({
-						key: 'cartItems',
-						data: this.cartItems
-					})
+					if(this.orderPrice_ >= this.sendprice){
+						this.getPaymentData()
+						wx.setStorage({
+							key: 'cartItems',
+							data: this.cartItems
+						})
+					}else{
+						wx.showToast({
+							title: '未达到起送价格',
+							icon: 'none',
+							duration: 2000,
+							mask: false,
+						});
+					}
 				},
 				fail: (res)=> {
 					wx.showToast({
@@ -371,6 +443,26 @@
           		phoneNumber: that.merchantTel 
         	})
     	},
+		selectPayMent(e){
+			let idx = Number(e.currentTarget.dataset.id);
+			if(!idx){
+				this.selectSonCard = {}
+				wx.removeStorage({key:'selectSonCard'})
+			}else if(idx == 1){
+				wx.navigateTo({
+					url: '../packageMembershipCard/membershipCard/selectCardLists'
+				});
+			}else{
+				wx.navigateTo({
+					url: './selectCoupon?goodId='+wepy.$instance.globalData.payMessage.merchantId
+				});
+			}
+		},
+		cardRecharge(){
+			wx.navigateTo({
+				url: '../packageMembershipCard/membershipCard/cardRecharge?shopId='+wepy.$instance.globalData.payMessage.merchantId
+			});
+		}
     }
     onShow(){
     	let that = this;
@@ -382,23 +474,6 @@
             	that.$apply()
         	} 
         })
-        wx.getStorage({
-		  key: 'selectBuy',
-		  success: function(res) {
-		  	// console.log(res.data)
-		  	that.selectGoods = res.data
-		  	that.$apply()
-		  	// console.log(that.selectGoods)
-		  }
-		})
-		wx.getStorage({
-			key:'totalPrice',
-			 success: function(res) {
-			 	// console.log(res.data)
-			 	that.orderPrice = Number(res.data).toFixed(2)
-			 	that.$apply()
-			 }
-		})
 		wx.getStorage({
 			key:'userCode',
 		 	success: function(res) {
@@ -418,18 +493,118 @@
 			}
 		})
 		wx.getStorage({
-		key:'openid',
-		success:function(res){
-			that.openid = res.data
+			key:'openid',
+			success:function(res){
+				that.openid = res.data
+				that.$apply()
+			}
+		})
+		wx.getStorage({
+			key: 'selectSonCard',
+			success: res => {
+				that.selectSonCard = res.data
+				that.$apply()
+			}
+		});
+		wx.getStorage({
+		  key: 'selectBuy',
+		  success: function(res) {
+			// console.log(res.data)
+			res.data.forEach(element => {
+				let total = (Number(element.price)*element.quantity*100).toFixed(2);
+				goodId_s.push({'id': element.id,'money':total})
+			});
+			that.selectGoods = res.data	
+			that.goodId_s = goodId_s
 			that.$apply()
-		}
-	  })
+			wx.getStorage({
+				key:'totalPrice',
+				success: (res)=> {
+					that.orderPrice_ = Number(res.data) + Number(that.normalsend)
+					that.orderPrice = Number(res.data) + Number(that.normalsend)
+					that.$apply()
+					wepy.request({
+						url: api.yscc + '/api/myCard',
+						method: 'GET',
+						data: {
+							order_type: 1,
+							goods : JSON.stringify(that.goodId_s),
+							merchant_id :wepy.$instance.globalData.payMessage.merchantId
+						},
+						header:{
+							Accept:'application/vnd.lingmo.v1+json',
+							Authorization : `Bearer ${that.token}`
+						}
+					}).then((res)=>{
+						// console.log(res.data.data.length)
+						that.userUseCoupon = res.data.message.length
+						that.$apply()
+					});
+				}
+			})
+		  }
+		})
+		wx.getStorage({
+			key: 'selectCoupon',
+			success: res => {
+				that.selectCoupon = res.data
+				that.$apply()
+				if(res.data.usetype == 2){
+					let goodsTotal = 0;
+					res.data.goods.forEach(element => {		//商品id优惠
+						that.selectGoods.forEach(selectGoods => { 	//选择购买的商品
+							if(element == selectGoods.id){
+								goodsTotal +=  selectGoods.quantity*selectGoods.price;
+							}
+						});
+					});
+					if(res.data.type != 2){
+						that.orderPrice = (goodsTotal-Number(res.data.amount/100) + Number(that.normalsend)).toFixed(2)
+						that.$apply()
+						wx.setStorageSync('totalPrice', that.orderPrice);
+					}else{
+						// console.log()
+						that.orderPrice = (goodsTotal*(Number(res.data.amount)/10) + Number(that.normalsend)).toFixed(2)
+						that.$apply()
+						wx.setStorage({
+							key: 'totalPrice',
+							data: that.orderPrice
+						});
+					}
+				}else{
+					if(res.data.type != 2){
+						that.orderPrice = (that.orderPrice-Number(res.data.amount/100)).toFixed(2)
+						that.$apply()
+						wx.setStorageSync('totalPrice', that.orderPrice);
+					}else{
+						that.orderPrice = (that.orderPrice*(Number(res.data.amount)/10)).toFixed(2)
+						that.$apply()
+						wx.setStorage({
+							key: 'totalPrice',
+							data: that.orderPrice
+						});
+					}
+				}
+			}
+		});
     }
+	unitPrice(arg1,arg2){
+		var m=0,s1=arg1.toString(),s2=arg2.toString();
+		try{m+=s1.split(".")[1].length}catch(e){}
+		try{m+=s2.split(".")[1].length}catch(e){}
+		return Number(s1.replace(".",""))*Number(s2.replace(".",""))/Math.pow(10,m)
+	}
+	onHide(){
+		this.orderPrice = this.orderPrice_
+		wx.removeStorage({
+			key: 'totalPrice'
+		});
+	}
     //订单提交
     async getPaymentData(){
       const objKeys = Object.keys(this.ticketMessage)
       const that = this;
-      const url = api.apiMall + '/shop/orderCommit';
+      const url = api.apiMall + '/coupon/couponshopCommit';
       if (objKeys.length) {
 			that.isvoice = 2
 			that.$apply()
@@ -440,8 +615,10 @@
 	  }
       const data = {
         merchantId: wepy.$instance.globalData.payMessage.merchantId,
-        userId: wepy.$instance.globalData.userId,
-        goodData: that.selectGoods,
+        userId: that.userId,
+		goodData: that.selectGoods,
+		userCouponId : that.selectCoupon.id || '',
+		subcardId: that.selectSonCard.id || '',
         total: that.orderPrice*100,
         mobile: that.userAddress.telNumber,
         truename: that.userAddress.userName,
@@ -456,31 +633,41 @@
         invoicetel: that.ticketMessage.telephone?that.ticketMessage.telephone:'',
         invoicebank: that.ticketMessage.bankName?that.ticketMessage.bankName:'',
         invoicebanknumber: that.ticketMessage.bankAccount?that.ticketMessage.bankAccount:''
-      }
-    //   console.log(data)
+	  }
       await wepy.request({
         url: url,
         method: 'POST',
         data: data,
       }).then((res)=>{
-        // console.log(res)
-        that.orderResult = res.data.orderResult
-        that.$apply()
+		if(res.data.code){
+			that.shopPay(res.data.orderResult,res.data.balance)
+		}else{
+			wx.request({
+				url: api.apiMall+'coupon/distribution',
+				method: 'POST',
+				data: {
+					orderId:res.data.orderResult.id,
+					type:1
+				}
+			});
+			wx.redirectTo({
+				url: 'paymentSuccess'
+			})
+		}
       })
-      that.shopPay()
+    //   that.shopPay()
     }
     //发起微信支付
-    async shopPay(){
+    async shopPay(orderResult,balance){
       const that = this;
-      const url = api.apiMall + '/wxpay/shopPay';
+      const url = api.apiMall + '/wxpay/shopcardPay';
       const data = {
-        orderId: that.orderResult.id,
+        orderId: orderResult.id,
         openId: that.openid,
-        total: that.orderResult.total,
+        total: balance,
 		merchantNumber: wepy.$instance.globalData.payMessage.merchantAppId,
 		thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
       }
-	//   console.log(data)
       await wepy.request({
         url: url,
         method: 'POST',
@@ -502,14 +689,49 @@
             'signType': that.jssdk.signType,
             'paySign': that.jssdk.paySign,
          	success:function(res){
-              	// console.log(res)
+              	wx.request({
+					  url: api.apiMall+'coupon/distribution',
+					  method: 'POST',
+					  data: {
+						  orderId:orderResult.id,
+						  type:1
+					  }
+				});
                	wx.redirectTo({
 				  url: 'paymentSuccess'
 				})
             },
         })
       })
-    }
-
+	}
+	//获取会员卡金额
+	getCardMoney(){
+		let token = wx.getStorageSync('token');
+		wepy.request({
+        	url: api.yscc+'/api/user_card/'+ wepy.$instance.globalData.payMessage.merchantId,
+        	method: 'GET',
+			header:{
+			'Accept':'application/vnd.lingmo.v1+json',
+			'Authorization':'Bearer ' + token
+			}
+		}).then((res)=>{
+			res.data.message.money = Number(res.data.message.money/100).toFixed(2)
+			this.amount = res.data.message.money;
+			if(Number(this.amount)>0){
+			this.payType = 2
+			}else{
+			this.payType = 1
+			}
+			this.$apply()
+		});
+	}
+	onUnload(){
+		goodId_s = []
+		this.goodId_s = ''
+		this.selectSonCard = {}
+		this.selectCoupon = {}
+		wx.removeStorage({key:'selectSonCard'})
+		wx.removeStorage({key:'selectCoupon'})
+	}
   }
 </script>

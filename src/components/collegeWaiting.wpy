@@ -1,0 +1,191 @@
+<template lang="wxml">
+    <block wx:for='{{syncTitle}}' wx:key=''>
+        <view class='collegeWaiting_box' @tap="goDetail" data-status = '{{item.status}}' data-orderId = '{{item.groupOrderId}}'>
+            <view class='collegeWaiting_state'>
+                <view class='collegeWaiting_num'>
+                    <view class="{{item.status == 1?'':'capsule'}}">{{item.number}}人团</view>
+                    <view wx:if='{{item.status == 1}}'>还差{{item.surplus}}人</view>
+                </view>
+                <view class='collegeWaiting_state_' wx:if='{{item.status == 1}}'>待成团</view>
+                <view class='collegeWaiting_state_' wx:elif='{{item.status == 2}}'>已完成</view>
+                <view class='collegeWaiting_state_' wx:if='{{item.status == 3}}'>已取消</view>
+            </view>
+            <view class='collegeWaiting_goods'>
+                <image src='{{item.cover}}'/>
+                <view class='collegeWaiting_right'>
+                    <view class='collegeWaiting_title'>{{item.title}}</view>
+                    <!-- <view class='collegeWaiting_skus'>{{item.skus}}</view> -->
+                    <view class='collegeWaiting_price'>
+                        <view><text>￥</text>{{item.price}}</view>
+                        <view>￥{{item.sell}}</view>
+                    </view>
+                </view>
+            </view>
+            <view class='collegeWaiting_bottom'>
+                <view style='font-size:30rpx;'>提货门店：{{item.address}}</view>
+                <view class='collegeWaiting_share'>
+                    <view wx:if="{{item.status == 1}}" style='display:flex;'>
+                        <view class='collegeWaiting_share_'>成团剩余时间：{{item.timeDifference}}</view>
+                        <button @tap.stop="tapStop({{index}})" open-type="share">邀请好友</button>
+                    </view>
+                    <view wx:if="{{item.status == 3}}" style='display:flex;'>
+                        <view class='collegeWaiting_share_'>取消时间：{{item.dateline}}</view>
+                        <button class='emptyCapsule' @tap.stop="rePurchase({{index}})">重新购买</button>
+                    </view>
+                    <view wx:if="{{item.status == 2}}" style='display:flex;'>
+                        <view class='collegeWaiting_share_'>完成时间：{{item.dateline}}</view>
+                        <button class='emptyCapsule'>再拼一单</button>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </block>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class collegeWaiting extends wepy.component {
+    components = {};
+
+    data = {};
+    methods = {
+        tapStop(){},
+        goDetail(e){
+            wx.navigateTo({
+                url: './Collage/orderDetail?id='+e.currentTarget.dataset.status+'&orderId='+e.currentTarget.dataset.orderid
+            });
+        },
+        rePurchase(e){
+            wx.navigateTo({
+                url: './Collage/confirmOrder?groupId='+this.syncTitle[e].groupId
+            });
+        }
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        }
+    }
+    onLoad(){
+    }
+}
+</script>
+
+<style lang="less">
+    .collegeWaiting_box{
+        // box-shadow: 0 8rpx 10rpx #f1f1f1;
+        // margin-bottom: 35rpx;
+        box-sizing: border-box;
+        padding: 25rpx;
+        border-bottom:1px solid #f1f1f1;
+        .collegeWaiting_state{
+            display: flex;
+            justify-content: space-between;
+            .collegeWaiting_num{
+                display: flex;
+                view:nth-child(1){
+                    border: 1rpx solid #000;
+                    border-radius: 50rpx 0 0 50rpx;
+                    font-size: 27rpx;
+                    padding: 5rpx 8rpx;
+                }
+                view:nth-child(2){
+                    font-size: 27rpx;
+                    background-color: #000;
+                    color: #f07e60;
+                    border: 1rpx solid #000;
+                    border-radius: 0 50rpx 50rpx 0;
+                    padding: 5rpx 9rpx;
+                }
+            }
+            .collegeWaiting_state_{
+                color: red;
+                font-size: 30rpx;
+            }
+        }
+        .collegeWaiting_goods{
+            margin-top: 25rpx;
+            display: flex;
+            image{
+                width: 210rpx;
+                height: 210rpx;
+            }
+            .collegeWaiting_right{
+                flex: 1;
+                position: relative;
+                padding-left: 20rpx;
+                .collegeWaiting_title{
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    color: #000;
+                    font-size: 30rpx;
+                }
+                .collegeWaiting_skus{
+                    padding-top: 5rpx;
+                    font-size: 25rpx;
+                }
+                .collegeWaiting_price{
+                    position: absolute;
+                    bottom: -10rpx;
+                    display: flex;
+                    align-items: center;
+                    view:nth-child(1){
+                        color: red;
+                        font-size: 38rpx;
+                        text{
+                            font-size: 27rpx;
+                        }
+                    }
+                    view:nth-child(2){
+                        margin-left: 20rpx;
+                        font-size:30rpx;
+                        text-decoration:line-through;
+                    }
+                }
+            }
+        }
+        .collegeWaiting_bottom{
+            margin-top: 25rpx;
+            border-top: 1px dashed #f7ebd4;
+            padding-top: 25rpx;
+            .collegeWaiting_share{
+                margin-top: 20rpx;
+                display: flex;
+                position: relative;
+                height: 60rpx;
+                .collegeWaiting_share_{
+                    font-size: 30rpx;
+                    color: #000;
+                    font-weight: bold;
+                    line-height: 60rpx;
+                }
+                button{
+                    position: absolute;
+                    right: 0;
+                    width: 180rpx;
+                    height: 60rpx;
+                    background-color: #ffd270;
+                    color: #000;
+                    border-radius: 50rpx;
+                    font-size: 27rpx;
+                    line-height: 60rpx;
+                }
+            }
+        }
+    }
+    .capsule{
+        padding: 0 10rpx !important;
+        border-radius: 50rpx !important;
+    }
+    .emptyCapsule{
+        background-color: #fff !important;
+        color: #000 !important;
+        border: 1px solid #ffd270;
+    }
+</style>

@@ -1,0 +1,166 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+
+export default class selectCardLists extends wepy.page {
+    config = {
+        navigationBarTitleText: '子卡列表',
+        navigationBarBackgroundColor: '#ffd270',
+    };
+    components = {};
+
+    data = {
+        subcards:[],
+    };
+    methods = {
+        selectCard(e){
+            this.subcards.forEach(element => {
+                if(e == element.id){
+                    element.color = '#ffd270'
+                    wx.setStorage({
+                        key : 'selectSonCard',
+                        data : element,
+                        success : ()=>{
+                            wx.navigateBack({
+                                delta: 1
+                            });
+                        } 
+                    });
+                }else{
+                    element.color = '#969696'
+                }
+            });
+        }
+    };
+
+    events = {};
+    onLoad() {
+        wx.getStorage({
+            key: 'userId',
+            success: res => {
+                this.userSubcards(res.data)
+            }
+        });
+    };
+    // 获取子卡列表
+    userSubcards(userId){
+        wepy.request({
+            url: api.apiMall+'/card/mysubcards',
+            method: 'POST',
+            data: {
+                userId: userId,
+                merchantId: wepy.$instance.globalData.payMessage.merchantId
+            }
+        }).then((res)=>{
+            // console.log(res.data.data)
+            res.data.data.forEach(element => {
+                element.amount = Number(element.amount/100)
+                element.color = '#969696'
+            });
+            this.subcards = res.data.data
+            this.$apply()
+            if(!res.data.data.length){
+                wx.setNavigationBarTitle({
+                    title:'子卡介绍'
+                })
+                wx.setNavigationBarColor({
+                    frontColor: '#ffffff',
+                    backgroundColor: '#be1121'
+                })
+            }
+        });
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container' wx:if='{{subcards.length}}' style="{{subcards.length?'padding-top:30rpx;':''}}">
+        <view wx:for='{{subcards}}' wx:key='' class="sonCard_item" @tap="selectCard({{item.id}})">
+            <view class="Subcard_left">
+                <view class="Subcard_user">
+                    <view>来自{{item.nickname}}的分享卡</view>
+                    <view wx:if="{{item.nums != -1}}">待使用次数：{{item.nums}}次</view>
+                    <view wx:else>待使用次数：无限使用!</view>
+                </view>
+                <view class="Subcard_price">
+                    <view>金额</view>
+                    <view>￥{{item.amount}}</view>
+                </view>
+            </view>
+            <view class="Subcard_right">
+                <icon type="success" size="18" color='{{item.color}}'/>
+            </view>
+        </view>
+    </view>
+    <view wx:else class='noSonCard' style='height:1718rpx'></view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .sonCard_item{
+        margin-bottom: 20rpx;
+        box-sizing: border-box;
+        padding: 30rpx;
+        height: 155rpx;
+        display: flex;
+        align-items: center;
+        .Subcard_left{
+            display: flex;
+            width: 605rpx;
+            height: 155rpx;
+            background-image: url('http://applet.qumatou.com.cn/static/shop/zikaliebiao.png');
+            background-size: 100%;
+            .Subcard_user{
+                box-sizing: border-box;
+                padding: 30rpx;
+                width: 436rpx;
+                view:nth-child(1){
+                    background: linear-gradient(to right, #54422d, #ab7143);
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    font-size: 26rpx;
+                }
+                view:nth-child(2){
+                    transform: translateY(40rpx);
+                    color: #969696;
+                    font-size: 20rpx;
+                }
+            }
+            .Subcard_price{
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+                padding: 30rpx 30rpx 20rpx 20rpx;
+                justify-content: center;
+                align-items: center;
+                view:nth-child(1){
+                    background: linear-gradient(to right, #54422d, #ab7143);
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    font-size: 26rpx;
+                }
+                view:nth-child(2){
+                    background: linear-gradient(to right, #54422d, #ab7143);
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    font-size: 33rpx;
+                }
+            }
+        }
+        .Subcard_right{
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 155rpx;
+        }
+    }
+    .noSonCard{
+        width: 100%;
+        background-image: url('http://applet.qumatou.com.cn/static/shop/zika.png');
+        background-size: 100%;
+    }
+</style>

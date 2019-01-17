@@ -1,0 +1,159 @@
+<template lang="wxml">
+    <view class='item_box'  wx:for='{{syncTitle}}' wx:key=''>
+        <view wx:if='{{item.type == 1}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/youhuiquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                    <view class='prompt_'>满{{item.min_money/100}}元使用</view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view wx:if='{{item.type == 2}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/zhekouquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:25rpx;'>
+                        <text class='bags'>{{item.amount}}</text>
+                        <text>折</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view wx:if='{{item.type == 3}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/daijinquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:30rpx;'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view class='time'>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class couponSharePage extends wepy.component {
+    data = {};
+    props = {
+        syncTitle: {
+            type: Array,
+            default: 'null'
+        }
+    };
+
+}
+</script>
+
+<style lang="less">
+    .item_box{
+        box-sizing: border-box;
+        padding: 0rpx 15rpx;
+        height: 215rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        .couponItem{
+            height: 195rpx;
+            width: 100%;
+            border-radius: 7rpx;
+            background-size: 100%;
+            display: flex;
+            .couponItem_left{
+                display: flex;
+                flex-direction: row;
+                width: 500rpx;
+                .logo{
+                    width: 50%;
+                    box-sizing: border-box;
+                    padding-top: 25rpx;
+                    padding-left: 90rpx;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    view{
+                        margin-bottom: 15rpx;
+                        font-size: 24rpx;
+                        color: #fff;
+                        width: 100%;
+                        text-align: center;
+                        letter-spacing: 3rpx;
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 1;
+                        overflow: hidden;
+
+                    }
+                    image{
+                        width: 100rpx;
+                        height: 100rpx;
+                        border-radius: 8rpx;
+                    }
+                }
+                .pricess{
+                    box-sizing: border-box;
+                    padding-right: 30rpx;
+                    width: 50%;
+                    display: inline-block;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    .pricess_{
+                        font-size: 35rpx;
+                        color: #fff;
+                        padding-top: 10rpx;
+                        box-sizing: border-box;
+                        .bags{
+                            font-size: 85rpx;
+                        }
+                    }
+                    .prompt_{
+                        font-size: 20rpx;
+                        letter-spacing: 2rpx;
+                        color: #fff;
+                        transform: translateX(6rpx);
+                    }
+                }
+            }
+            .couponItem_right{
+                letter-spacing: 2rpx;
+                box-sizing: border-box;
+                height: 160rpx;
+                padding: 35rpx 20rpx 0rpx 0rpx;
+                flex: 1;
+                font-size: 22rpx;
+                color: #fff;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 4;
+                overflow: hidden;
+            }
+        }
+        .time{
+            display: flex;
+            width: 100%;
+        }
+    }
+</style>

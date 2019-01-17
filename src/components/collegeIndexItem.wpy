@@ -1,0 +1,133 @@
+<template lang="wxml">
+    <view class='collageIndex_box' style="{{syncTitle[0].index?'padding:20rpx 0 0 0;':''}}">
+        <block wx:for='{{syncTitle}}' wx:key=''>
+            <view class='collageIndex' @tap="{{item.index?'nullTab':'click'}}" data-idx='{{item.id}}'>
+                <view class='imgBox'>
+                    <image src='{{item.cover}}'/>
+                </view>
+                <view class='collageIndex_bottom'>
+                    <view class='collageIndex_title'>{{item.title}}</view>
+                    <view class='collageIndex_skus'>{{item.skus}}</view>
+                    <view class='groupPrice' style="{{item.index?'margin-top:0rpx':''}}">
+                        <view class='groupPrice_left'>
+                            <view class='groupPrice_price'><text>￥</text><text>{{item.price}}</text></view>
+                            <view class='groupPrice_discount'>￥{{item.sell}}</view>
+                            <view class='groupPrice_groupNum'>·已团{{item.counts}}件</view>
+                        </view>
+                        <view class='groupPrice_btn'>{{item.number}}人团·去拼团</view>
+                    </view>
+                </view>
+            </view>
+        </block>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class Com extends wepy.component {
+    props = {
+        syncTitle: {
+            type: Array,
+            default: 'null'
+        },
+    };
+    data = {};
+    methods = {
+        click(e){
+           wx.navigateTo({
+               url: './datails?id='+e.currentTarget.dataset.idx
+           });
+        },
+        nullTab(){}
+    };
+
+    
+    onLoad (){
+    }
+}
+</script>
+
+<style lang="less">
+.collageIndex_box{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20rpx;
+    .collageIndex{
+        width: 100%;
+        border-radius: 10rpx;
+        overflow: hidden;
+        box-shadow: 0 0 10rpx #dcdcdc;
+        margin-bottom: 20rpx;
+        .imgBox{
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background-color: #fcfcfc;
+            image{
+                width: 380rpx;
+                height: 240rpx;
+                border-radius: 10rpx;
+            }
+        }
+    }
+    .collageIndex_bottom{
+        padding: 0 20rpx 15rpx 20rpx;
+        background-color: #fff;
+        .collageIndex_title{
+            width: 670rpx;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #333;
+            font-size: 30rpx;
+            letter-spacing: 3rpx;
+        }
+        .collageIndex_skus{
+            padding-top: 5rpx;
+            font-size: 25rpx;
+            color: #666;
+            letter-spacing: 3rpx;
+        }
+        .groupPrice{
+            display: flex;
+            align-items: center;
+            margin-top: 15rpx;
+            justify-content: space-between;
+            .groupPrice_left{
+                display: flex;
+                align-items: center;
+                .groupPrice_price{
+                    color: #ff262f;
+                    font-size: 30rpx;
+                    text:nth-child(2){
+                        font-size: 42rpx;
+                    }
+                }
+                .groupPrice_discount{
+                    color: #333;
+                    font-size: 25rpx;
+                    text-decoration:line-through;
+                    transform: translateY(5rpx);
+                    margin-left: 22rpx;
+                }
+                .groupPrice_groupNum{
+                    color: #666;
+                    font-size: 24rpx;
+                    transform: translateY(5rpx);
+                    margin-left: 22rpx;
+                    letter-spacing: 3rpx;
+                }
+            }
+            .groupPrice_btn{
+                background: linear-gradient(to right,#FFA500,#FF8C00);
+                color: white;
+                padding: 10rpx 20rpx;
+                border-radius: 50rpx;
+                box-shadow: 0 0 10rpx #FFA500;
+                font-size: 25rpx;
+                letter-spacing: 3rpx;
+            }
+        }
+    }
+}
+</style>

@@ -1,12 +1,13 @@
 <style lang="less">
   @import "./styles/base";
   @import "./styles/tabStyle";
+  @import './styles/iconfont';
 </style>
 
 <script>
 import wepy from 'wepy'
-import 'wepy-async-function'
 import api from './app/app'
+import 'wepy-async-function'
 
 import { setStore } from 'wepy-redux'
 import configStore from './store'
@@ -21,6 +22,7 @@ export default class extends wepy.app {
       'pages/homePage',
       'pages/shoppingCard',
       'pages/about',
+      'pages/userVoucher',
       'pages/details',
       'pages/userComment',
       'pages/order',
@@ -34,6 +36,42 @@ export default class extends wepy.app {
       'pages/logisticsMessage',
       'pages/orderEvaluateDetail',
       'pages/payMent',
+      'pages/Collage/index',
+      'pages/Collage/datails',
+      'pages/Collage/confirmOrder',
+      'pages/Collage/paySuccess',
+      'pages/Collage/sharingSpells',
+      'pages/Collage/orderDetail',
+      'pages/selectCoupon',
+      'pages/receiveCoupon',
+      'pages/shareCpn',
+      'pages/signIn',
+      'pages/payMentFinish',
+      'pages/voucherCenter',
+      'pages/newLogisticsMessage'
+    ],
+    subPackages:[
+      {
+        root: 'packageMembershipCard',
+        pages: [
+          "membershipCard/cardIndex",
+          "membershipCard/myIntegral",
+          "membershipCard/exchange",
+          "membershipCard/cardShare",
+          'membershipCard/cardRecharge',
+          'membershipCard/selectCardLists',
+          'integralManagement/luckDrawIndex',
+          'integralManagement/luckDrawDetail',
+          'integralManagement/luckDrawSuccess',
+          'integralManagement/luckDrawAdministration',
+          'IntegralMall/index',
+          'IntegralMall/details',
+          'IntegralMall/orderLists',
+          'IntegralMall/orderConfirm',
+          'IntegralMall/paySuccess',
+          'IntegralMall/orderdetail'
+        ]
+      }
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -43,29 +81,29 @@ export default class extends wepy.app {
     },
     tabBar: {
       color: "#999999",
-      selectedColor: "#ff6a3c",
+      selectedColor: "#000000",
       backgroundColor: "#ffffff",
       borderStyle: "black",
       list: [{
         pagePath: "pages/index/index",
         text: "首页",
-        iconPath: "images/首页_03.jpg",
-        selectedIconPath: "images/j_03.jpg"
+        iconPath: "images/首页_03.png",
+        selectedIconPath: "images/j_03.png"
       },{
         pagePath: "pages/homePage",
         text: "商城",
-        iconPath: "images/商城.jpg",
-        selectedIconPath: "images/商城s.jpg"
+        iconPath: "images/商城.png",
+        selectedIconPath: "images/商城s.png"
       },{
         pagePath: "pages/shoppingCard",
         text: "购物车",
-        iconPath: "images/购物车_03.jpg",
-        selectedIconPath: "images/j_05.jpg"
+        iconPath: "images/购物车_03.png",
+        selectedIconPath: "images/j_05.png"
       },{
         pagePath: "pages/about",
         text: "我",
-        iconPath: "images/我的.jpg",
-        selectedIconPath: "images/j_07.jpg" 
+        iconPath: "images/我的.png",
+        selectedIconPath: "images/j_07.png" 
       }]
     },
     networkTimeout: {  
@@ -85,59 +123,8 @@ export default class extends wepy.app {
 
   onLaunch() {
     let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {}
-        // console.log(extConfig)
-        wepy.$instance.globalData.payMessage = extConfig
-    wx.checkSession({
-        // session_key 有效(未过期)
-        success: function() {
-            // 业务逻辑处理
-            // console.log('有效')
-        },
-        // session_key 过期
-        fail: function() {
-            // session_key过期，重新登录
-             wx.login({
-              success: function(res) {
-                  const url = api.apiMall + '/third/getSessionKey';
-                  const url_openLogin = api.apiMall + '/index/openLogin';
-                  const data = {
-                    code: res.code,
-                    thirdAppId: extConfig.thirdAppId
-                  };
-                   wx.request({
-                    url: url,
-                    data: data,
-                    method: 'POST',
-                    success: res => {
-                      // console.log(res)
-                      wx.setStorageSync('skey',res.data.session_key)
-                      wx.setStorage({
-                        key: 'openid',
-                        data: res.data.results.openid
-                      });
-                      wx.request({
-                        url: url_openLogin,
-                        data: {
-                          openId: res.data.results.openid,
-                          merchantId:  wepy.$instance.globalData.payMessage.merchantId
-                        },
-                        method: 'POST',
-                        success: res => {
-                          wepy.$instance.globalData.userId = res.data.userInfo.id
-                          wepy.$instance.globalData.avatar = res.data.userInfo.avatar
-                          wepy.$instance.globalData.nickname = res.data.userInfo.nickname
-                          wx.setStorage({
-                            key:'userId',
-                            data: res.data.userInfo.id
-                          })
-                        }
-                      });
-                    }
-                  });
-              }
-            })
-        }
-    })
+    wepy.$instance.globalData.payMessage = extConfig
+    wx.setStorageSync('extConfig', extConfig);
   }
 
   getUserInfo(cb) {

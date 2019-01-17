@@ -1,0 +1,323 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+import collegeAddress from '../../components/collegeAddress';
+import collegeIndexGoods from '../../components/collegeIndexGoods';
+
+export default class confirmOrder extends wepy.page {
+    config = {
+        navigationBarTitleText: '确认订单',
+        navigationBarBackgroundColor:'#ffd270',
+    }
+    components = {
+        collegeAddress:collegeAddress,
+        collegeIndexGoods:collegeIndexGoods
+    };
+    data = {
+        collegeIndexGoods:{},
+        groupId:'',
+        collegeAddress:{},
+        userId:'',
+        orderId:'',
+        type:'',
+        childId:'',
+    };
+    methods = {
+    };
+
+    events = {};
+    onShow(){
+        wx.getStorage({
+            key: 'userId',
+            success: res => {
+                this.userId = res.data
+                this.$apply()
+            }
+        });
+    }
+    onLoad(options) {
+        // console.log(options)
+        this.type = options.type
+        this.groupId = options.groupId
+        this.childId = options.childId
+        this.order_Data()
+    };
+    //确认订单数据
+    order_Data () {
+        const url = api.apiMall + '/group/orderQuery';
+        const data = {
+            groupId: this.groupId,
+            merchantId: wepy.$instance.globalData.payMessage.merchantId
+        };
+        wepy.request({
+            url: url,
+            method: 'POST',
+            data: data,
+        }).then((res)=>{
+            res.data.data.group.price = Number(res.data.data.group.price/100).toFixed(2)
+            res.data.data.group.sell = Number(res.data.data.group.sell/100).toFixed(2)
+            this.collegeIndexGoods = res.data.data.group
+            this.collegeAddress = res.data.data.merchant
+            this.$apply()
+        })
+    };
+    // 点击支付按钮
+    getuserinfo() {
+        if(this.userId){
+            this.orderCommit()
+        }else{
+            wx.navigateTo({
+                url: '../signIn'
+            });
+        }
+    }
+  orderCommit(){
+        const url = api.apiMall + '/group/orderCommit';
+        const data = {
+          groupId: this.groupId,
+          userId: this.userId,
+          merchantId: wepy.$instance.globalData.payMessage.merchantId,
+          total: this.collegeIndexGoods.price*100,
+          childId: this.childId || '0.1' 
+        }
+        // console.log(data)
+        wepy.request({
+          url: url,
+          method: 'POST',
+          data: data,
+        }).then((res)=>{
+            if(res.data.code == -1200){
+                wx.hideNavigationBarLoading()
+                wx.hideLoading()
+                wx.showModal({
+                    title: '库存不足',
+                    content: '抱歉,该商品已被抢购一空,商家正在紧急备货中...',
+                    showCancel:false,
+                    success: (res)=> {
+                        if (res.confirm) {
+                            wx.redirectTo({
+                                url: './index'
+                            })
+                        } 
+                    }
+                })
+            }else{
+                this.orderId = res.data.orderId
+                this.$apply()
+                this.goodsCollection()
+            }
+        })
+  };
+  //发起支付
+  goodsCollection(){
+    const that = this;
+    const url = api.apiMall + '/wxpay/groupPay';
+    wx.getStorage({
+      key: 'openid',
+      success: function(res){
+        wx.hideLoading()
+        const data = {
+          orderId:that.orderId,  
+          openId:res.data,
+          total: that.collegeIndexGoods.price*100,
+          merchantNumber: wepy.$instance.globalData.payMessage.merchantAppId,
+          thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId,
+          type: that.type || 'group' 
+        }
+        // console.log(data)
+        wepy.request({
+          url: url,
+          method: 'POST',
+          data: data,
+        }).then((resw)=>{
+          that.jssdk = resw.data.jssdk
+          that.$apply()
+          //发起微信支付
+            wx.requestPayment({
+                'appId':that.jssdk.appId,
+                'timeStamp': that.jssdk.timestamp,
+                'nonceStr':that.jssdk.nonceStr,
+                'package': that.jssdk.package,
+                'signType': that.jssdk.signType,
+                'paySign': that.jssdk.paySign,
+              success:(res)=>{
+                    wx.setStorage({
+                        key: 'groupOrderId',
+                        data: resw.data.orderId
+                    });
+                    wx.hideNavigationBarLoading();
+                    wx.navigateTo({
+                        url: './paySuccess?'+'orderId='+that.orderId+'&merchantId='+wepy.$instance.globalData.payMessage.merchantId
+                    });
+                },
+                fail:function(){
+                    wx.hideNavigationBarLoading();
+                    wx.hideLoading()
+                }
+            })
+        })
+      }
+    })
+  }
+}
+</script>
+
+<template>
+    <view class='container'>
+        <view class='technologicalProcess_box'>
+            <!-- 拼团流程 -->
+            <view class='technologicalProcess'>
+                <view class='process_'>
+                    <view class='process_circle'>1<view class='black_line'></view></view>
+                    <view class='process_describe'>
+                        <view>选择商品</view>
+                        <view>开团/参团</view>
+                    </view>
+                </view>
+                <view class='process_'>
+                    <view class='process_circle'>2<view class='black_line'></view></view>
+                    <view class='process_describe'>
+                        <view>邀请好友</view>
+                        <view>好友参团</view>
+                    </view>
+                </view>
+                <view class='process_'>
+                    <view class='process_circle'>3</view>
+                    <view class='process_describe'>
+                        <view>人满成团</view>
+                        <view>门店提货</view>
+                    </view>
+                </view>
+            </view>
+            <!-- 提货地址组件 -->
+            <collegeAddress :syncTitle.sync="collegeAddress"/>
+        </view>
+        <!-- 提货时间 -->
+        <view class='takeGoodsTime_box'>
+            <view class='takeGoodsTime'>
+                <view class='takeGoodsTime_title'>提货时间</view>
+                <view class='takeGoodsTime_time'>每天 {{collegeAddress.starttime}} - {{collegeAddress.endtime}} (节假日不休)</view>
+            </view>
+        </view>
+        <!-- 订单商品组件 -->
+        <collegeIndexGoods :syncTitle.sync="collegeIndexGoods"/>
+        <!-- 底部btn -->
+        <view class='payBtn_box'>
+            <view class='payBtn_price'>实付款：<text>￥</text><text>{{collegeIndexGoods.price}}</text></view>
+            <button class='payBtn_pay' @tap='getuserinfo'>立即支付</button>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+page{
+    background-color: #fff;
+}
+.technologicalProcess_box{
+    width: 100%;
+    height: 320rpx;
+    background-color: #ffd270;
+    box-sizing: border-box;
+    padding: 35rpx 0;
+    .technologicalProcess{
+        margin: 0 100rpx;
+        display: flex;
+        justify-content: space-between;
+        .process_{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            .process_circle{
+                position: relative;
+                font-size: 30rpx;
+                color: #fff;
+                background-color: #000;
+                width: 55rpx;
+                height: 55rpx;
+                border-radius: 50%;
+                line-height: 55rpx;
+                text-align: center;
+                .black_line{
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    margin: auto;
+                    left: 70rpx;
+                    width: 125rpx;
+                    height: 1px;
+                    background-color: #000;
+                }
+            }
+            .process_describe{
+                text-align: center;
+                padding-top: 20rpx;
+                view:nth-child(1){
+                    color: #000;
+                    font-size: 33rpx;
+                }
+                view:nth-child(2){
+                    color: #000;
+                    font-size: 26rpx;
+                }
+            }
+        }
+    }
+    
+}
+.takeGoodsTime_box{
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 30rpx;
+    .takeGoodsTime{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 100rpx;
+        box-shadow: 0 5rpx 10rpx #f1f1f1;
+        border-radius: 10rpx;
+        padding: 20rpx 0;
+        .takeGoodsTime_title{
+            color: #000;
+            font-size: 33rpx;
+            padding-bottom: 10rpx;
+        }
+        .takeGoodsTime_time{
+            color: #000;
+            font-size: 30rpx;
+        } 
+    }
+}
+.payBtn_box{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20rpx 40rpx;
+    border-top: 1px solid #f1f1f1;
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .payBtn_price{
+        display: flex;
+        align-items: center;
+        color: #000;
+        font-size: 30rpx;
+        text:nth-child(1){
+            color: red;
+            transform: translateY(3rpx)
+        }
+        text:nth-child(2){
+            color: red;
+            font-size: 40rpx;
+        }
+    }
+    .payBtn_pay{
+        background-color: #ffd270;
+        color: #000;
+        // padding: 20rpx 35rpx;
+        border-radius: 50rpx;
+        font-size: 30rpx;
+        transform: translateX(150rpx);
+    }
+}
+</style>

@@ -1,0 +1,275 @@
+<template lang="wxml">
+    <view class='item_box'  wx:for='{{syncTitle}}' wx:key=''>
+        <view wx:if='{{item.type == 1}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/youhuiquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                    <view class='prompt_'>满{{item.min_money/100}}元使用</view>
+                </view>
+            </view>
+            <view class='couponItem_right'><view  @tap='goUse'>去使用</view></view>
+        </view>
+        <view wx:if='{{item.type == 2}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/zhekouquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:25rpx;'>
+                        <text class='bags'>{{item.amount}}</text>
+                        <text>折</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'><view  @tap='goUse'>去使用</view></view>
+        </view>
+        <view wx:if='{{item.type == 3}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/daijinquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:30rpx;'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'><view  @tap='goUse'>去使用</view></view>
+        </view>
+        <view class='time' style="{{item.rotateArrow?'box-shadow:none':'box-shadow:4rpx 4rpx 10rpx #f1f1f1;'}}">
+            <view class='term' wx:if='{{!item.begin_time}}'>使用期限：永久有效</view>
+            <view class='term' wx:if='{{item.begin_time}}'>使用期限：{{item.begin_time}} - {{item.end_time}}</view>
+            <view class='time_right' @tap='clickPrompt({{index}})'>
+                <icon class="iconfont icon-shang {{item.rotateArrow?'rotateArrow':''}}"/>
+            </view>
+        </view>
+        <view class="businessAccountBox">
+            <view class="businessAccount {{item.rotateArrow?'showContent':''}}">
+                <!--  wx:if='{{rotateArrow}}' -->
+                <view class='share' @tap='sharefriend({{item.id}},{{index}})'><icon class='iconfont icon-icon-test'/>赠送朋友</view>
+                <view class='content'>
+                    <view>商家说明：</view>
+                    <view>{{item.content}}</view>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class couponShare extends wepy.component {
+    components = {};
+
+    data = {
+        Mask:false,
+    };
+    methods = {
+        clickPrompt(idx){
+            this.syncTitle[idx].rotateArrow = !this.syncTitle[idx].rotateArrow
+        },
+        sharefriend(id,index){
+            this.syncTitle[index].rotateArrow = !this.syncTitle[index].rotateArrow
+            this.$emit('sharefriend',id,index);
+        },
+        goUse(){
+            wx.switchTab({
+                url: './homePage'
+            });
+        }
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type: Object,
+            default: 'null'
+        }
+    };
+
+}
+</script>
+
+<style lang="less">
+    .item_box{
+        box-sizing: border-box;
+        padding: 20rpx 40rpx 8rpx 40rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        .couponItem{
+            height: 195rpx;
+            width: 100%;
+            border-radius: 7rpx;
+            background-size: 100%;
+            display: flex;
+            .couponItem_left{
+                display: flex;
+                flex-direction: row;
+                width: 500rpx;
+                .logo{
+                    width: 50%;
+                    box-sizing: border-box;
+                    padding-top: 25rpx;
+                    padding-left: 90rpx;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    view{
+                        margin-bottom: 15rpx;
+                        font-size: 24rpx;
+                        color: #fff;
+                        width: 100%;
+                        text-align: center;
+                        letter-spacing: 3rpx;
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 1;
+                        overflow: hidden;
+
+                    }
+                    image{
+                        width: 100rpx;
+                        height: 100rpx;
+                        border-radius: 8rpx;
+                    }
+                }
+                .pricess{
+                    box-sizing: border-box;
+                    padding-right: 6rpx;
+                    width: 50%;
+                    display: inline-block;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    .pricess_{
+                        font-size: 35rpx;
+                        color: #fff;
+                        padding-top: 10rpx;
+                        box-sizing: border-box;
+                        .bags{
+                            font-size: 100rpx;
+                        }
+                    }
+                    .prompt_{
+                        font-size: 20rpx;
+                        letter-spacing: 2rpx;
+                        color: #fff;
+                        transform: translateX(6rpx) translateY(-6rpx);
+                    }
+                }
+            }
+            .couponItem_right{
+                box-sizing: border-box;
+                height: 160rpx;
+                padding: 35rpx 0 0rpx 5rpx;
+                flex: 1;
+                font-size: 22rpx;
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                view{
+                    font-size: 26rpx;
+                    width: 138rpx;
+                    height: 44rpx;
+                    line-height: 44rpx;
+                    background-color: #fff;
+                    text-align: center;
+                    border-radius: 50rpx;
+                    color: #ff5241;
+                }
+            }
+        }
+        .time{
+            display: flex;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10rpx 12rpx;
+            box-shadow: 4rpx 4rpx 10rpx #f1f1f1;
+            .term{
+                font-size: 22rpx;
+                flex: .6;
+            }
+            .time_right{
+                position: relative;
+                flex: .4;
+                display: flex;
+                justify-content: flex-end;
+                icon{
+                    transition: all .3s;
+                    font-size:19px;
+                    position: absolute;
+                    top: -15rpx;
+                    right: 0;
+                    color: rgb(153, 153, 153);
+                }
+            }
+        }
+    }
+    .rotateArrow{
+        transform: translateY(10rpx) rotate(180deg);
+    }
+    .businessAccountBox{
+        width: 100%;
+        .businessAccount{
+            box-shadow: 0rpx 4rpx 10rpx #f1f1f1;
+            transition: height .5s;
+            width: 100%;
+            height: 0rpx;
+            overflow: hidden;
+            box-sizing: border-box;
+            padding: 0rpx 12rpx;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            .share{
+                width: 100%;
+                text-align: center;
+                font-size: 32rpx;
+                color: #666;
+                margin: 14rpx 0 14rpx 0;
+                border-bottom:1rpx dashed rgb(168, 166, 166);
+                padding-bottom:12rpx;
+                icon{
+                    color: #ff982c;
+                    font-size: 50rpx;
+                    margin-right: 6rpx;
+                    transform: translateY(8rpx);
+                }
+            }
+            .content{
+                width: 100%;
+                padding-bottom: 8rpx;
+                display: flex;
+                view:nth-child(1){
+                    font-size: 22rpx;
+                }
+                view:nth-child(2){
+                    flex: 1;
+                    font-size: 22rpx;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 2;
+                    overflow: hidden;
+                }
+            }
+        }
+    } 
+    .showContent{
+        height: 170rpx !important;
+    }
+</style>

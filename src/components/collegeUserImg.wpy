@@ -1,0 +1,203 @@
+<template lang="wxml">
+    <view class='userMessItem_box'>
+        <block wx:for="{{syncTitle}}" wx:key="">
+            <view class='userMessItem'>
+                <view class='userMessItem_left'>
+                    <image src="{{item.avatar}}"/>
+                    <view class='grouper' wx:if="{{item.is_launch == 1}}">团长</view>
+                </view>
+                <view class='userMessItem_right'>
+                    <view>{{item.nickname}}</view>
+                    <view>{{item.dateline}}</view>
+                </view>
+            </view>
+        </block>
+        <view wx:if="{{syncTitle.length == 1 || (syncTitle.length == 2 && syncTitle[0].length3 == false)}}">
+            <view class='userMessItem'>
+                <view class='userMessItem_left'>
+                    <image src="http://applet.qumatou.com.cn/static/food/WechatIMG151.png" style='border: 1rpx solid #f2f2f2;'/>
+                </view>
+                <view class='userMessItem_right'>
+                    <view style='color:gray;'>等待参团...</view>
+                </view>
+            </view>
+        </view>
+        <!-- 查看更多 -->
+        <view wx:if="{{syncTitle[0].length3 == 'greaterThanTwo'}}" @tap='bottomShow' class='lookMore'>
+            <image src='http://applet.qumatou.com.cn/static/shop/查看更多.png'/>
+        </view>
+
+        <!-- 遮罩 -->
+        <view class='Mask' @tap='bottomShow' hidden='{{Mask}}'></view>
+        <!-- 用户信息弹窗 -->
+        <scroll-view class='users_box' hidden='{{Mask}}' scroll-y>
+            <view class='users_box_tittle'>已参加该团用户</view>
+            <allUsers :syncTitle.sync="userMess"/>
+        </scroll-view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import api from '../app/app';
+import allUsers from './allUsers'
+export default class collegeEnsure extends wepy.component {
+    components = {
+        allUsers:allUsers
+    };
+
+    data = {
+        Mask:true,
+        userMess:{},
+    };
+    methods = {
+        bottomShow(){
+            this.Mask = !this.Mask
+            this.$apply()
+            wx.getStorage({
+                key: 'groupOrderId',
+                success: res => {
+                    const that = this;
+                    const url = api.apiMall + '/group/showSuccess';
+                    const data = {
+                        orderId: res.data,
+                        merchantId: wepy.$instance.globalData.payMessage.merchantId
+                    }
+                    wepy.request({
+                        url: url,
+                        method: 'POST',
+                        data: data,
+                    }).then((res)=>{
+                        that.userMess = res.data.data.users
+                        that.$apply()
+                    })
+                }
+            });
+        }
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){}
+}
+</script>
+
+<style lang="less">
+.ensure_box{
+        box-sizing: border-box;
+        padding-top: 40rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .ensure{
+            display: flex;
+            flex: 1;
+            justify-content: space-between;
+            align-items: center;
+            .ensure_item{
+                display: flex;
+                align-items: center;
+                image{
+                    width: 35rpx;
+                    height: 35rpx;
+                    margin-right: 7rpx;
+                }
+                view{
+                    color: #805915;
+                    font-size: 26rpx;
+                }
+            }
+        }
+    }
+    .userMessItem_box{
+        border-bottom: 1px solid #f1f1f1;
+        padding-bottom: 35rpx;
+    }
+    .userMessItem{
+        background-color: #f3f3f3;
+        border-radius: 70rpx;
+        display: flex;
+        align-items: center;
+        margin-top: 25rpx;
+        padding: 10rpx 25rpx;
+        .userMessItem_left{
+            position: relative;
+            image{
+                border: 1rpx solid sandybrown;
+                height: 100rpx;
+                width: 100rpx;
+                border-radius: 50%;
+            }
+            .grouper{
+                position: absolute;
+                left: 8rpx;
+                bottom: -8rpx;
+                width: 80rpx;
+                background-color: #000;
+                border: 1rpx solid #fff;
+                color: #ffd270;
+                border-radius: 50rpx;
+                font-size: 25rpx;
+                padding: 3rpx 0;
+                text-align: center;
+            }
+        }
+        .userMessItem_right{
+            padding-left: 20rpx;
+            view:nth-child(1){
+                font-size: 33rpx;
+                color: #000;
+            }
+            view:nth-child(2){
+                font-size: 27rpx;
+                padding-top: 10rpx;
+            }
+        }
+    }
+    .Mask{
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        background-color: rgba(0, 0, 0, .6);
+        width: 100%;
+        height: 110%;
+    }
+    // 用户弹窗
+    .users_box{
+        border-radius: 15rpx;
+        box-sizing: border-box;
+        padding: 0 20rpx;
+        z-index: 999;
+        position: fixed;
+        background-color: #fff;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        width: 92%;
+        height: 700rpx;
+        view.users_box_tittle{
+            text-align: center;
+            color: #000;
+            font-size: 33rpx;
+            margin-top: 20rpx;
+            letter-spacing: 3rpx;
+        }
+    }
+    .lookMore{
+        margin-top: 30rpx;
+        display: flex;
+        justify-content:center;
+        image{
+            width: 170rpx;
+            height: 32rpx;
+        }
+    }
+</style>

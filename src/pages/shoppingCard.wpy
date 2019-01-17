@@ -55,7 +55,7 @@
 	}
 	.minusBtn,.addBtn{
 		display: inline-block;
-		background-color: rgb(244,148,0);
+		background-color: #ffd270;
 		color: #ffffff;
 		text-align: center;
 		line-height: 46rpx;
@@ -102,25 +102,25 @@
 	.computedPrice{
 		display: flex;
 		height: 100%;
-		width: 138rpx;
+		width: 300rpx;
 		align-items: center;
 		flex-direction: column;
 		text:nth-child(1){
 			display: inline-block;
 			margin-top: 13rpx;
 			text-align: center;
-			font-size: 30rpx;
+			font-size: 33rpx;
 			color: #fd2323;
 		}
 		text:nth-child(2){
 			display: inline-block;
 			text-align: center;
-			font-size: 22rpx;
+			font-size: 20rpx;
 			color: #333333;
 		}
 	}
 	.Settlement-btn{
-		background-color: #f3825d;
+		background-color: #ffd270;
 		display: flex;
 		/*flex: 0.5;*/
 		width: 200rpx;
@@ -128,7 +128,7 @@
 		border: none;
 		align-items: center;
 		justify-content: center;
-		color: #ffffff;
+		color: #000;
 		font-size: 32rpx;
 	}
 	.itemNum{
@@ -232,9 +232,9 @@
 		    </view>
 		    <view class="totalPrice-box">
 		    	<!-- 总价 -->
-			    <view class='computedPrice'><text>￥{{totalPrice}}</text><text>不含运费</text></view>
+			    <view class='computedPrice'><text>￥{{totalPrice}}</text><text>￥{{sendprice}}起送,另需配送费￥{{normalsend}}</text></view>
 			    <view wx:if='{{judgeLogin}}' class='Settlement-btn' @tap='jiesuan'>结算</view>
-			    <button wx:else open-type='getUserInfo' @getuserinfo='getuserinfo' class='Settlement-btn kaoRight' @tap='jiesuan'>结算</button>
+			    <button wx:else @tap='getuserinfo' class='Settlement-btn kaoRight'>结算</button>
 		    </view>
 		</view>
 		</view>
@@ -263,11 +263,27 @@
       	userId:'',
       	goodsId:'',
       	judgeLogin:false,
+		normalsend:1,
+		sendprice:1,
     }
     config = {
-      navigationBarTitleText: '购物车'
+      navigationBarTitleText: '购物车',
     }
     onLoad(){
+		wx.getStorage({
+			key: 'normalsend',
+			success: res => {
+				this.normalsend = res.data
+				this.$apply()
+			}
+		});
+		wx.getStorage({
+			key: 'sendprice',
+			success: res => {
+				this.sendprice = res.data
+				this.$apply()
+			}
+		});
     	if(this.noBuy == false){
     		wx.showNavigationBarLoading()
     	}
@@ -306,7 +322,8 @@
 
 		wx.getStorage({
     		key:'userId',
-    		success:()=>{
+    		success:(res)=>{
+				this.userId = res.data
     			this.judgeLogin = true
     			this.$apply()
     		},
@@ -314,51 +331,7 @@
     			this.judgeLogin = false
     			this.$apply()
     		}
-    	})
-		
-		let loginFlag = wx.getStorageSync('skey');
-    if (!loginFlag.length) {
-      wx.login({
-        success: (res)=> {
-            const url = api.apiMall + '/third/getSessionKey';
-            const url_openLogin = api.apiMall + '/index/openLogin';
-            const data = {
-              code: res.code,
-              thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
-            };
-              wx.request({
-              url: url,
-              data: data,
-              method: 'POST',
-              success: res => {
-                // console.log(res)
-                wx.setStorageSync('skey',res.data.session_key)
-                wx.setStorage({
-                  key: 'openid',
-                  data: res.data.results.openid
-                });
-                wx.request({
-                  url: url_openLogin,
-                  data: {
-                    openId: res.data.results.openid,
-                    merchantId:  wepy.$instance.globalData.payMessage.merchantId
-                  },
-                  method: 'POST',
-                  success: res => {
-
-                    wepy.$instance.globalData.userId = res.data.userInfo.id
-                    wepy.$instance.globalData.avatar = res.data.userInfo.avatar
-                    wepy.$instance.globalData.nickname = res.data.userInfo.nickname
-                    // wx.setStorageSync('skey',res.data.session_key)
-                    this.userId = res.data.userInfo.id
-                    this.$apply()
-                  }
-                });
-              }
-            });
-        }
-      })
-    }
+		})
   }
     onHide(){
     	this.selectAllStatus = false,
@@ -395,7 +368,7 @@
       })
     }
     //计算总价
-    getTotalPrice() {
+    getTotalPrice(selected) {
 	    let cartItems = this.cartItems;                  // 获取购物车列表
 	    let total = 0;
 	    for(let i = 0; i<cartItems.length; i++) {         // 循环列表得到每个数据
@@ -404,7 +377,11 @@
 	        }
 	    }
 	    this.cartItems =  cartItems,                     // 最后赋值到data中渲染到页面
-	    this.totalPrice = total.toFixed(2)
+	    this.totalPrice = Number(total.toFixed(2))+Number(this.normalsend)
+		if(selected){
+			this.totalPrice = Number(this.totalPrice) - Number(this.normalsend)
+			this.$apply()
+		}
 	}
     components = {}
     methods = {
@@ -414,7 +391,7 @@
 		    const selected = cartItems[index].selected;         // 获取当前商品的选中状态
 		    cartItems[index].selected = !selected;              // 改变状态
 		    this.cartItems = cartItems
-		    this.getTotalPrice();                           // 重新获取总价
+		    this.getTotalPrice(selected);                           // 重新获取总价
 		},
 		selectAll(e) {
 		    let selectAllStatus = this.selectAllStatus;    // 是否全选状态
@@ -426,7 +403,7 @@
 		    }
 		    this.selectAllStatus = selectAllStatus,
 	        this.cartItems = cartItems,
-		    this.getTotalPrice()                              // 重新获取总价
+		    this.getTotalPrice(!this.selectAllStatus)               // 重新获取总价
 		},
 		// 增加数量
 		addCount(e) {
@@ -471,9 +448,6 @@
 	    		key:'userId',
 	    		success:(res)=>{
 	    			this.judgeUserLogin()
-	    		},
-	    		fail:()=>{
-	    			
 	    		}
 	    	})
 		},
@@ -483,76 +457,56 @@
 			})
 		}
     }
-    getuserinfo(e){
-			if (e.detail.errMsg == 'getUserInfo:fail auth deny') {
-				wx.showModal({
-					title: '官方提示',
-					content:
-						'若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
-					duration: 1000,
-					showCancel: false,
-					confirmText: '授权',
-					success: res => {
-						wx.openSetting({
-							success: () => {}
-						});
-					}
-				});
-			}else{
-				wx.showNavigationBarLoading();
-				let url = api.apiMall + '/index/updateLogin';
-				let data = {
-					avatar : e.detail.userInfo.avatarUrl,
-					nickname : e.detail.userInfo.nickName,
-					userId : wepy.$instance.globalData.userId
-				}
-				wepy.request({
-					url: url,
-					method: 'POST',
-					data: data
-				}).then(res => {
-					wx.hideNavigationBarLoading();
-					let userInfo = res.data.userInfo;
-					wx.setStorage({
-						key: 'userInfo',
-						data: userInfo,
-						success: (res)=>{
-							this.judgeUserLogin()
-						}
-					})
-				})
-			} 
+    getuserinfo(){
+		if(this.userId){
+			this.judgeUserLogin()
+		}else{
+			wx.navigateTo({
+				url: './signIn'
+			});
+		}
     }
     //用户登录成功执行
     judgeUserLogin(){
     	let that = this;
-			let nowPrice = that.totalPrice;
-			let cartItems = that.cartItems;
-			for(var attr in cartItems){
-				if(cartItems[attr].selected){
-					that.selectBuy.push(cartItems[attr])
-					that.$apply()
-				}
+		let nowPrice = that.totalPrice;
+		let cartItems = that.cartItems;
+		let sendprice = that.sendprice;
+		let normalsend = that.normalsend;
+		for(var attr in cartItems){
+			if(cartItems[attr].selected){
+				that.selectBuy.push(cartItems[attr])
+				that.$apply()
 			}
-			if(nowPrice == 0){
-				wx.showToast({
-  				title: '请选择商品',
-  				icon: 'none',
-  				duration: 2000
-				})
-			}else{
+		}
+		if(nowPrice == 0){
+			wx.showToast({
+			title: '请选择商品',
+			icon: 'none',
+			duration: 2000
+			})
+		}else{
+			if(nowPrice >= sendprice){
 				wx.navigateTo({
 					url:"confirmOrder"
 				})
+			}else{
+				wx.showToast({
+					title: '未达到起送价格',
+					icon: 'none',
+					duration: 2000,
+					mask: false,
+				});
 			}
-			wx.setStorage({
-				key:'selectBuy',
-				data: that.selectBuy
-			})
-			wx.setStorage({
-				key:'totalPrice',
-				data: that.totalPrice
-			})
+		}
+		wx.setStorage({
+			key:'selectBuy',
+			data: that.selectBuy
+		})
+		wx.setStorage({
+			key:'totalPrice',
+			data: that.totalPrice - normalsend
+		})
     }
   }
 </script>

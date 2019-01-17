@@ -238,10 +238,11 @@
         method: 'POST',
         data: data,
       }).then((res)=>{
-        wx.setStorage({
-        	key:'orderEvaluat',
-        	data:res.data.data.length
-        })
+        if(res.data.data.length != 0){
+			that.$emit('allStaus')
+		}else{
+			that.$emit('noStaus','4')
+		}
         // console.log(res.data.data)
         that.itemInformation = res.data.data
         that.$apply()

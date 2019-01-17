@@ -1,0 +1,885 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app'
+
+export default class cardIndex extends wepy.page {
+    config = {
+        navigationBarTitleText: '会员卡',
+        navigationBarBackgroundColor: '#ffd270',
+        enablePullDownRefresh:true,
+        backgroundTextStyle:'dark',
+    };
+    components = {};
+    data = {
+        token:null,
+        Mask:true,
+        currentTab: 0,
+        userInfo:{},
+        navbar: ['充值记录','消费记录','我的子卡','我的分享'],
+        // 充值记录
+        rechargeRecord:[],
+        // 消费记录
+        consumptionRecord:[],
+        // 子卡
+        Subcard:[],
+        // 我的分享
+        shareCard:[],
+        MaskHeight:'',
+        SelectIcon:[
+            {
+                id:0,
+                color:'#ffd270',
+                title:'有限'
+            },
+            {
+                id:1,
+                color:'#969696',
+                title:'无限'
+            },
+        ],
+        inputHidden:false,
+        iconWho:0,
+        userInputNum_update:'-1',
+        shareBtn:'',
+        amount:'',
+        noShareCard:true,
+        noRechargeRecord:true,
+        noConsumptionRecord:true,
+        noSubcard:true,
+        info:null,
+        cardShareNumber:'',
+        extConfig:null,
+        money:0,
+    }
+    //分享会员卡
+    getData(){
+        const data = {
+            num: this.userInputNum_update,
+            merchant_id:this.extConfig.merchantId
+        };
+        wepy.request({
+            url: api.yscc+'/api/daughter_cards',
+            method: 'POST',
+            data: data,
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Content-Type':'application/x-www-form-urlencoded;charset=utf-8',
+                'Authorization':'Bearer ' + this.token
+            },
+        }).then((res)=>{
+            this.cardShareNumber = res.data.message;
+            this.$apply()
+        });
+    }
+    onShareAppMessage (res) {
+        return {
+            title: '送你一张免费购买商品会员卡。',
+            path: '/packageMembershipCard/membershipCard/cardShare?nums='+ this.cardShareNumber + '&shopId=' + this.extConfig.merchantId
+        }
+    }
+    methods = {
+        navbarTap(e){
+            this.currentTab = e;
+        },
+        bottomShow(){
+            this.Mask = !this.Mask
+        },
+        selectIcon(e){
+            this.SelectIcon.forEach(element => {
+                if(e == element.id){
+                    element.color = '#ffd270'  
+                }else{
+                    element.color = '#969696'
+                }
+            });
+            if(!e){
+                this.iconWho = e
+                this.inputHidden = false
+                this.$apply()  
+            }else{
+                this.iconWho = e
+                this.inputHidden = true
+                this.$apply()  
+            }
+        },
+        shareBefore(){
+            this.getData();
+            if(this.amount == '0.00'){
+                wx.showToast({
+                    title: '余额不足,请充值',
+                    icon: 'none',
+                });
+            }else{
+                // 当选择‘有限’时，用户是否输入次数
+                if(!this.iconWho){      //选择‘有限’
+                    if(!this.userInputNum_update || this.userInputNum_update <= 0){     //未输入次数
+                        wx.showToast({
+                            title: '请输入会员卡使用次数',
+                            icon: 'none',
+                        })
+                    }else{
+                        
+                    }
+                }else{
+                    this.userInputNum_update='0'
+                    this.$apply()
+                }
+            }
+        },
+        cardRecharge(){
+            wx.navigateTo({
+                url: './cardRecharge?shopId=' + this.extConfig.merchantId
+            });
+        },
+        revokeShare(e){
+            this.revokeShare(e)
+        },
+    };
+    userInputNum(e){
+        this.userInputNum_update = e.detail.value
+    }
+    computed = {
+        abledShare(){
+            if(this.amount == '0.00'){
+                return
+            }else{
+                if(!this.iconWho){      //选择‘有限’
+                    if(this.userInputNum_update && this.userInputNum_update > 0){     //输入次数
+                        this.shareBtn ='share'
+                    }else{      //未输入次数
+                        this.shareBtn ='0'
+                    }
+                }else{
+                    this.shareBtn ='share'
+                    this.userInputNum_update ='0'
+                }
+            }
+        },
+        // 无记录
+        noRecord(){
+            if(!this.shareCard.length){
+                this.noShareCard = false
+            }else{
+                this.noShareCard = true
+            }
+            if(!this.rechargeRecord.length){
+                this.noRechargeRecord = false
+            }else{
+                this.noRechargeRecord = true
+            }
+            if(!this.consumptionRecord.length){
+                this.noConsumptionRecord = false
+            }else{
+                this.noConsumptionRecord = true
+            }
+            if(!this.Subcard.length){
+                this.noSubcard = false
+            }else{
+                this.noSubcard = true
+            }
+        }
+    };
+    watch = {
+        currentTab (newValue, oldValue) {
+            if(newValue == 1){
+                this.consumption()
+            }else if(newValue ==  2){
+                this.sonCardLists()
+            }else if (newValue == 3){
+                this.shareList();
+            }else if (newValue == 0){
+                this.userRecharge();
+            }
+        },
+        userInputNum_update(){
+            try{
+                this.getData();
+            }catch(err){}
+        }
+    }
+    onLoad(options) {
+        this.extConfig = wx.getStorageSync("extConfig");
+        //获取商户id
+        // this.info = JSON.parse(options.info)
+        // this.amount = this.info.money;
+        //获取token
+        this.token = wx.getStorageSync('token');
+        this.$apply();
+        wx.getStorage({
+            key: 'userInfo',
+            success: res => {
+                this.userInfo = res.data;
+                this.$apply();
+                this.userRecharge();
+                this.getMemberCard()
+            }
+        });
+        wx.getSystemInfo({
+            success: (res)=> {
+                this.MaskHeight = res.windowHeight;
+                this.$apply();
+            }
+        })
+    };
+    onShow(){
+        wx.getStorage({
+            key: 'userInfo',
+            success: res => {
+                this.userInfo = res.data
+                this.$apply()
+            }
+        });
+    }
+    //下拉刷新
+    onPullDownRefresh(){
+        wx.getStorage({
+            key: 'userInfo',
+            success: res => {
+                this.userInfo = res.data
+                this.$apply()
+                this.userRecharge()
+                
+            }
+        });
+    }
+    //领取会员卡
+    getMemberCard(){
+        wepy.request({
+            url: api.yscc+'/api/user_card',
+            method: 'POST',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+            data:{
+                merchant_id:this.extConfig.merchantId
+            }
+        }).then((res)=>{
+            if(res.data.status == 200){
+                //我的主卡列表
+                this.myCard()
+            }
+        });
+    }
+
+    //我的主卡列表
+    myCard(){
+        wepy.request({
+            url: api.yscc+'/api/user_card',
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+        }).then((res)=>{
+            if(res.data.status == 200){
+                this.money = Number(res.data.message[0].money/100).toFixed(2);
+                this.amount = this.money;
+                this.$apply();
+            }
+        });
+    }
+    // 获取用户会员卡余额
+    userMoney(){
+        wepy.request({
+            url: api.yscc+'/api/get_user_info',
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            }
+        }).then((res)=>{
+            res.data.message.amount = Number(res.data.message.amount/100).toFixed(2)
+            this.amount = res.data.message.amount
+            this.$apply()
+        });
+    }
+    // 获取用户充值记录
+    userRecharge(){
+        wepy.request({
+            url: api.yscc+'/api/recharge_records',
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+            data: {
+                merchant_id:this.extConfig.merchantId
+            }
+        }).then((res)=>{
+            wx.stopPullDownRefresh()
+            res.data.message.forEach(element => {
+                element.money = Number(element.money/100).toFixed(2)
+            });
+            this.rechargeRecord = res.data.message
+            this.$apply()
+        });
+    }
+    // 获取用户子卡列表
+    sonCardLists(){
+        wx.showLoading({
+            title: '加载中',
+        })
+        wepy.request({
+            url: api.yscc+'/api/daughter_cards',
+            method: 'GET',
+            data: {
+                type:1,      //type=1 是领取的子卡 type=2是别人分享的子卡
+                merchant_id:this.extConfig.merchantId
+            },
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+        }).then((res)=>{
+            wx.hideLoading()
+            res.data.message.forEach(element => {
+                element.amount = Number(element.amount/100).toFixed(2)
+            });
+            this.Subcard = res.data.message
+            this.$apply()
+        });
+    }
+    // 我的分享列表
+    shareList(){
+        wx.showLoading({
+            title: '加载中',
+        })
+        wepy.request({
+            url: api.yscc+'/api/daughter_cards',
+            method: 'GET',
+            data: {
+                type:2,
+                merchant_id:this.extConfig.merchantId   
+            },
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            }
+        }).then((res)=>{
+            console.log(res)
+            wx.hideLoading()
+            res.data.message.forEach(element => {
+                element.amount = Number(element.amount/100).toFixed()
+            });
+            this.shareCard = res.data.message;
+            this.$apply()
+        });
+    }
+    //消费记录
+    consumption(){
+        wx.showLoading({
+            title: '加载中',
+        })
+        wepy.request({
+            url: api.yscc+'/api/get_expenses_record',
+            method: 'GET',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+            data: {
+                merchant_id:this.extConfig.merchantId
+            }
+        }).then((res)=>{
+            wx.hideLoading()
+            res.data.message.forEach(element => {
+                element.money = Number(element.money/100).toFixed(2);
+            });
+            this.consumptionRecord = res.data.message;
+            this.$apply()
+        });
+    }
+    // 撤回分享卡
+    revokeShare(subcardId){
+        wepy.request({
+            url: api.yscc+'/api/daughter_cards/' + subcardId,
+            method: 'DELETE',
+            header:{
+                'Accept':'application/vnd.lingmo.v1+json',
+                'Authorization':'Bearer ' + this.token
+            },
+        }).then((res)=>{
+            if(res.data.status == 200){
+                wx.showToast({
+                    title: '撤卡成功',
+                    icon: 'success',
+                });
+                setTimeout(() => {
+                    this.shareList()
+                }, 500);
+            }
+        });
+    }
+}
+</script>
+<template lang="wxml">
+    <view class='container'>
+        <view class='userMesseBox'>
+            <view class='userMesseContant'>
+                <view class='userMesseContant_left'>
+                    <image src='{{userInfo.avatar}}'/>
+                    <view>{{userInfo.nickname}}</view>
+                </view>
+                <view class='userMesseContant_right'>
+                    <button class='userMesseContant_rightShare' @tap.stop='bottomShow'>
+                        <view>分享</view>
+                        <image src='../../images/分享.png'/>
+                    </button>
+                    <view class='userMesseContant_rightMoney'>余额<text>{{money}}</text></view>
+                    <view class='userMesseContant_rightRecharge' @tap='cardRecharge'>立即充值</view>
+                </view>
+            </view>
+        </view>
+        <!-- tab -->
+        <view class='tabBox'>
+            <!-- tab标题 -->
+            <view class="navbar" style=" z-index:9">
+                <!--循环-->
+                <view wx:for="{{navbar}}" wx:key="unique" class="item {{currentTab==index ? 'active' : ''}}" @tap="navbarTap({{index}})">
+                    {{item}}
+                </view>
+            </view>
+            <!-- tabContant -->
+            <!-- 充值记录 -->
+            <view hidden="{{currentTab !== 0}}" class='navbar_contantBox'>
+                <scroll-view scroll-y style='height:745rpx;' wx:if='{{noRechargeRecord}}'>
+                    <view wx:for='{{rechargeRecord}}' wx:key='' class='rechargeRecord'>
+                        <view>+ ￥{{item.money}}<view><block wx:if='{{item.title}}'><block>(</block>{{item.title}}<block>)</block></block></view></view>
+                        <view>{{item.updated_at}}</view>
+                    </view>
+                </scroll-view>
+                <view wx:else class='noStatus'>暂无相关充值记录!</view>
+            </view>
+            <!-- 消费记录 -->
+            <view hidden="{{currentTab !== 1}}" class='navbar_contantBox'>
+                <scroll-view scroll-y style='height:745rpx;' wx:if='{{noConsumptionRecord}}'>
+                    <view wx:for='{{consumptionRecord}}' wx:key='' class='rechargeRecord'>
+                        <view style='color:#333;'>- ￥{{item.money}}</view>
+                        <view>{{item.updated_at}}</view>
+                    </view>
+                </scroll-view>
+                <view wx:else class='noStatus'>暂无相关消费记录!</view>
+            </view>
+            <!-- 我的子卡 -->
+            <view hidden="{{currentTab !== 2}}" class='navbar_contantBox'>
+                <scroll-view scroll-y style='height:745rpx;' wx:if='{{noSubcard}}'>
+                    <view wx:for='{{Subcard}}' wx:key='' class="Subcard noOverdue">
+                        <view class="Subcard_left">
+                            <view>来自{{item.share_nickname}}的分享卡</view>
+                            <view wx:if="{{item.num != 0}}">待使用次数：{{item.num}}次</view>
+                            <view wx:if="{{item.num == 0}}">待使用次数：无限使用!</view>
+                        </view>
+                        <view class="Subcard_right">
+                            <!-- <image wx:if='{{!item.type}}' src='http://applet.qumatou.com.cn/static/shop/cardChapter.png' class='cardChapter'/> -->
+                            <view>金额</view>
+                            <view>￥{{item.amount}}</view>
+                        </view>
+                    </view>
+                </scroll-view>
+                <view wx:else class='noStatus'>当前无可使用的会员卡</view>
+            </view>
+            <!-- 我的分享 -->
+            <view hidden="{{currentTab !== 3}}" class='navbar_contantBox'>
+                <scroll-view scroll-y style='height:745rpx;' wx:if='{{noShareCard}}'>
+                    <view wx:for='{{shareCard}}' wx:key='' class="shareCardBox">
+                        <view class="shareCardBox_top">
+                            <image src='{{item.share_avatar}}'/>
+                            <view class="shareCardBox_topRight">
+                                <view>{{item.nickname}}</view>
+                                <view>{{item.updated_at}}</view>
+                            </view>
+                        </view>
+                        <view class="shareCardBox_bottom">
+                            <view wx:if="{{item.last_num != -1}}" style='font-size:24rpx;text-align: left;'>待使用次数：{{item.last_num}}次</view>
+                            <view wx:else style='font-size:24rpx;text-align: left;'>待使用次数：无限使用!</view>
+                            <view @tap="revokeShare({{item.id}})">撤销分享</view>
+                        </view>
+                    </view>
+                </scroll-view>
+                <view wx:else class='noStatus'>暂无分享卡!</view>
+            </view>
+        </view>
+        <!-- 分享弹窗 -->
+        <view class='sharePopupBox' hidden='{{Mask}}'>
+            <view class='sharePopupBox_top'>
+                <view>会员卡金额</view>
+                <view><text>￥</text>{{money}}</view>
+            </view>
+            <view class='sharePopupBox_bottom'>
+                <view>请选择分享后好友使用次数:</view>
+                <view class='sharePopupBox_bottomSelectBtn'>
+                    <view class='sharePopupBox_bottomSelectBtnItem' wx:for='{{SelectIcon}}' wx:key='' @tap="selectIcon({{index}})">
+                        <icon type="success" size="20" color='{{item.color}}'/>
+                        <view>{{item.title}}</view>
+                    </view>
+                </view>
+                <input hidden='{{inputHidden}}' placeholder='输入该卡使用次数' class='cardNumber' placeholder-style='font-size:27rpx' type='number' maxlength='3' bindblur='userInputNum'/>
+                <button @tap='shareBefore' open-type='{{shareBtn}}'>分享好友</button>
+            </view>
+        </view>
+        <!-- 遮罩 -->
+        <view class='Mask' @tap='bottomShow' hidden='{{Mask}}' style="height:{{MaskHeight}}px"></view>
+    </view>
+</template>
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .Mask{
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 9;
+        background-color: rgba(0, 0, 0, .6);
+        width: 100%;
+    }
+    .sharePopupBox{
+        box-sizing: border-box;
+        padding: 0 30rpx;
+        position: absolute;
+        background-image: url('http://applet.qumatou.com.cn/static/shop/shareBg_.png');
+        background-size: 100%;
+        z-index: 10;
+        width: 524rpx;
+        height: 860rpx;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 95rpx;
+        .sharePopupBox_top{
+            margin-top: 265rpx;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            view:nth-child(1){
+                font-size: 30rpx;
+                color: #000;
+                font-weight: bold;
+            }
+            view:nth-child(2){
+                font-size: 74rpx;
+                color: #000;
+                text{
+                    font-size: 50rpx;
+                }
+            }
+        }
+        .sharePopupBox_bottom{
+            margin-top: 50rpx;
+            position: relative;
+            view:nth-child(1){
+                font-size: 27rpx;
+                color: #000;
+            }
+            .sharePopupBox_bottomSelectBtn{
+                padding-top: 25rpx;
+                display: flex;
+                padding-bottom: 25rpx;
+                .sharePopupBox_bottomSelectBtnItem{
+                    flex: .5;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    icon{
+                        margin: 15rpx;
+                    }
+                    view{
+                        font-size: 28rpx;
+                    }
+                }
+            }
+            .cardNumber{
+                box-sizing: border-box;
+                padding-left: 25rpx;
+                height: 60rpx;
+                line-height: 60rpx;
+                font-size: 27rpx;
+                width: 380rpx;
+                position: absolute;
+                left: 0;
+                right: 0;
+                margin: auto;
+                border: 1rpx solid #f1f1f1;
+            }
+            button{
+                width: 350rpx;
+                height: 90rpx;
+                line-height: 90rpx;
+                background-color: #ffd270;
+                position: absolute;
+                left: 0;
+                right: 0;
+                margin: auto;
+                top: 270rpx;
+            }
+        }
+    }
+    .userMesseBox{
+        box-sizing: border-box;
+        padding: 0 20rpx;
+        background-color: #ffd270;
+        height: 380rpx;
+        .userMesseContant{
+            transform: translateY(35rpx);
+            background-image: url('http://applet.qumatou.com.cn/static/shop/cardbg.png');
+            height: 250rpx;
+            background-repeat: no-repeat;
+            background-size: 100%;
+            border-radius: 20rpx;
+            display: flex;
+            .userMesseContant_left,.userMesseContant_right{
+                position:absolute;
+                left:0;
+                height: 250rpx;
+                box-sizing: border-box;
+                padding: 20rpx;
+            }
+            .userMesseContant_left{
+                display: flex;
+                view{
+                    color:#fff;
+                    font-size: 32rpx;
+                    padding-left: 20rpx;
+                    height: 32rpx;
+                    line-height: 32rpx;
+                    margin-top: 50rpx;
+                }
+                image{
+                    margin-left: 30rpx;
+                    margin-top: 20rpx;
+                    width: 100rpx;
+                    height: 100rpx;
+                    border-radius: 50%;
+                    border: 1px solid #fff;
+                }
+            }
+            .userMesseContant_right{
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                position:absolute;
+                right:0;
+                .userMesseContant_rightShare{
+                    display: flex;
+                    color: #fff;
+                    width: 125rpx;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                    margin: 0;
+                    background-color: rgba(0, 0, 0, 0);
+                    view{
+                        font-size: 25rpx;
+                        margin-right: 10rpx;
+                        color: #fff;
+                    }
+                    image{
+                        width: 35rpx;
+                        height: 37rpx;
+                    }
+                }
+                .userMesseContant_rightMoney{
+                    margin-top: 20rpx;
+                    font-size: 30rpx;
+                    color: #fff;
+                    text{
+                        display: inline-block;
+                        margin-left: 17rpx;
+                        font-size: 48rpx
+                    }
+                }
+                .userMesseContant_rightRecharge{
+                    margin-top: 35rpx;
+                    color: #ffd270;
+                    font-size: 30rpx;
+                }
+            }
+        }
+    }
+    .tabBox{
+        position: relative;
+        border-radius: 75rpx 75rpx 0 0;
+        transform: translateY(-60rpx);
+        background-color: #fff;
+        box-sizing: border-box;
+        padding: 40rpx 60rpx;
+    }
+ // tabTitle
+    .navbar{ 
+        display: flex; 
+        box-sizing: border-box;
+        height: 75rpx;
+    } 
+    .navbar .item{
+        flex: .33;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative; 
+        text-align: center;
+        line-height: 60rpx; 
+        font-size: 30rpx;
+        color: #a5a5a5;
+        font-family: Microsoft YaHei;
+    } 
+    .navbar .item.active{ 
+        color: #000; 
+        font-size: 32rpx;
+        font-family: Microsoft YaHei;
+    } 
+    .navbar .item.active:after{ 
+        content: ""; 
+        position: absolute;
+        bottom: -5rpx; 
+        left: 0; 
+        right: 0;
+        margin: auto; 
+        height: 8rpx;
+        width: 65rpx;
+        border-radius: 50rpx;
+        background-color: #000;
+      
+    }
+    //tabContant
+    .navbar_contantBox{
+        margin-top: 30rpx;
+        .rechargeRecord{
+            display: flex;
+            justify-content: space-between;
+            height: 107rpx;
+            line-height: 107rpx;
+            border-bottom: 1px solid #f1f1f1;
+            view:nth-child(1){
+                position: relative;                
+                font-size: 36rpx;
+                color: #333;
+                view{
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    margin: auto;
+                    bottom: 7rpx;
+                    font-size: 18rpx;
+                    line-height: 18rpx;
+                    text-align: left;
+                    padding-left: 40rpx;
+                    color: red;
+                }
+            }
+        }
+    }
+    .Subcard{
+        margin: 10rpx 0;
+        position: relative;
+        display: flex;
+    }
+    .noOverdue{
+        background-image: url('http://applet.qumatou.com.cn/static/shop/cardNow.png');
+        height: 170rpx;
+        background-repeat: no-repeat;
+        background-size: 100%;
+        
+    }
+    .Subcard .Subcard_left{
+        flex: .7;
+        padding: 25rpx 30rpx 0 30rpx;
+        view:nth-child(1){
+            background: linear-gradient(to right, #54422d, #ab7143);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-size: 30rpx;
+        }
+        view:nth-child(2){
+            font-size: 21rpx;
+            transform: translateY(50rpx);
+        }
+    }
+    .Subcard .Subcard_right{
+        flex: .3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 35rpx;
+        transform: translateX(-10rpx);
+        view:nth-child(1){
+            background: linear-gradient(to right, #54422d, #ab7143);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-size: 27rpx;
+        }
+        view:nth-child(2){
+            background: linear-gradient(to right, #54422d, #ab7143);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-size: 36rpx;
+        }
+    }
+    .overdue .Subcard_left,.overdue .Subcard_right{
+        view{
+            color: #fff !important;
+        }
+        .cardChapter{
+            position: absolute;
+            width: 130rpx;
+            height: 130rpx;
+            left: 0;
+            right: 0;
+            margin: auto;
+            top: 22rpx;
+        }
+    }
+    .shareCardBox{
+        box-sizing: border-box;
+        padding: 20rpx;
+        margin-bottom: 30rpx;
+        height: 195rpx;
+        box-shadow: 0 0 10rpx #f1f1f1;
+        .shareCardBox_top{
+            display: flex;
+            align-items: center;
+            image{
+                height: 92rpx;
+                width: 92rpx;
+                border-radius: 50%;
+            }
+            .shareCardBox_topRight{
+                display: flex;
+                align-items: center;
+                padding-left: 20rpx;
+                flex: 1;
+                justify-content: space-between;
+                view:nth-child(1){
+                    font-size: 30rpx;
+                    color: #000;
+                }
+                view:nth-child(2){
+                    font-size: 24rpx;
+                }
+            }
+        }
+        .shareCardBox_bottom{
+            display: flex;
+            align-items: center;
+            padding-top: 15rpx;
+            view:nth-child(1){
+                flex: .7;
+                padding-left: 10rpx;
+                font-size: 30rpx;
+            }
+            view:nth-child(2){
+                flex: .3;
+                text-align: center;
+                font-size: 30rpx;
+                color: red;
+                border: 1rpx solid #f1f1f1;
+            }
+        }
+    }
+    .noStatus{
+        font-size: 27rpx;
+        text-align: center;
+        padding-top: 245rpx;
+    }
+</style>

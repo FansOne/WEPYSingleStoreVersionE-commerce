@@ -1,0 +1,383 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/app';
+import collegeIndexGoods from '../../components/collegeIndexGoods';
+import collegeAddress from '../../components/collegeAddress'
+
+export default class confirmOrder extends wepy.page {
+    config = {
+        navigationBarTitleText: '订单详情',
+        navigationBarBackgroundColor:'#ffd270',
+    }
+    components = {
+        collegeIndexGoods:collegeIndexGoods,
+        collegeAddress:collegeAddress,
+    };
+    data = {
+        collegeIndexGoods:{},
+        //订单类别
+        orderState:'',
+        orderId:'',
+        collegeGood:{},
+        //定时器
+        timer:'',
+        house:'00',
+        minute:'00',
+        second:'00',
+    };
+    methods = {
+        // 分享
+        onShareAppMessage(res) {
+            if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+            }
+            return {
+            title: '一起拼才划算~'+'【'+this.collegeGood.title+'】'+','+'单品优惠'+(this.collegeGood.sell-this.collegeGood.price)+'元！',
+            path: 'pages/Collage/sharingSpells?orderId='+this.collegeGood.groupOrderId,
+            imageUrl: this.collegeGood.shareCover
+            }
+        },
+        //跳支付
+        rePurchase(){
+             wx.navigateTo({
+                url: './confirmOrder?groupId='+this.collegeGood.groupId
+            });
+        },
+        //拼团主页
+        otherGroup(){
+            wx.redirectTo({
+                url: './index'
+            })
+        }
+    };
+
+    events = {
+    };
+    onLoad(options) {
+        this.orderId = options.orderId
+        this.orderState = options.id
+        this.groupOrderDetail()
+    };
+    //获取拼团订单详情
+    groupOrderDetail(){
+        wx.request({
+        url: api.apiMall + '/group/orderDetail',
+        method: 'POST',
+        data: {
+            orderId:this.orderId,
+            merchantId:  wepy.$instance.globalData.payMessage.merchantId
+        },
+        success: (res)=>{
+            res.data.data.orders[0].sell = Number(res.data.data.orders[0].sell/100).toFixed(2)
+            res.data.data.orders[0].price = Number(res.data.data.orders[0].price/100).toFixed(2)
+            this.collegeIndexGoods = res.data.data
+            this.collegeGood = res.data.data.orders[0]
+            this.$apply()
+            // console.log(this.collegeGood)
+
+            //倒计时判断
+            var num = res.data.data.timeDifference;
+            if(num<0){
+                num = 0
+            }
+            this.timer = setInterval(()=>{
+                this.countDown(num)
+                num --;
+                if(num < 0){
+                    clearInterval(this.timer)
+                }
+            },1000)
+        },
+        fail: ()=>{}
+        });
+    }
+    //倒计时函数
+    countDown(res){
+        let house;
+        let minute;
+        let second;
+        if(res<3600){
+            house = '00';
+        }else{
+            house = String(parseInt(res/3600));
+            house = (house.length> 1) ? house : '0' + house;
+        }
+        if(res<60){
+            minute = '00';
+        }else{
+            minute = String(parseInt((res%3600)/60));
+            minute = (minute.length> 1) ? minute : '0' + minute;
+        }
+        
+        second = String(res - house*3600 - minute*60);
+        second = (second.length> 1) ? second : '0' + second;
+        this.house = house;
+        this.minute = minute;
+        this.second = second;
+        this.$apply()
+    };
+    onUnload(){
+        clearInterval(this.timer)
+    };
+}
+</script>
+
+<template>
+    <view class='container'>
+        <view class="technologicalProcess_box {{orderState == 1?'limitHeight':''}}">
+            <!-- 订单状态 -->
+            <view wx:if="{{orderState == 3 || orderState == 1}}" class='orderState_box'>
+                <view class='orderState_text'>
+                    <image src="{{orderState == 1?'../../images/倒计时.png':'../../images/取消.png'}}"/>
+                    <view>{{orderState == 1?'待成团':'已取消'}}</view>
+                </view>
+                <view class='collegeWaiting_time'  wx:if="{{orderState == 1}}">
+                    <view class='collegeWaiting_num'>
+                        <view style='color:#000;'>{{collegeIndexGoods.orders[0].number}}人团</view>
+                        <view>还差{{collegeIndexGoods.orders[0].surplus}}人</view>
+                    </view>
+                    <view class='collegeWaiting_time_'>组团剩余时间：{{house}}:{{minute}}:{{second}}</view>
+                </view>
+            </view>
+            <!-- 订单结束状态 -->
+            <view wx:if="{{orderState == 2}}" class='orderState_box'>
+                <view class='orderState_text'>
+                    <view>此团已结束 <text wx:if='{{collegeIndexGoods.orders[0].orderStatus == 1}}'>(待提货)</text><text wx:if='{{collegeIndexGoods.orders[0].orderStatus == 2}}'>(已退款)</text><text wx:if='{{collegeIndexGoods.orders[0].orderStatus == 3}}'>(已提货)</text></view>
+                </view>
+                <view class='collegeWaiting_time'>
+                </view>
+            </view>
+            <!-- 提货地址组件 -->
+            <collegeAddress :syncTitle.sync="collegeGood"/>
+        </view>
+        <!-- 提货时间 -->
+        <view class="takeGoodsTime_box {{orderState == 3?'takeGoodsTime_boxTop':''}}" wx:if="{{orderState == 1 || orderState == 3}}" >
+            <view class='takeGoodsTime'>
+                <view class='takeGoodsTime_title'>提货时间</view>
+                <view class='takeGoodsTime_time'>全天 {{collegeIndexGoods.orders[0].starttime}} - {{collegeIndexGoods.orders[0].endtime}}（节假日不休）</view>
+            </view>
+        </view>
+        <!-- 订单商品组件 -->
+        <view>
+            <collegeIndexGoods :syncTitle.sync="collegeGood" class='test_'/>
+        </view>
+        <!-- 底部btn -->
+        <!-- <view class='payBtn_box' wx:if="{{orderState == 1}}">
+            <view class='payBtn_price'>取消订单</view>
+            <view class='payBtn_pay'><button>邀请好友</button></view>
+        </view> -->
+        <view class='payBtn_box againPay_box' wx:if="{{orderState == 1}}">
+            <view class='payBtn_pay againPay'><button open-type="share">邀请好友</button></view>
+        </view>
+        <!-- 订单编号 -->
+        <view class='orderText'>
+            <view>订单金额：<text>￥{{collegeIndexGoods.orders[0].price}}</text></view>
+            <view>创建时间：{{collegeIndexGoods.orders[0].orderTime}}</view>
+            <view wx:if='{{collegeIndexGoods.orders[0].orderStatus == 3}}'>提货时间：{{collegeIndexGoods.orders[0].update_at}}</view>
+            <view>订单编号：{{collegeIndexGoods.orders[0].serial}}</view>
+        </view>
+        <!-- 订单关闭button -->
+        <view class='joinGroup_box' wx:if="{{orderState == 2}}">
+            <button @tap='otherGroup'>去看看其他拼团</button>
+            <view class='prompt'><image src='../../images/问号.png'/><view>拼团玩法：好友参团·人满到店提货·人不满退款</view></view>
+        </view>
+        <!-- 取消订单重新购买 -->
+         <view class='payBtn_box againPay_box' wx:if="{{orderState == 3}}">
+            <view class='payBtn_pay againPay'><button @tap='rePurchase'>重新购买</button></view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+page{
+    background-color: #fff;
+}
+.technologicalProcess_box{
+    width: 100%;
+    height: 320rpx;
+    background-color: #ffd270;
+    box-sizing: border-box;
+    padding: 35rpx 0;
+    .orderState_box{
+        margin: 22rpx 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+        padding: 0 30rpx;
+        .orderState_text{
+            display: flex;
+            align-items: center;
+            image{
+                width: 50rpx;
+                height: 50rpx;
+            }
+            view{
+                color: #000;
+                font-size: 33rpx;
+                margin-left: 20rpx;
+            }
+        }
+        .collegeWaiting_time{
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            .collegeWaiting_time_{
+                font-size: 28rpx;
+                font-weight: bold;
+                color: #000;
+                padding-top: 20rpx;
+            }
+        }
+        .collegeWaiting_num{
+            display: flex;
+            view:nth-child(1){
+                border: 1rpx solid #000;
+                border-radius: 50rpx 0 0 50rpx;
+                font-size: 27rpx;
+                padding: 5rpx 8rpx;
+            }
+            view:nth-child(2){
+                font-size: 27rpx;
+                background-color: #000;
+                color: #f07e60;
+                border: 1rpx solid #000;
+                border-radius: 0 50rpx 50rpx 0;
+                padding: 5rpx 9rpx;
+            }
+        }
+    }
+}
+.takeGoodsTime_box{
+    margin-top: 165rpx;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 30rpx;
+    .takeGoodsTime{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 100rpx;
+        box-shadow: 0 0 10rpx #f1f1f1;
+        border-radius: 10rpx;
+        padding: 20rpx 0;
+        .takeGoodsTime_title{
+            color: #000;
+            font-size: 33rpx;
+            padding-bottom: 10rpx;
+        }
+        .takeGoodsTime_time{
+            color: #000;
+            font-size: 30rpx;
+        } 
+    }
+}
+.takeGoodsTime_boxTop{
+    margin-top: -55rpx !important;
+}
+.payBtn_box{
+    background-color: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 1px solid #f1f1f1;
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .payBtn_price{
+        padding: 10rpx 0;
+        flex: .5;
+        text-align: center;
+        font-size: 33rpx;
+        color: #000;
+    }
+    .payBtn_pay{
+        padding: 10rpx 0;
+        flex: .5;
+        margin: 0;
+        background-color: #ffd270;
+        button{
+            font-size: 33rpx;
+            background-color: #ffd270; 
+        }
+    }
+}
+.test{
+    position: relative;
+    box-sizing: border-box;
+    // transform: translateY(-135rpx);
+    .test_{
+        background-color: #fff;
+        width: 95%;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        padding: 20rpx;
+        top: -175rpx;
+        box-shadow: 0 10rpx 10rpx #f1f1f1;
+    }
+}
+.joinGroup_box{
+        margin-top: 220rpx;
+        box-sizing: border-box;
+        padding: 0 80rpx;
+        button{
+            color: #000;
+            background-color: #ffd270;
+            border-radius: 50rpx;
+            font-size: 33rpx;
+            letter-spacing: 3rpx;
+        }
+        .prompt{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 15rpx;
+            image{
+                margin-right: 10rpx;
+                width: 28rpx;
+                height: 28rpx;
+            }
+            view{
+                font-size: 25rpx;
+            }
+        }
+    }
+    .orderText{
+        margin-top: 25rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        padding-right: 20rpx;
+        view{
+            font-size: 28rpx;
+            margin-bottom: 7rpx;
+            text{
+                color: red;
+                font-size: 38rpx;
+            }
+        }
+    }
+    .limitHeight{
+        height: 244rpx;
+    }
+    .againPay_box{
+        background-color: rgba(0, 0, 0, 0);
+        justify-content: center;
+        margin-bottom: 25rpx;
+        border: none;
+        padding: 0 85rpx;
+        .againPay{
+            flex: 1;
+            border-radius: 50rpx;
+            box-shadow: 0 10rpx 10rpx #f1f1f1;
+            button{
+                border-radius: 50rpx;
+                letter-spacing: 3rpx;
+            }
+        }
+    }
+</style>

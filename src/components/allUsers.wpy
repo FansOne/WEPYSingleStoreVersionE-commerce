@@ -1,0 +1,112 @@
+<template lang="wxml">
+    <view class='userMessItem_boxs'>
+        <block wx:for="{{syncTitle}}" wx:key="">
+            <view class='userMessItem'>
+                <view class='userMessItem_left'>
+                    <image src="{{item.avatar}}"/>
+                    <view class='grouper' wx:if="{{item.is_launch == 1}}">团长</view>
+                </view>
+                <view class='userMessItem_right'>
+                    <view>{{item.nickname}}</view>
+                    <view>{{item.dateline}}</view>
+                </view>
+            </view>
+        </block>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class allUsers extends wepy.component {
+    components = {};
+
+    data = {
+    };
+    methods = {
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){
+        // this.userMess = this.syncTitle
+    }
+}
+</script>
+
+<style lang="less">
+.ensure_box{
+        box-sizing: border-box;
+        padding-top: 40rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .ensure{
+            display: flex;
+            flex: 1;
+            justify-content: space-between;
+            align-items: center;
+            .ensure_item{
+                display: flex;
+                align-items: center;
+                image{
+                    width: 35rpx;
+                    height: 35rpx;
+                    margin-right: 7rpx;
+                }
+                view{
+                    color: #805915;
+                    font-size: 26rpx;
+                }
+            }
+        }
+    }
+    .userMessItem_boxs{
+        padding-bottom: 35rpx;
+    }
+    .userMessItem{
+        background-color: #f3f3f3;
+        border-radius: 70rpx;
+        display: flex;
+        align-items: center;
+        margin-top: 25rpx;
+        padding: 10rpx 25rpx;
+        .userMessItem_left{
+            position: relative;
+            image{
+                border: 1rpx solid sandybrown;
+                height: 100rpx;
+                width: 100rpx;
+                border-radius: 50%;
+            }
+            .grouper{
+                position: absolute;
+                left: 8rpx;
+                bottom: -8rpx;
+                width: 80rpx;
+                background-color: #000;
+                border: 1rpx solid #fff;
+                color: #ffd270;
+                border-radius: 50rpx;
+                font-size: 25rpx;
+                padding: 3rpx 0;
+                text-align: center;
+            }
+        }
+        .userMessItem_right{
+            padding-left: 20rpx;
+            view:nth-child(1){
+                font-size: 33rpx;
+                color: #000;
+            }
+            view:nth-child(2){
+                font-size: 27rpx;
+                padding-top: 10rpx;
+            }
+        }
+    }
+</style>

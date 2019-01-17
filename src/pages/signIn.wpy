@@ -1,0 +1,157 @@
+<script>
+import wepy from 'wepy';
+import { login,setStorage } from '../app/token';
+
+export default class signIn extends wepy.page {
+    config = {
+        navigationBarTitleText: '登录',
+        navigationBarBackgroundColor: '#38c342',
+        navigationBarTextStyle: '#ffffff',
+        disableScroll:true
+    };
+    components = {};
+
+    data = {
+        appid:'',
+    };
+    methods = {
+        getuserinfo(e){
+            wx.showLoading({title: '正在登录...',mask: true,});
+            let avatar = e.detail.userInfo.avatarUrl;
+            let nickname = e.detail.userInfo.nickName;
+            let iv = e.detail.iv;
+            let encryptedData = e.detail.encryptedData;
+            login(iv,encryptedData,this.appid).then((res)=>{
+                if(res.data.status == '200'){
+                    wx.hideLoading();
+                    wepy.$instance.globalData.openid = res.data.open_id
+                    let open_id = res.data.open_id;
+                    let userId = res.data.message;
+                    let token = res.data.access_token;
+                    Promise.all(setStorage([{key:'openid',value: open_id},{key:'userId',value: userId},{key:'token',value: token},{key:'userInfo', value:{avatar:avatar,nickname:nickname,id:userId}}])).then(result=>{
+                        wx.showToast({
+                            title: '成功登录',
+                            icon: 'success',
+                            duration: 900,
+                            mask: false,
+                            success:()=>{
+                                setTimeout(() => {
+                                    wx.navigateBack({
+                                        delta: 1
+                                    });
+                                }, 1000);
+                            }
+                        });
+                    }).catch((err)=>{
+                        wx.showToast({
+                            title: '登录失败',
+                            icon: 'none',
+                            duration: 1500,
+                            mask: false,
+                        });
+                    })
+                }else{
+                    wx.hideLoading();
+                    wx.showToast({
+                        title: res.data.message,
+                        icon: 'none',
+                        duration: 1500,
+                        mask: false,
+                    });
+                }
+            })
+        }
+    };
+
+    events = {};
+    onLoad() {
+        let extConfig = wx.getExtConfigSync? wx.getExtConfigSync(): {}
+        wepy.$instance.globalData.payMessage = extConfig
+        this.appid = extConfig.thirdAppId
+    };
+    // Other properties
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='wxPrompt'>
+            <image src='http://qumatou-1254255265.cos.ap-beijing.myqcloud.com/xeEM2kzeMnZYqZgJo0Cw0Kuj2y8YGSi3hQi3YDsg.png'/>
+            <view>微信授权登录</view>
+        </view>
+        <view class='textPrompt'>
+            <view>登录后该应用将获得以下权限:</view>
+            <view class='textPrompt_user'><view></view><view>将获得你的公开信息(昵称、头像等）</view></view>
+        </view>
+        <view class='buttonBox'>
+            <button hover-class="btnhover" open-type='getUserInfo' @getuserinfo='getuserinfo'>确认登录</button>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .wxPrompt{
+        height: 315rpx;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #38c342;
+        image{
+            transform: translateY(-25rpx);
+            width: 128rpx;
+            height: 120rpx;
+        }
+        view{
+            transform: translateY(-15rpx);
+            letter-spacing: 2rpx;
+            font-size: 35rpx;
+            color: #fff;
+        }
+    }
+    .buttonBox{
+        box-sizing: border-box;
+        width: 100%;
+        padding: 100rpx 50rpx;
+    }
+    button{
+        background-color: #38c342;
+        color: #fff;
+        height: 90rpx;
+        line-height: 90rpx;
+        letter-spacing: 2rpx;
+        border-radius: 0;
+        font-size: 34rpx;
+    }
+    .btnhover{
+        background-color: #297c2e;
+    }
+    .textPrompt{
+        box-sizing: border-box;
+        padding: 30rpx 50rpx;
+        view:nth-child(1){
+            font-size: 32rpx;
+            color: #000;
+        }
+        .textPrompt_user{
+            display: flex;
+            align-items: center;
+            padding-top: 25rpx;
+            view:nth-child(1){
+                width: 10rpx;
+                height: 10rpx;
+                margin-right: 15rpx;
+                border-radius: 50%;
+                background-color: #666;
+            }
+            view:nth-child(2){
+                font-size: 26rpx;
+                color: #666;
+            }
+        }
+    }
+</style>

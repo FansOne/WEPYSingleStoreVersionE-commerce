@@ -127,7 +127,7 @@
       },
       goIndex(){
         wx.switchTab({
-          url: 'index'
+          url: './homePage'
         })
       }
     }

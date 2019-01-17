@@ -1,0 +1,193 @@
+<script>
+import wepy from 'wepy';
+import { requestData } from '../../app/request'
+import api from '../../app/api'
+// const { jifenDetail } = api;
+
+export default class index extends wepy.page {
+    config = {
+        navigationBarTitleText: '积分商城',
+    };
+    components = {};
+
+    data = {
+        goods:[],
+        page:1,
+        imgUrls: [],
+        icon:{
+            goodLists:'../../images/sahngpinshow.png',
+            goodStyle:'#000',
+            orderLists:'../../images/dingdanhide.png',
+            orderStyle:'#666'
+        }
+    };
+    methods = {
+        luckDrawDetails(id){
+            wx.navigateTo({
+                url: `./details?id=${id}`
+            });
+        },
+        tabs(id){
+            if(id == 0){
+                wx.redirectTo({
+                    url: './index'
+                });
+            }else{
+                wx.redirectTo({
+                    url: './orderLists'
+                });
+            }
+        }
+    };
+
+    events = {};
+    onLoad() {
+        //积分商品列表
+        this.goodLists()
+    };
+    onReachBottom(){
+        wx.showLoading({title: '加载中...', mask: true });
+        this.page++
+        this.goodLists()
+    }
+    // 积分商城列表
+    goodLists(){
+        let data = {
+            merchant_id: wepy.$instance.globalData.payMessage.merchantId,
+            page: this.page,
+            type: 2
+        }
+        requestData(`${api.goodLists}`,'GET',data).then((res)=>{
+            res.data.message.res.forEach(element=>{
+                element.cost = (element.cost/100).toFixed(2)
+                element.price = (element.price/100).toFixed(2)
+            })
+            if(this.page == 1){
+                this.imgUrls = res.data.message.img
+                this.goods = res.data.message.res
+                this.$apply()
+            }else{
+                wx.hideLoading();
+                if(!res.data.message.res.length){
+                    return wx.showToast({
+                        title: '已加载全部数据',
+                        icon: 'none',
+                        duration: 1500,
+                        mask: false,
+                    });
+                }else{
+                    res.data.message.res.forEach(element => {
+                        this.goods.push(element)
+                        this.$apply()
+                    });
+                }
+            }
+        })
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <!-- topSwiper -->
+        <swiper autoplay circular indicator-dots>
+            <swiper-item wx:for="{{imgUrls}}" wx:key=''>
+                <image src="{{item.cover}}" class="slide-image" width="355" height="150"/>
+            </swiper-item>
+            <swiper-item wx:if="{{!imgUrls[0].cover}}">
+                <view class='wtpgg'>暂无图片广告</view>
+            </swiper-item>
+        </swiper>
+        <!-- goods -->
+        <view class='goodsBox'>
+            <block wx:for='{{goods}}' wx:key=''>
+                <view class='goodItem' @tap='luckDrawDetails({{item.id}})'>
+                    <image src='{{item.cover}}'/>
+                    <view class='title'>{{item.title}}<text class='price_'>原价￥{{item.cost}}</text></view>
+                    <view class='progress_'>
+                        <view>{{item.integral}}积分+{{item.price}}元</view>
+                    </view>
+                </view>
+            </block>
+        </view>
+    </view>
+    <!-- 菜单 -->
+    <view class='menuBox'>
+        <view class='menuBox_left' @tap='tabs(0)'>
+            <image src='{{icon.goodLists}}'/>
+            <view style='color:{{icon.goodStyle}}'>商品列表</view>
+        </view>
+        <view class='menuBox_right' @tap='tabs(1)'>
+            <image src='{{icon.orderLists}}'/>
+            <view style='color:{{icon.orderStyle}}'>我的订单</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    swiper{
+        height: 300rpx;
+        swiper-item{
+            height: 300rpx;
+            image{
+                width: 100%;
+                height: 300rpx;
+            }
+        }
+    }
+    .goodsBox{
+        box-sizing: border-box;
+        width: 100%;
+        padding: 10rpx;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-bottom: 100rpx;
+        .goodItem{
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            height: 528rpx;
+            width: 49.2%;
+            overflow: hidden;
+            border-radius: 10rpx;
+            margin-bottom: 18rpx;
+            image{
+                width: 100%;
+                height: 365rpx;
+            }
+            .title{
+                box-sizing: border-box;
+                width: 100%;
+                padding: 0  20rpx;
+                font-size: 30rpx;
+                color: #000;
+                margin-top: 30rpx;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;
+                overflow: hidden;
+                .price_{
+                    text-decoration:line-through;
+                    font-size: 24rpx;
+                    color: #666;
+                    margin-left: 10rpx;
+                }
+            }
+            .progress_{
+                box-sizing: border-box;
+                width: 100%;
+                padding: 0  20rpx;
+                margin-top: 25rpx;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                view{
+                    color: red;
+                    font-size: 28rpx;
+                }
+            }
+        }
+    }
+</style>

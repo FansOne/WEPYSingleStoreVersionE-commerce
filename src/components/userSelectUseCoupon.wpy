@@ -1,0 +1,200 @@
+<template lang="wxml">
+    <view class='item_box'  wx:for='{{syncTitle}}' wx:key='' @tap='setCoupon({{index}})'>
+        <view wx:if='{{item.type == 1}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/youhuiquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                    <view class='prompt_'>满{{item.min_money/100}}元使用</view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view wx:if='{{item.type == 2}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/zhekouquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:25rpx;'>
+                        <text class='bags'>{{item.amount}}</text>
+                        <text>折</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view wx:if='{{item.type == 3}}' class='couponItem' style="background-image: url('http://applet.qumatou.com.cn/static/shop/daijinquan.png');">
+            <view class='couponItem_left'>
+                <view class='logo'>
+                    <view>{{item.title}}</view>
+                    <image src='{{item.cover_url}}'/>
+                </view>
+                <view class='pricess'>
+                    <view class='pricess_' style='padding-top:30rpx;'>
+                        <text>￥</text>
+                        <text class='bags'>{{item.amount/100}}</text>
+                    </view>
+                </view>
+            </view>
+            <view class='couponItem_right'>商家说明：{{item.content}}</view>
+        </view>
+        <view class='time'>
+            <view class='term' wx:if='{{!item.begin_time}}'>期限：永久有效</view>
+            <view class='term' wx:if='{{item.begin_time}}'>期限：{{item.begin_time}}至{{item.end_time}}</view>
+            <view class='time_right'>
+            </view>
+        </view>
+    </view>
+    <view wx:if='{{!syncTitle.length}}' class='noCard'>暂无相关卡券选择</view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class userSelectUseCoupon extends wepy.component {
+    components = {};
+
+    data = {};
+    methods = {
+        setCoupon(idx){
+            wx.setStorage({
+                key: 'selectCoupon',
+                data: this.syncTitle[idx],
+                success: ()=>{
+                    wx.navigateBack({
+                        delta: 1
+                    });
+                }
+            });
+        }
+    };
+
+    events = {};
+    props = {
+        syncTitle: {
+            type: Array,
+            default: 'null'
+        }
+    };
+
+}
+</script>
+
+<style lang="less">
+    .item_box{
+        box-sizing: border-box;
+        padding: 20rpx 40rpx;
+        height: 285rpx;
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        .couponItem{
+            height: 195rpx;
+            width: 100%;
+            border-radius: 7rpx;
+            background-size: 100%;
+            display: flex;
+            .couponItem_left{
+                display: flex;
+                flex-direction: row;
+                width: 500rpx;
+                .logo{
+                    width: 50%;
+                    box-sizing: border-box;
+                    padding-top: 25rpx;
+                    padding-left: 90rpx;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    view{
+                        margin-bottom: 15rpx;
+                        font-size: 24rpx;
+                        color: #fff;
+                        width: 100%;
+                        text-align: center;
+                        letter-spacing: 3rpx;
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 1;
+                        overflow: hidden;
+
+                    }
+                    image{
+                        width: 100rpx;
+                        height: 100rpx;
+                        border-radius: 8rpx;
+                    }
+                }
+                .pricess{
+                    box-sizing: border-box;
+                    padding-right: 6rpx;
+                    width: 50%;
+                    display: inline-block;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    .pricess_{
+                        font-size: 35rpx;
+                        color: #fff;
+                        padding-top: 10rpx;
+                        box-sizing: border-box;
+                        .bags{
+                            font-size: 100rpx;
+                        }
+                    }
+                    .prompt_{
+                        font-size: 20rpx;
+                        letter-spacing: 2rpx;
+                        color: #fff;
+                        transform: translateX(6rpx) translateY(-6rpx);
+                    }
+                }
+            }
+            .couponItem_right{
+                box-sizing: border-box;
+                height: 160rpx;
+                padding: 35rpx 0 0rpx 5rpx;
+                flex: 1;
+                font-size: 22rpx;
+                color: #fff;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 4;
+                overflow: hidden;
+            }
+        }
+        .time{
+            display: flex;
+            width: 100%;
+            padding-top: 15rpx;
+            .term{
+                font-size: 22rpx;
+                flex: .6;
+            }
+            .time_right{
+                flex: .4;
+                display: flex;
+                justify-content: flex-end;
+                view{
+                    font-size: 22rpx;
+                }
+            }
+        }
+    }
+    .noCard{
+        width: 100%;
+        font-size: 30rpx;
+        padding-top: 430rpx;
+        text-align: center;
+    }
+</style>

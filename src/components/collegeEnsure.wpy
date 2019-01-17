@@ -1,0 +1,68 @@
+<template lang="wxml">
+    <view class='ensure_box'>
+        <view class='ensure'>
+            <block wx:for='{{ensure}}' wx:key=''>
+                <view class='ensure_item'>
+                    <image src='http://applet.qumatou.com.cn/static/shop/对号.png'/>
+                    <view>{{item}}</view>
+                </view>
+            </block>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+export default class collegeEnsure extends wepy.component {
+    components = {};
+
+    data = {
+        // 商户保证
+        ensure:[
+            '不好吃瞬间退款',
+            '全球采购',
+            '放心品控'
+        ],
+    };
+    methods = {};
+
+    events = {};
+    props = {
+        syncTitle: {
+            type:Object,
+            default: 'null'
+        },
+    }
+    onLoad(){
+    }
+}
+</script>
+
+<style lang="less">
+.ensure_box{
+        box-sizing: border-box;
+        padding-top: 40rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .ensure{
+            display: flex;
+            flex: 1;
+            justify-content: space-between;
+            align-items: center;
+            .ensure_item{
+                display: flex;
+                align-items: center;
+                image{
+                    width: 35rpx;
+                    height: 35rpx;
+                    margin-right: 7rpx;
+                }
+                view{
+                    color: #805915;
+                    font-size: 26rpx;
+                }
+            }
+        }
+    }
+</style>

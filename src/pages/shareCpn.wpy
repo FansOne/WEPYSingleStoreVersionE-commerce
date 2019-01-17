@@ -1,0 +1,149 @@
+<script>
+import wepy from 'wepy';
+import api from '../app/app'
+import couponSharePage from '../components/couponSharePage'
+
+export default class shareCpn extends wepy.page {
+    config = {
+        navigationBarTitleText: '',
+        navigationBarBackgroundColor: '#fbb12a',
+        disableScroll: true
+    };
+    components = {couponSharePage:couponSharePage};
+
+    data = {
+        allData:[],
+        shareId : '',
+    };
+    methods = {
+        receiveBtn(){
+            wx.getStorage({
+                key: 'userId',
+                success: res => {
+                    if(this.shareId != res.data){
+                        wx.getStorage({
+                            key: 'token',
+                            success: res_ => {
+                                wepy.request({
+                                    url: api.yscc + `/api/share_coupons/${this.allData[0].uuid}`,
+                                    method: 'GET',
+                                    header:{
+                                        Accept: 'application/vnd.lingmo.v1+json',
+                                        Authorization: 'Bearer '+res_.data
+                                    }
+                                }).then((result)=>{
+                                    if(result.data.status == 200){
+                                        wx.showToast({
+                                            title: '领取成功',
+                                            icon:'success',
+                                            success:()=>{
+                                                setTimeout(() => {
+                                                    wx.switchTab({
+                                                        url:'./index/index'
+                                                    })
+                                                }, 1500);
+                                            }
+                                        });
+                                    }else if (result.data.status == 400){
+                                        wx.showToast({
+                                            title: result.data.message,
+                                            icon: 'none',
+                                            duration: 1500,
+                                            mask: false,
+                                        });
+                                    }else{
+                                        wx.showToast({
+                                            title: '领取失败',
+                                            icon: 'none',
+                                            duration: 1500,
+                                            mask: false,
+                                        });
+                                    }
+                                }); 
+                            }
+                        });
+                    }else{
+                        wx.showToast({
+                            title: '请分享至好友领取',
+                            icon: 'none',
+                            duration: 1500,
+                            mask: false,
+                        });
+                    }
+                },
+                fail:()=>{
+                    wx.navigateTo({
+                        url: './signIn'
+                    });
+                }
+            });
+        },
+        backIndex(){
+            wx.switchTab({
+                url:'./index/index'
+            })
+        }
+    };
+
+    events = {};
+    onLoad(options) {
+        wepy.request({
+            url: api.yscc + `/api/get_coupon_share_data/${options.uuid}`,
+            method: 'GET',
+            header:{
+                Accept:'application/vnd.lingmo.v1+json'
+            }
+        }).then((res)=>{
+            this.allData.push(res.data.message)
+            this.shareId = res.data.message.shareId
+            this.$apply()
+        });
+    };
+}
+</script>
+
+<template lang="wxml">
+    <view class ='container'>
+        <view class='coupon_'>
+            <couponSharePage :syncTitle.sync="allData"/>
+        </view>
+        <button @tap='receiveBtn' class='receiveBtn'>立即领取</button>
+        <view class='backindex_box' style='top:2230rpx;width:60rpx;height:60rpx;'>
+            <image @tap="backIndex" style='height:34rpx;width:30rpx;' src="http://applet.qumatou.com.cn/static/shop/backindex.png"/>
+            <view @tap="backIndex" style='font-size:14rpx'>首页</view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        position: relative;
+        height: 100%;
+        background-image: url('http://applet.qumatou.com.cn/static/shop/lingquan.png');
+        background-size: 100%;
+    }
+    .coupon_{
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 725rpx;
+        width: 675rpx;
+        height: 215rpx;
+    }
+    .receiveBtn{
+        width: 415rpx;
+        height: 100rpx;
+        line-height: 100rpx;
+        background-color: #fff;
+        color: #de4a38;
+        font-size: 56rpx;
+        border-radius: 50rpx;
+        box-shadow: 0 0 20rpx #bd6f2a;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 1015rpx;
+    }
+</style>

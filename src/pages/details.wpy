@@ -32,6 +32,31 @@
 			line-height: 40rpx;
 		}
 	}
+	.swiperShare{
+		position: fixed;
+		z-index: 9999;
+		right: 0;
+		width: 112rpx;
+		height: 45rpx;
+		line-height: 45rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color:#fccc70;
+		border-radius: 50rpx 0 0 50rpx;
+		top: 105rpx;
+		icon{
+			color: #fff;
+			line-height: 45rpx;
+			font-size: 26rpx;
+			transform: translateY(-8rpx);
+		}
+		view{
+			margin-left: 6rpx;
+			font-size: 25rpx;
+			color: #fff;
+		}
+	}
 	swiper-item image {
 	  width: 100%;	
 	}
@@ -46,32 +71,30 @@
 			width: 100%;
 			/*border: 1px solid red;*/
 			position: absolute;
-			top: -83rpx;
-			.details1,.details2,.details3 {
+			top: -63rpx;
+			.details{
 				position: relative;
 				border-radius:20rpx;
-				box-shadow: 1px 1px 10px gray;
+				box-shadow: 1px 1px 10px #f1f1f1;
 				z-index: 2;
 				height: 100%;
 				width: 200rpx;
-				background-color:#ffffff;
+				background-color:rgba(255, 255, 255, .9);
+				overflow: hidden;
 				image {
+					border-radius:20rpx;
+					overflow: hidden;
 					position: absolute;
 					left: 0;
 					right: 0;
+					top: 0;
+					bottom: 0;
 					margin: auto;
-					margin-top: 18rpx;
-					width: 90rpx;
-					height: 90rpx;
+					// margin-top: 18rpx;
+					width: 150rpx;
+					height: 150rpx;
+					border-radius: 50%;
 				};
-				view{
-					color: black;
-					font-size: 24rpx;
-					position: absolute;
-					bottom: 13rpx;
-					width: 100%;
-					text-align: center;
-				}
 			}
 		}
 	}
@@ -116,15 +139,16 @@
 	}
 	.xianJia,.numbers,.yuanJia{
 		color: #fd2323;
-		font-size: 24rpx;
+		font-size: 30rpx;
 		text-align: center;
 		line-height: 45rpx;
 	}
 	.numbers,.yuanJia{
-		line-height: 55rpx;
+		line-height: 57rpx;
 	}
 	.yuanJia {
-		margin-left: 35rpx;
+		color: #000;
+		margin-left: 25rpx;
 		text-decoration:line-through;
 	}
 	.xianJia {
@@ -182,24 +206,6 @@
 	  color: black;
 	  text-align: justify;
 	  margin-top: -10rpx;
-	}
-	.tuijian-titlebox{
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		.tuijian-title view{
-			padding-top: 30rpx;
-			text-align: center;
-			color: black;
-			font-size: 34rpx;
-			letter-spacing:8rpx;
-		}
-		image{
-			height: 18rpx;
-			width: 55rpx;
-			margin: 30rpx 0 30rpx 35%;
-		}
 	}
 	.recommend-box{
 		overflow: hidden;
@@ -262,12 +268,7 @@
 		background-color: rgb(235,235,241);
 	}
 	
-	.commodityTrait-box {
-		margin-bottom: 105rpx;
-	}
-	.commodityTrait-box image{
-		width: 100%;
-	}
+	
 	.detail-nav {
 	  display: flex;
 	  flex-direction: row;
@@ -398,7 +399,7 @@
 		padding-right: 60rpx; 
   	}
   }
-  .bottomShow{
+  .bottomShow,.shareShow{
   	transform: translateY(0) !important;
   }
   .bottom-banners{
@@ -475,9 +476,8 @@
   .hezhuang1{float: left;}
   .hezhuang2{float: right;}
   .hezhuangBg{
-  	border:1rpx solid #ff9966 !important;
-  	color: #ffffff !important;
-  	background-color: #ff9966;
+  	border:1rpx solid #ffd270 !important;
+  	background-color: #ffd270;
   }
   .bottomShow-bottom{
   	padding: 25rpx 60rpx 100rpx 85rpx;
@@ -512,7 +512,7 @@
 	color: #ffffff; 
   }
   .jia{
-  	background-color: #ff9966;
+  	background-color: #ffd270;
   }
   .bottom-btn{
 	display: flex;
@@ -521,15 +521,16 @@
 	view{
 		flex: 0.5;
 		text-align: center;
-		background-color: #ff9966;
-		color: #ffffff;
+		background-color: #ffd270;
+		color: #000;
 		height: 120rpx;
 		line-height: 120rpx;
 		letter-spacing: 5rpx;
 	}
   }
   .bottom-btn .joinShopp{
-  	background-color:#919191;
+	  background-color:#919191;
+	  color: #fff;
   }
   .liji-buy{
   	font-size: 32rpx;
@@ -543,8 +544,8 @@
   	display: flex;
   	flex: 0.5;
   	justify-content: center;
-	background-color: #ff9966;
-	color: #ffffff;
+	background-color: #ffd270;
+	color: #000;
 	height: 120rpx;
 	line-height: 120rpx;
 	letter-spacing: 5rpx;
@@ -574,24 +575,23 @@
       </block>
     </swiper>
     <view class='zhishi'><text>{{bannerImg[0]}}</text><text> / {{clickGoods.banners.length}}</text></view>
+	<!-- 分享 -->
+	<view class='swiperShare' @tap='shareFriends'>
+		<icon class='iconfont icon-fenxiang'/>
+		<view>分享</view>
+	</view>
     <!-- 商品细节展示 -->
     <view class='details-box'>
     	<view class='details-images-box'>
-	    	<view class='details1'>
-	    		<image src = '../images/small_03.jpg'/>
-	    		<view>品质纯正</view>
-	    	</view>
-	    	<view class='details2'>
-	    		<image src = '../images/small_05.jpg'/>
-	    		<view>纯正0添加</view>
-	    	</view>
-	    	<view class='details3'>
-	    		<image src = '../images/small_07.jpg'/>
-	    		<view>颗粒饱满</view>
-	    	</view>
+			<block wx:for='{{threeCover}}' wx:key=''>
+				<view class='details'>
+					<image src = '{{item}}' />
+					<!-- <view>品质纯正</view> -->
+				</view>
+			</block>
     	</view>
     </view>
-	 <view class="detail">
+	 <view class="detail" style="{{threeCover.length?'':'margin-top:-55rpx;'}}">
 	    <text class="title">{{clickGoods.goodInfo.title}}</text>
 	    <view class = 'icons'  @tap='dianXin'>
 	    	<image src="{{dianXin?'http://applet.qumatou.com.cn/static/shop/k心.png':'http://applet.qumatou.com.cn/static/shop/心.png'}}"/>
@@ -601,7 +601,7 @@
             <view class='biaoJia'>现价</view>
         	<block>
           		<text class='xianJia'>¥ {{clickGoods.goodInfo.price/100}}</text>
-          		<text class='numbers'>/ {{clickGoods.goodInfo.subtitle}}</text>
+          		<!-- <text class='numbers'>/ {{clickGoods.goodInfo.subtitle}}</text> -->
           		<text class='yuanJia'>¥ {{clickGoods.goodInfo.sell/100}}</text>
         	</block>
       	</view>
@@ -610,7 +610,7 @@
 	  <view class = 'guige-box'>
 	  	<view class = 'guige-choose' @tap='goAddress'>送至 <text class = 'xuanze-guize'>{{address}}</text><text class='icon-jiantou'> > </text></view>
 	  	<view class = 'guige-choose' @tap='showSpec'>规格属性 <text class = 'xuanze-guize'>{{goodsSkus[0].takeaway_itemTitle}}</text><text class='icon-jiantou'> > </text></view>
-	  	<view class = 'guige-choose' @tap='sd'>运费 <text class = 'xuanze-guize'>包邮</text></view>
+	  	<!-- <view class = 'guige-choose' @tap='sd'>运费 <text class = 'xuanze-guize'>包邮</text></view> -->
 	  </view>
 	  <!-- 用户评价 -->
 	  <view class='comment'>
@@ -676,8 +676,8 @@
 	  <!-- <view class="button-green" @tap='showSpec'><text>¥{{clickGoods.goodInfo.sell/100}}</text><text class='smallTitle'>原价购买</text></view> -->
 	  <view class="button-green" @tap='joinGoods'><text>+ 加入购物车</text></view>
 	  <!-- <button wx:if="{{btnShare}}" class="shareBuy" open-type="share"><text class='btn-price'>¥{{clickGoods.goodInfo.price/100}}</text><text class='btn-share'>分享领劵购买</text></button> -->
-	  <button wx:if='{{judgeLogin}}' class="shareBuy liji-buy" @tap='immediatelyBuy'>立即购买</button>
-	  <button wx:else open-type='getUserInfo' @getuserinfo='getuserinfo' class='shareBuy liji-buy' @tap='immediatelyBuy'>立即购买</button>
+	  <button wx:if='{{judgeLogin}}' class="shareBuy liji-buy" @tap='showSpec'>立即购买</button>
+	  <button wx:else  @tap='getuserinfo' class='shareBuy liji-buy'>立即购买</button>
 	</view>
 	<!-- 规格属性底部浮出 -->
 	<view class="bottomShow-box {{bottomShow?'bottomShow':''}}">
@@ -716,12 +716,28 @@
 		<view class ='bottom-btn'>
 			<view class = 'joinShopp' @tap='joinGoods'>+ 加入购物车</view>
 			<view wx:if='{{judgeLogin}}' class = 'startBuy' @tap = 'immediatelyBuy'>立即购买</view>
-			<button wx:else open-type='getUserInfo' @getuserinfo='getuserinfo' class='startBuy startBuys' @tap='immediatelyBuy'>立即购买</button>
+			<button wx:else @tap='getuserinfo' class='startBuy startBuys'>立即购买</button>
 		</view>
 	</view>
 	<!-- 遮罩 -->
 	<view class='mask' hidden='{{maskFlag}}'></view>
 	<view class='topCover' hidden="{{topCover}}"></view>
+	<!-- 分享朋友圈 -->
+	<view class="shareFriends {{shareShow?'shareShow':''}}">
+		<view class='shareFriendsBtn'>
+			<button style='border-right:1rpx solid #f1f1f1' open-type='share'><icon class='iconfont icon-icon-'/><view>分享给好友</view></button>
+			<button wx:if='{{judgeLogin}}' @tap = 'sharequan'><icon class='iconfont icon-pengyouquan'/><view>发朋友圈</view></button>
+			<button wx:else @tap='getuserinfo'><icon class='iconfont icon-pengyouquan'/><view>发朋友圈</view></button>
+		</view>
+		<view class='shareFriendsCancel' @tap='shareFriends'>取消</view>
+	</view>
+	<!-- 海报 -->
+	<view class="haiBao {{haobaoShow?'':'haobaoShow'}}" hidden='{{haobaoShow}}'>
+		<image src='{{haiBaoImg}}'/>
+		<button @tap='saveImg({{haiBaoImg}})'>保存至相册</button>
+		<view>分享朋友圈时可在相册选取图片</view>
+		<view class='close' @tap='closeHaiBao'>×</view>
+	</view>
   </view>
 </template>
 <script>
@@ -799,12 +815,17 @@
 	    judgeLogin:false,
 	    score:'',
 	    noScore:true,
+		// 商品细节_banner下
+		threeCover:[],
+		shareShow:false,
+		haiBaoImg:'',
+		haobaoShow:true,
     }
 
     onLoad(e) {
 		wx.showShareMenu({
-  withShareTicket: true
-})
+			withShareTicket: true
+		})
     	wx.showNavigationBarLoading()
     	// console.log('当前点击商品ID为'+ (e.id))	
     	this.goodsId = e.id,
@@ -820,7 +841,7 @@
     	}
     	return {
 	      title: that.clickGoods.goodInfo.title,
-	      path: '/pages/index/index',
+	      path: '/pages/details?id='+this.goodsId,
 	      success: function(res) {
 	       // console.log(that.btnShare)
 	       that.btnShare = false
@@ -844,48 +865,14 @@
   	}
     components = {}
     onShow(){
-		let loginFlag = wx.getStorageSync('skey');
-			if (!loginFlag.length) {
-			wx.login({
-				success: (res)=> {
-					const url = api.apiMall + '/third/getSessionKey';
-					const url_openLogin = api.apiMall + '/index/openLogin';
-					const data = {
-					code: res.code,
-					thirdAppId: wepy.$instance.globalData.payMessage.thirdAppId
-					};
-					wx.request({
-					url: url,
-					data: data,
-					method: 'POST',
-					success: res => {
-						// console.log(res)
-						wx.setStorageSync('skey',res.data.session_key)
-						wx.setStorage({
-							key: 'openid',
-							data: res.data.results.openid
-						});
-						wx.request({
-						url: url_openLogin,
-						data: {
-							openId: res.data.results.openid,
-							merchantId:  wepy.$instance.globalData.payMessage.merchantId
-						},
-						method: 'POST',
-						success: res => {
-
-							wepy.$instance.globalData.userId = res.data.userInfo.id
-							wepy.$instance.globalData.avatar = res.data.userInfo.avatar
-							wepy.$instance.globalData.nickname = res.data.userInfo.nickname
-							// wx.setStorageSync('skey',res.data.session_key)
-							this.userId = res.data.userInfo.id
-						}
-						});
-					}
-					});
-				}
-			})
-		}	
+		wx.getStorage({
+			key: 'userId',
+			success: res => {
+				this.userId = res.data
+				this.judgeLogin = true
+				this.$apply()
+			}
+		});
     	wx.getStorage({
     		key:'address',
     		success:(res)=>{
@@ -1125,6 +1112,90 @@
 	  		}
 	  	}
     	this.confirmPay()
+	  },
+	  shareFriends(){
+		  this.shareShow = !this.shareShow
+		  this.maskFlag = !this.maskFlag
+	  },
+	  sharequan(){
+		  wx.showLoading({
+			  title: '海报生成中...',
+			  mask: true,
+		  });
+		  wx.getStorage({
+			  key: 'token',
+			  success: res => {
+				  this.maskFlag = false
+				  this.haobaoShow = false;
+				  this.$apply()
+				  let token = res.data;
+				  wepy.request({
+					  url: 'https://api.yscc.qumatou.com.cn/api/get_good_share_img',
+					  method: 'GET',
+					  data: {
+						  good_id:this.goodsId,
+						  path_url:'pages/details?id='+this.goodsId
+					  },
+					  header: {
+						  Accept : 'application/vnd.lingmo.v1+json',
+						  Authorization : 'Bearer '+token
+					  }
+				  }).then(result=>{
+					  wx.hideLoading();
+					  this.haiBaoImg = result.data.message
+					  this.$apply()
+				  });
+			  }
+		  });
+	  },
+	  closeHaiBao(){
+		this.haobaoShow = true;
+		this.$apply()
+	  },
+	  // 保存图片至相册
+	  saveImg(imgUrl){
+		  wx.showLoading({
+			  title: '正在保存...',
+			  mask: true,
+		  });
+		  let imgSrc = imgUrl;
+		  wx.downloadFile({
+			  url: imgSrc,
+			  success: (res)=>{
+				  wx.saveImageToPhotosAlbum({
+					  filePath: res.tempFilePath,
+					  success: (data)=>{
+						  wx.hideLoading();
+						  wx.showToast({
+							  title: '保存成功',
+							  icon: 'success',
+							  duration: 2000,
+							  success:()=>{
+								  this.haobaoShow = true
+								  this.$apply()
+								  this.shareShow = !this.shareShow
+		  						  this.maskFlag = !this.maskFlag
+								  this.$apply()
+							  }
+						  });
+					  },
+					  fail: (err)=>{
+						  	wx.hideLoading();
+							if (err.errMsg === "saveImageToPhotosAlbum:fail auth denied") {
+								wx.openSetting({
+									success(settingdata) {
+									if (settingdata.authSetting['scope.writePhotosAlbum']) {
+										console.log('获取权限成功，给出再次点击图片保存到相册的提示。')
+									} else {
+										console.log('获取权限失败，给出不给权限就无法正常使用的提示')
+									}
+									}
+								})
+							}
+					  }
+				  });
+			  }
+		  });
 	  }
     }
     // 获取用户点击商品数据
@@ -1134,7 +1205,7 @@
       const url = api.apiMall + '/shop/goodDetail';
       const data = {
         goodId: that.goodsId,
-        userId: wepy.$instance.globalData.userId||''
+        userId: this.userId||''
       }
     //   console.log(data)
       await wepy.request({
@@ -1148,6 +1219,7 @@
         })
 		that.topCover = true
         // console.log(res.data.data)
+		that.threeCover = res.data.data.threeCover,
         that.score = res.data.data.score,
         that.bottomBannerUrl =res.data.data.url,
         that.clickGoods = res.data.data,
@@ -1219,45 +1291,9 @@
 		})
     }
     getuserinfo(e){
-		if (e.detail.errMsg == 'getUserInfo:fail auth deny') {
-			wx.showModal({
-				title: '官方提示',
-				content:
-				'若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
-				duration: 1000,
-				showCancel: false,
-				confirmText: '授权',
-				success: res => {
-				wx.openSetting({
-					success: () => {}
-				});
-				}
-			});
-		}else{
-			wx.showNavigationBarLoading();
-			let url = api.apiMall + '/index/updateLogin';
-			let data = {
-				avatar : e.detail.userInfo.avatarUrl,
-				nickname : e.detail.userInfo.nickName,
-				userId : wepy.$instance.globalData.userId
-			}
-			wepy.request({
-				url: url,
-				method: 'POST',
-				data: data
-			}).then(res => {
-				wx.hideNavigationBarLoading();
-				let userInfo = res.data.userInfo;
-				wx.setStorage({
-					key: 'userInfo',
-					data: userInfo,
-					success: (res)=>{
-						this.judgeLogin = true
-						this.$apply()
-					}
-				})
-			}) 
-		}
-      }
+		wx.navigateTo({
+			url: './signIn'
+		});
+    }
   }
 </script>

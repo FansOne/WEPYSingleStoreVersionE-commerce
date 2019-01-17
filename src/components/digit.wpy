@@ -1,24 +1,25 @@
 <style lang="less">
 .input {
-    height: 60rpx;
-    border: none;
-    flex: 1;
-    padding-left: 15rpx;
-    font-size: 28rpx;
-    input{
-        height: 100%;
-        line-height: 60rpx;
-    }
+  height: 60rpx;
+  border: none;
+  flex: 1;
+  padding-left: 15rpx;
+  font-size: 28rpx;
+  input{
+    height: 100%;
+    line-height: 60rpx;
+    font-size: 36rpx;
+  }
 }
 .placeholderStyle{
-    font-size: 25rpx;
-    line-height:60rpx !important;
+  font-size: 25rpx;
+  line-height:60rpx !important;
 }
 </style>
 
 <template>
   <view class="input">
-    <input type="digit" @input="changeInput" focus='true' placeholder="询问店员后输入" placeholder-class="placeholderStyle" maxlength="8"/>
+    <input type="digit" @input="changeInput" maxlength="8" focus='true' placeholder="请输入付款金额" placeholder-class="placeholderStyle"/>
   </view>
 </template>
 

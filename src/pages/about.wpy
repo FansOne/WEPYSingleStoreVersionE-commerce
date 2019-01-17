@@ -1,24 +1,18 @@
 <style lang="less">
 page {
-  background-color: #ffffff;
-}
-.separate {
-  height: 20rpx;
-  background-color: #f5f5f5;
+  background-color:#fff;
 }
 .userinfo {
   position: relative;
-  height: 300rpx;
+  height: 590rpx;
   display: flex;
-  line-height: 300rpx;
   flex-direction: row;
+  background-color: #ffd270;
   /*align-items: center;*/
   .updata {
     position: absolute;
-    bottom: 0;
-    top:0;
-    margin: auto;
-    right: 222rpx;
+    top:85rpx;
+    left: 222rpx;
     background-color: #3b3633;
     color: #fff;
     // width: 130rpx;
@@ -33,26 +27,34 @@ page {
 }
 .userinfo-nickname {
   position: absolute;
-  left: 70rpx;
+  right: 70rpx;
   display: inline-block;
-  color: #333333;
+  color: #000;
   font-size: 36rpx;
   font-weight: bold;
+  line-height: 216rpx;
 }
 .userinfo-avatar {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-  right: 60rpx;
+  top: 40rpx;
+  left: 60rpx;
   width: 130rpx;
   height: 130rpx;
   border-radius: 50%;
   background-size: cover;
+  border:1rpx solid #434343;
 }
 /* 订单 */
+.orderMessage-boxs{
+  // transform: translateY(-50rpx);
+  box-sizing: border-box;
+  padding: 0 30rpx;
+}
 .orderMessage-box {
+  background-color: #fff;
   position: relative;
+  width: 100%;
+  box-shadow: 0 10rpx 10rpx #f1f1f1;
 }
 .order {
   display: flex;
@@ -171,68 +173,182 @@ page {
 }
 .userinfo-nicknames{
   position: absolute;
-  left: 70rpx;
+  right: 70rpx;
   display: inline-block;
-  color: #686b6e;
+  color: #000;
   font-size: 30rpx;
   font-weight: bold;
+  line-height: 218rpx;
 }
+/*顶部导航样式*/
+  .navbar{ 
+    display: flex; 
+    box-sizing: border-box;
+    padding: 0 60rpx;
+    height: 75rpx;
+    position: absolute;
+    bottom: 180rpx;
+  } 
+  .navbar .item{
+    margin-right:  45rpx;
+    position: relative; 
+    text-align: center;
+    line-height: 60rpx; 
+    font-size: 30rpx;
+    color: #000;
+    font-family: Microsoft YaHei;
+  } 
+  .navbar .item.active{ 
+    color: #000; 
+    font-size: 38rpx;
+    font-family: Microsoft YaHei;
+  } 
+  .navbar .item.active:after{ 
+      content: ""; 
+      position: absolute;
+      bottom: -5rpx; 
+      left: 0; 
+      right: 0;
+      margin: auto; 
+      height: 8rpx;
+      width: 65rpx;
+      border-radius: 50rpx;
+      background-color: #000;
+      
+  }
+  .noOrder_box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    image{
+      margin-top: 105rpx;
+      width: 260rpx;
+      height: 260rpx;
+    }
+    text{
+      display: inline-block;
+      padding: 15rpx 0;
+      padding-bottom: 50rpx;
+      font-size: 25rpx;
+      transform: translateX(15rpx);
+    }
+  }
+  .cardVip{
+    z-index: 9;
+    height:100rpx;
+    width:710rpx;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    bottom: 270rpx;
+  }
 </style>
 <template>
 <view class="container">
-  <view class="userinfo" style="background-image: url('http://applet.qumatou.com.cn/static/shop/aboutBg.png'); background-repeat:no-repeat;background-size:cover">
+  <view class="userinfo">
     <image class="userinfo-avatar" src="{{login?userInfo.avatar:'http://applet.qumatou.com.cn/static/food/WechatIMG151.png'}}" mode='widthFix'/>
     <text class="{{login?'userinfo-nickname':'userinfo-nicknames'}}">{{login?userInfo.nickname:'匿名用户'}}</text>
-    <button hidden='{{login_btnHidden}}' class='updata' open-type='getUserInfo' @getuserinfo='getuserinfo'>一键登录</button>
+    <button hidden='{{login_btnHidden}}' class='updata' @tap='getuserinfo'>登录</button>
+    <!-- 会员卡入口 -->
+    <image src='http://applet.qumatou.com.cn/static/shop/%E4%BC%9A%E5%91%98%E5%8D%A1%E5%85%A5%E5%8F%A3.png' class='cardVip' @tap='goCard'/>
+    <!-- tab -->
+    <view class="navbar" style=" z-index:9">
+      <!-- 遮罩 -->
+      <view class='masks' hidden='{{maskFlag}}' @tap='pleaceLogin'></view>
+      <!--循环-->
+      <view wx:for="{{navbar}}" wx:key="unique" class="item {{currentTab==index ? 'active' : ''}}" @tap="navbarTap({{index}})">
+        {{item}}
+      </view>
+    </view>
   </view>
-  <!-- <view wx:else class="loginBox">
-    <image class="userinfo-login" src="http://applet.qumatou.com.cn/static/shop/未登录.png" mode='widthFix'/>
-    <view class="userinfo-read">授权微信登录后方可使用小程序</view>
-    <button open-type='getUserInfo' @getuserinfo='getuserinfo'>登录</button>
-  </view> -->
-
-  <view class="separate"></view>
-
-  <view class= 'orderMessage-box'>
-      <view class="order" @tap.stop="toOrder">
-        <text class="myorder-text">我的订单</text>
-        <text class="myorderlook-text">查看全部订单</text>
-        <image class="next-image" src="../images/箭头.png"/>
-      </view>
-      <view class="line"></view>
-
-    <view class="navs">
-      <block wx:for-items="{{orderItems}}" wx:key="name">
-        <view class="nav-item" @tap.stop="toOrder" data-type="{{item.name}}" data-typeid="{{item.typeId}}">
-          <image src="{{item.imageurl}}" class="nav-image" />
-          <text>{{item.name}}</text>
+  <!-- 商城订单 -->
+  <view hidden="{{currentTab !== 0}}" class='orderMessage-boxs' style='margin-top:-150rpx;'>
+    <view class= 'orderMessage-box'>
+        <!-- 遮罩 -->
+        <view class='masks' hidden='{{maskFlag}}' @tap='pleaceLogin'></view>
+        
+        <view class="order" @tap.stop="toOrder">
+          <text class="myorder-text">我的订单</text>
+          <text class="myorderlook-text">查看全部订单</text>
+          <image class="next-image" src="../images/箭头.png"/>
         </view>
-      </block>
-    </view>
+        <view class="line"></view>
 
-    <view class="person-list">
-      <view class="list-item" @tap ='goCollection'>
-        <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/我的_16.jpg"/>
-        <text class="item-text">我的收藏</text>
+      <view class="navs">
+        <block wx:for-items="{{orderItems}}" wx:key="name">
+          <view class="nav-item" @tap.stop="toOrder" data-type="{{item.name}}" data-typeid="{{item.typeId}}">
+            <image src="{{item.imageurl}}" class="nav-image" />
+            <text>{{item.name}}</text>
+          </view>
+        </block>
       </view>
-      <view class="list-item" @tap='goAddress'>
-        <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/我的_19.jpg"/>
-        <text class="item-text">收货地址</text>
+
+      <view class="person-list">
+        <view class="list-item" @tap ='goIntegral'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/s积分.png"/>
+          <text class="item-text">我的积分</text>
+        </view>
+        <!-- <view class="list-item" @tap ='goIntegralMall'>
+          <image class="item-image" style='width:45rpx;height:45rpx;margin:20rpx 18rpx' src="http://applet.qumatou.com.cn/static/shop/jifenshangcheng.png"/>
+          <text class="item-text">积分商城</text>
+        </view>
+        <view class="list-item" @tap ='luckDrawIndex'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/jifenchoujiang.png"/>
+          <text class="item-text">积分抽奖</text>
+        </view> -->
+        <view class="list-item" @tap ='voucherCenter'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/领券中心_j.png"/>
+          <text class="item-text">领券中心</text>
+        </view>
+        <view class="list-item" @tap ='goCouppon'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/卡券.png"/>
+          <text class="item-text">我的卡券</text>
+        </view>
+        <view class="list-item" @tap='goAddress'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/我的_19.jpg"/>
+          <text class="item-text">收货地址</text>
+        </view>
+        <view class="list-item" @tap ='goCollection'>
+          <image class="item-image" src="http://applet.qumatou.com.cn/static/shop/xinxin.png"/>
+          <text class="item-text">我的收藏</text>
+        </view>
       </view>
+      <!-- 遮罩 -->
+      <view class='masks' hidden='{{maskFlag}}' @tap='pleaceLogin'></view>
     </view>
-    <!-- 遮罩 -->
-    <view class='masks' hidden='{{maskFlag}}' @tap='pleaceLogin'></view>
+  </view>
+  <!-- 拼团订单 -->
+  <view hidden="{{currentTab !== 1}}" class='orderMessage-boxs' style='padding:0;border-radius: none;margin-top:-124rpx;'>
+    <view class= 'orderMessage-box' style="border-radius: none; {{groupShow?'':'box-shadow:none;'}}" hidden='{{groupShow}}'>
+      <view class='noOrder_box' hidden='{{noGroupOrder}}'>
+        <image src = 'http://applet.qumatou.com.cn/static/shop/订单状态.png'/>
+        <text>您还没有拼团订单呢！</text>
+      </view>
+      <!-- 拼团订单组件 -->
+      <collegeWaiting :syncTitle.sync="collegeWaiting"/>
+    </view>
   </view>
 </view>
 </template>
 <script>
 import wepy from 'wepy';
 import api from '../app/app';
+import collegeWaiting from '../components/collegeWaiting';
+
 export default class New extends wepy.page {
   config = {
-    navigationBarTitleText: '个人中心'
+    navigationBarTitleText: '个人中心',
+    navigationBarBackgroundColor: '#ffd270',
+    enablePullDownRefresh:true,
+    backgroundTextStyle:'dark',
+  };
+  components = {
+    collegeWaiting:collegeWaiting
   };
   data = {
+    navbar: ['商城订单', '拼团订单'],
+    currentTab: 0,
     login_btnHidden:false,
     userId:'',
     userInfo: {},
@@ -271,8 +387,12 @@ export default class New extends wepy.page {
     maskFlag: false,
     userMessage: '',
     payMessage:{},
+    //拼团组件传入数据
+    collegeWaiting:[],
+    groupShow:true,
+    currentGroup:{},
+    noGroupOrder:true
   };
-  components = {};
   methods = {
     toOrder() {
       wx.navigateTo({
@@ -289,113 +409,133 @@ export default class New extends wepy.page {
         url: './collectionGoods'
       });
     },
+    // goIntegralMall(){
+    //   wx.navigateTo({
+    //     url: '../packageMembershipCard/IntegralMall/index'
+    //   });
+    // },
     pleaceLogin() {
       wx.showModal({
         title: '官方提示',
-        content:
-          '若不授权微信登录，则无法使用小程序。点击“登录”按钮方可正常使用',
-        duration: 1000,
+        content:'若不授权微信登录，则无法使用小程序。点击“登录”按钮方可正常使用',
+        duration: 500,
         showCancel: false
       });
+    },
+    navbarTap(e){
+      this.currentTab = e;
+      if(this.currentTab == 1){
+        wx.showLoading({
+          title: '加载中',
+        })
+        this.groupOrderLists()
+      }else if(this.currentTab == 0){
+        this.groupShow = true
+        this.$apply()
+      }
+    },
+    //会员卡页
+    goCard(){
+      if(this.maskFlag){
+        wx.navigateTo({
+          url: '../packageMembershipCard/membershipCard/cardIndex'
+        });
+      }else{
+        wx.showModal({
+          title: '官方提示',
+          content:'若不授权微信登录，则无法使用小程序。点击“登录”按钮方可正常使用',
+          duration: 500,
+          showCancel: false
+        });
+      }
+    },
+    goIntegral(){
+      wx.navigateTo({
+        url: '../packageMembershipCard/membershipCard/myIntegral'
+      });
+    },
+    goCouppon(){
+      wx.navigateTo({
+        url: './userVoucher'
+      });
+    },
+    voucherCenter(){
+      wx.navigateTo({
+        url: './voucherCenter'
+      });
+    },
+    // luckDrawIndex(){
+    //   wx.navigateTo({
+    //     url: '../packageMembershipCard/integralManagement/luckDrawIndex'
+    //   });
+    // },
+  };
+  // 分享
+  onShareAppMessage(res){
+    let shareInfo = this.collegeWaiting;
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      let activityId = res.target.dataset.wpytapstopA;
+      shareInfo.title = '一起拼才划算~'+'【'+shareInfo[activityId].title+'】'+','+'单品优惠'+(shareInfo[activityId].sell-shareInfo[activityId].price)+'元！',
+      shareInfo.path = 'pages/Collage/sharingSpells?orderId='+shareInfo[activityId].groupOrderId;
+      shareInfo.imageUrl = shareInfo[activityId].shareCover
+    }
+    return shareInfo
+  };
+  events = {
+    text:()=>{
+      console.log(this.currentGroup)
     }
   };
-
   //获取用户信息
-  onLoad() {
+  onShow() {
     this.userInfo = wx.getStorageSync('userInfo')
     this.userId = wx.getStorageSync('userId')
     this.payMessage = wepy.$instance.globalData.payMessage
-    let loginFlag = wx.getStorageSync('skey');
-    // console.log(wx.getStorageSync('skey'))
-    if (!this.userId || !loginFlag.length) {
-      let that = this;
-      wx.login({
-        success: (res)=> {
-            const url = api.apiMall + '/third/getSessionKey';
-            const url_openLogin = api.apiMall + '/index/openLogin';
-            const data = {
-              code: res.code,
-              thirdAppId: this.payMessage.thirdAppId
-            };
-              wx.request({
-              url: url,
-              data: data,
-              method: 'POST',
-              success: res => {
-                // console.log(res)
-                wx.setStorage({
-                  key:'skey',
-                  data: res.data.session_key
-                })
-                wx.setStorage({
-                  key: 'openid',
-                  data: res.data.results.openid
-                });
-                wx.request({
-                  url: url_openLogin,
-                  data: {
-                    openId: res.data.results.openid,
-                    merchantId:  wepy.$instance.globalData.payMessage.merchantId
-                  },
-                  method: 'POST',
-                  success: res => {
-                    wepy.$instance.globalData.avatar = res.data.userInfo.avatar
-                    wepy.$instance.globalData.userId = res.data.userInfo.id
-                    wepy.$instance.globalData.nickname = res.data.userInfo.nickname
-                    wx.setStorage({
-                      key:'userId',
-                      data: res.data.userInfo.id
-                    })
-                  }
-                });
-              }
-            });
-        }
-      })
-  }
-}
-  getuserinfo(e) {
-    if(e.detail.errMsg == 'getUserInfo:fail auth deny') {
-      wx.showModal({
-        title: '官方提示',
-        content:
-          '若不授权微信登录，则无法使用小程序。点击”授权“按钮并允许使用”用户信息“方可正常使用',
-        duration: 1000,
-        showCancel: false,
-        confirmText: '授权',
-        success: res => {
-          wx.openSetting({
-            success: () => {}
-          });
-        }
-      });
-    }else{
-      wx.showNavigationBarLoading();
-      let url = api.apiMall + '/index/updateLogin';
-      let data = {
-        avatar : e.detail.userInfo.avatarUrl,
-        nickname : e.detail.userInfo.nickName,
-        userId : wx.getStorageSync('userId')
-      }
-      // console.log(data)
-      wepy.request({
-        url: url,
-        method: 'POST',
-        data: data
-      }).then(res => {
-        wx.hideNavigationBarLoading();
-        // console.log(res.data)
-        this.userInfo = res.data.userInfo
-        this.login = true;
-        this.maskFlag = true;
-        this.login_btnHidden = true;
+    if (this.userId) {
+      this.login = true;
+      this.maskFlag = true;
+      this.login_btnHidden = true;
+      this.groupOrderLists(this.userId)
+    }
+  };
+  //获取拼团订单列表
+  groupOrderLists(id){
+    wx.request({
+      url: api.apiMall + '/group/orderList',
+      method: 'POST',
+      data: {
+        userId:this.userId || id,
+        merchantId:  wepy.$instance.globalData.payMessage.merchantId
+      },
+      success: (res)=>{
+        let orderLists = res.data.data;
+        orderLists.forEach(element => {
+          element.price = Number(element.price/100).toFixed(2)
+          element.sell = Number(element.sell/100).toFixed(2)
+        });
+        wx.hideLoading()
+        this.collegeWaiting = res.data.data
+        this.groupShow = false
         this.$apply()
-        wx.setStorage({
-           key: 'userInfo',
-           data: res.data.userInfo
-         })
-      })
-    } 
+        wx.stopPullDownRefresh()
+        if(!this.collegeWaiting.length){
+          this.noGroupOrder = false
+          this.$apply()
+        }
+      },
+    });
+  }
+  //下拉刷新
+  onPullDownRefresh(){
+    this.groupShow = true
+    this.$apply()
+    this.groupOrderLists()
+  }
+  getuserinfo() {
+      wx.navigateTo({
+        url: './signIn'
+      });
   }
   //用户登陆授权返回信息
   userLogin() {

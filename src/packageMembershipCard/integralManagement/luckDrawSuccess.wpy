@@ -1,0 +1,260 @@
+<script>
+import wepy from 'wepy';
+import api from '../../app/api';
+import { requestData } from '../../app/request'
+
+export default class luckDrawSuccess extends wepy.page {
+    config = {
+        navigationBarTitleText: '订单详情',
+        navigationBarBackgroundColor: '#ffd270',
+        disableScroll:true,
+    };
+    components = {};
+
+    data = {
+        windowHeight:'',
+        allData:{},
+    };
+    methods = {
+        luckDrawIndex(){
+            wx.navigateTo({
+                url: './luckDrawIndex'
+            });
+        },
+        copyNum(){
+            wx.setClipboardData({ 
+	            data: this.allData.out_id,
+	            success: (res)=> {
+                    wx.showToast({
+                        title: '单号复制成功',
+                        icon: 'success',
+                    })
+	            }
+	        })
+        },
+        // 查看物流信息
+        goLM(out_id){
+            wx.navigateTo({
+                url: '../../pages/newLogisticsMessage?out_id='+out_id
+            })
+        }
+    };
+
+    events = {};
+    onLoad(options) {
+        let order_id = options.order_id;
+        wx.getSystemInfo({
+            success:(res)=> {
+                this.windowHeight = res.windowHeight
+                this.$apply()
+            }
+        })
+        this.orderDetail(order_id)
+    };
+    // 积分抽奖订单详情
+    orderDetail(order_id){
+        let url = `${api.IntegralLotteries}${order_id}`
+        requestData(url).then((res)=>{
+            res.data.message.cost = Number(res.data.message.cost).toFixed(2)
+            this.allData = res.data.message
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<template lang="wxml">
+    <view class='container'>
+        <view class='top'>
+            <view class='arc'></view>
+        </view>
+        <view class='skusBox'>
+            <view class='skus_'>
+                <view class='peopleNum' wx:if='{{allData.is_flag == 0}}'>
+                    已参与<text>{{allData.join_num}}</text>人，开奖还需<text>{{allData.people_num - allData.join_num}}</text>人
+                </view>
+                <view class='progress_' wx:if='{{allData.is_flag == 0}}'>
+                    <progress percent="{{allData.join_num/allData.people_num*100}}" stroke-width='6' active border-radius='10' activeColor='#fccc70' backgroundColor='#000000'/>
+                </view>
+                <view class='goodItem'>
+                    <image src='{{allData.cover}}'/>
+                    <view class='goodRight'>
+                        <view class='goodTitle'>{{allData.title}}</view>
+                        <view class='prices'>
+                            <view>原价￥{{allData.cost}}</view>
+                            <view>{{allData.join_num}}人已参与成功</view>
+                        </view>
+                    </view>
+                </view>
+                <view class='statusImg'>
+                    <image wx:if='{{allData.is_flag == 0}}' src="http://qumatou-1254255265.cos.ap-beijing.myqcloud.com/eGvZH2OHIwGwH5CD5tNZYXqlqY2oVn3oD4C502Yo.png" mode='widthFix'/>
+                    <image wx:elif='{{allData.is_flag != 0 && allData.flag == 1}}' src="http://qumatou-1254255265.cos.ap-beijing.myqcloud.com/nacqkOgdHsH9z4Gw280SbRTn2vAZBACIReXpMxri.png" mode='widthFix'/>
+                </view>
+            </view>
+        </view>
+        <!-- 提货码&物流 -->
+        <view class='statusTitle'>
+            <view wx:if='{{allData.pick_up_type == 1 || (allData.pick_up_type == 2 && allData.flag == 1 && allData.status != 0) }}'></view>
+            <text>{{allData.pick_up_type == 1?'我的抽奖码':( allData.flag == 1 && allData.status != 0 ?'物流状态':'' )}}</text>
+            <view wx:if='{{allData.pick_up_type == 1 || (allData.pick_up_type == 2 && allData.flag == 1 && allData.status != 0) }}'></view>
+        </view>
+        <!-- 未发货 -->
+        <view class='waitingShipment' wx:if='{{ allData.flag == 1 && allData.status == 1 && allData.pick_up_type == 2 }}'><icon class='iconfont icon-daifahuo'/>等待商家发货</view>
+        <!-- 到店自提码 -->
+        <view class='goodCode' wx:if='{{allData.pick_up_type == 1}}' style='color: #000;font-size: 40rpx;letter-spacing: 3rpx;'>
+            {{allData.my_code}}
+        </view>
+        <!-- 物流单号 -->
+        <view class='goodCode' @tap='copyNum' wx:if='{{allData.pick_up_type == 2 && allData.flag == 1 && allData.status == 2}}'>
+            <view style='padding-left:15rpx;'>{{allData.out_id}}</view><text>复制单号</text>
+        </view>
+        <!-- 查看物流 -->
+        <view class='wuliu' wx:if='{{allData.pick_up_type == 2 && allData.flag == 1 && allData.status == 2}}' @tap='goLM({{allData.out_id}})'>查看物流信息 >></view>
+        <!-- Mask 未中奖时复现-->
+        <view wx:if='{{allData.is_flag != 0 && allData.flag == 0}}' class='mask' style='height:{{windowHeight}}px'></view>
+        <!-- 未中奖弹窗 -->
+        <view wx:if='{{allData.is_flag != 0 && allData.flag == 0}}' class='promptTc'>
+            <view class='btn' @tap='luckDrawIndex'></view>
+        </view>
+    </view>
+</template>
+
+<style lang="less">
+    page{
+        background-color: #fff;
+    }
+    .top{
+        position: relative;
+        width: 100%;
+        height: 245rpx;
+        background-color: #ffd270;
+        overflow: hidden;
+        .arc{
+            position: absolute;
+            bottom: -106rpx;
+            left: 0rpx;
+            width: 100%;
+            height: 220rpx;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+    }
+    .skusBox{
+        transform: translateY(-180rpx);
+        z-index: 1;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 40rpx;
+        .skus_{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: #fff;
+            border-radius: 15rpx;
+            box-sizing: border-box;
+            padding: 35rpx 20rpx;
+            box-shadow: 0 0 20rpx #cccccc;
+            .peopleNum{
+                font-size: 32rpx;
+                color: #000;
+                text{
+                    color: red;
+                }
+            }
+            .progress_{
+                box-sizing: border-box;
+                width: 100%;
+                margin: 25rpx 0;
+                progress{
+                    border: 1rpx solid #000000;
+                    border-radius: 20rpx;
+                    overflow: hidden;
+                }
+            }
+            .statusImg{
+                margin-top: 35rpx;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 0 30rpx;
+                image{
+                    width: 100%;
+                }
+            }
+        }
+    }
+    .statusTitle{
+        transform:translateY(-120rpx);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text{
+            letter-spacing: 2rpx;
+            color: #000;
+            font-size: 33rpx;
+            padding: 0 12rpx;
+        }
+        view{
+            width: 120rpx;
+            border-top: 2rpx dashed #ffd270;
+        }
+    }
+    .promptTc{
+        z-index: 20;
+        width: 616rpx;
+        height: 597rpx;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 177rpx;
+        background-image: url('http://qumatou-1254255265.cos.ap-beijing.myqcloud.com/FN1Fp9qcBn6aKiEwnFfPieqgmbJIaX5Uw6JoCWkw.png');
+        background-size: 100%;
+        .btn{
+            width: 100%;
+            height: 120rpx;
+            width: 330rpx;
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: auto;
+            bottom: 0;
+        }
+    }
+    .goodCode,.waitingShipment{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translateY(-50rpx);
+        width: 100%;
+        view{
+            color: #000;
+            font-size: 40rpx;
+            letter-spacing: 3rpx;
+        }
+        text{
+            display:inline-block;
+            margin-left: 15rpx;
+            padding: 0 10rpx;
+            font-size: 24rpx;
+            background-color: #e9e8e8;
+            color: #000;
+        }
+    }
+    .waitingShipment{
+        color: rgb(53, 52, 52);
+        font-size: 28rpx;
+        icon{
+            font-size: 45rpx;
+            margin-right: 10rpx;
+        }
+    }
+    .wuliu{
+        transform: translateY(-20rpx);
+        width: 100%;
+        font-size: 28rpx;
+        color: #0064f1;
+        text-align: center;
+        letter-spacing: 3rpx;
+    }
+</style>
